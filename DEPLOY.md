@@ -12,7 +12,7 @@ GitHub marketplace add requires `.claude-plugin/marketplace.json` at the **repo 
 <repo root>/
 ├── .claude-plugin/marketplace.json     # plugins[].source = "./ifl-ios-standards"
 ├── ifl-ios-standards/                  # the plugin (manifest, agents, skills, standards, bin, scripts)
-├── install-from-github.sh              # teammate one-command installer (GitHub transport)
+├── install.sh                          # standalone installer (no clone/jq — add-by-repo-name + install)
 ├── DEPLOY.md                           # this file
 └── README.md / INSTALL.md
 ```
@@ -46,24 +46,24 @@ git push origin v0.14.0
 
 ## Install from GitHub (teammates / CI / fresh machine)
 
-Once pushed, anyone runs the bundled installer (no drive needed):
-
-```bash
-# clone-free: fetch the script straight from the repo, then run it
-curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install-from-github.sh | bash
-
-# or, having cloned the repo:
-./install-from-github.sh                       # global (user scope)
-./install-from-github.sh --ref=v0.14.0         # pin a tag
-./install-from-github.sh --scope=project --project=/path/to/repo
-```
-
-Or the raw Claude CLI:
+Works exactly like any public plugin — **no clone, no drive, no jq**. Two CLI commands by repo name:
 
 ```bash
 claude plugin marketplace add  congncif/ifl-ios-standards          # default branch
-claude plugin marketplace add  congncif/ifl-ios-standards#v0.14.0  # pinned tag
 claude plugin install          ifl-ios-standards@ifl-ios-standards-local
+# (pin a version: add  congncif/ifl-ios-standards#v0.14.0  instead)
+```
+
+`marketplace add` records the marketplace and `install` enables the plugin — the CLI persists both
+to settings, so nothing manual. Then `/reload-plugins` (or restart).
+
+The repo also ships `install.sh` (the same two commands, with `--ref` / `--scope` flags) for a
+one-liner — it does **not** need the repo cloned:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
+# or with flags:
+curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash -s -- --ref=v0.14.0 --scope=project
 ```
 
 Or settings-only auto-enable (`~/.claude/settings.json` for global):
@@ -80,10 +80,15 @@ Or settings-only auto-enable (`~/.claude/settings.json` for global):
 ## Two transports, one marketplace name
 
 The marketplace declared name is `ifl-ios-standards-local` whether the source is the drive
-(`directory`) or GitHub (`github`). **Register only one transport at a time** under that name —
-`install-from-github.sh` removes any existing same-name marketplace before adding the GitHub one,
-so switching from drive → GitHub is safe. To go back to the drive, re-run
-`ifl-ios-standards/scripts/install-claude.sh`.
+(`directory`) or GitHub (`github`). **Register only one transport at a time** under that name. If a
+drive install already registered it, remove it before adding the GitHub one:
+
+```bash
+claude plugin marketplace remove ifl-ios-standards-local
+claude plugin marketplace add    congncif/ifl-ios-standards
+```
+
+To go back to the drive, re-run `ifl-ios-standards/scripts/install-claude.sh`.
 
 ## Updating
 
@@ -95,6 +100,7 @@ so switching from drive → GitHub is safe. To go back to the drive, re-run
 
 ## Private-repo note
 
-If you make the repo private instead, `claude plugin marketplace add` still works as long as the
-machine has GitHub auth (gh login or SSH key). `curl` of the raw installer needs a token, so
-teammates clone via `gh repo clone congncif/ifl-ios-standards` then run `./install-from-github.sh`.
+If you make the repo private instead, `claude plugin marketplace add congncif/ifl-ios-standards`
+still works as long as the machine has GitHub auth (gh login or SSH key). The `curl | bash`
+one-liner needs a token for a private repo, so for private use the two raw `claude plugin` commands
+above (they use the machine's existing git auth) rather than the curl pipe.
