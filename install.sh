@@ -16,7 +16,7 @@ set -euo pipefail
 #   --scope=user|project|local   default user (global, all projects)
 
 REPO="congncif/ifl-ios-standards"
-MARKETPLACE="ifl-ios-standards-local"      # the "name" field inside marketplace.json
+MARKETPLACE="ifl-ios-standards"      # the "name" field inside marketplace.json
 PLUGIN="ifl-ios-standards"
 REF=""
 SCOPE="user"

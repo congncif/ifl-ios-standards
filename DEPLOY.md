@@ -50,7 +50,7 @@ Works exactly like any public plugin — **no clone, no drive, no jq**. Two CLI 
 
 ```bash
 claude plugin marketplace add  congncif/ifl-ios-standards          # default branch
-claude plugin install          ifl-ios-standards@ifl-ios-standards-local
+claude plugin install          ifl-ios-standards@ifl-ios-standards
 # (pin a version: add  congncif/ifl-ios-standards#v0.14.0  instead)
 ```
 
@@ -71,20 +71,20 @@ Or settings-only auto-enable (`~/.claude/settings.json` for global):
 ```json
 {
   "extraKnownMarketplaces": {
-    "ifl-ios-standards-local": { "source": { "source": "github", "repo": "congncif/ifl-ios-standards" }, "autoUpdate": true }
+    "ifl-ios-standards": { "source": { "source": "github", "repo": "congncif/ifl-ios-standards" }, "autoUpdate": true }
   },
-  "enabledPlugins": { "ifl-ios-standards@ifl-ios-standards-local": true }
+  "enabledPlugins": { "ifl-ios-standards@ifl-ios-standards": true }
 }
 ```
 
 ## Two transports, one marketplace name
 
-The marketplace declared name is `ifl-ios-standards-local` whether the source is the drive
+The marketplace declared name is `ifl-ios-standards` whether the source is the drive
 (`directory`) or GitHub (`github`). **Register only one transport at a time** under that name. If a
 drive install already registered it, remove it before adding the GitHub one:
 
 ```bash
-claude plugin marketplace remove ifl-ios-standards-local
+claude plugin marketplace remove ifl-ios-standards
 claude plugin marketplace add    congncif/ifl-ios-standards
 ```
 
@@ -96,7 +96,7 @@ To go back to the drive, re-run `ifl-ios-standards/scripts/install-claude.sh`.
 2. Bump `version` in `ifl-ios-standards/.claude-plugin/plugin.json` (SemVer).
 3. `git commit` + `git push`; `git tag vX.Y.Z && git push origin vX.Y.Z`.
 4. Installs with `autoUpdate: true` pick up the default branch; pinned installs move when you
-   re-add with the new `#vX.Y.Z`, or run `claude plugin marketplace update ifl-ios-standards-local`.
+   re-add with the new `#vX.Y.Z`, or run `claude plugin marketplace update ifl-ios-standards`.
 
 ## Private-repo note
 

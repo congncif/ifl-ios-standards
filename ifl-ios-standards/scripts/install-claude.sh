@@ -20,7 +20,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 MARKETPLACE_ROOT="$(cd "$PLUGIN_DIR/.." && pwd)"
 
-MARKETPLACE_NAME="ifl-ios-standards-local"
+MARKETPLACE_NAME="ifl-ios-standards"
 PLUGIN_NAME="ifl-ios-standards"
 PLUGIN_REF="$PLUGIN_NAME@$MARKETPLACE_NAME"
 

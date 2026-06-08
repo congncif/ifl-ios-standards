@@ -12,7 +12,7 @@ Defaults to **global (user) scope** — the plugin is enabled in every project. 
 
 1. `claude plugin validate` the plugin + the marketplace (offline check).
 2. `claude plugin marketplace add --scope user <marketplace root>`.
-3. `claude plugin install --scope user ifl-ios-standards@ifl-ios-standards-local`.
+3. `claude plugin install --scope user ifl-ios-standards@ifl-ios-standards`.
 4. Merges the auto-enable block into `~/.claude/settings.json` (via `jq`; prints it for manual
    paste if `jq` is missing).
 
@@ -28,7 +28,7 @@ Defaults to **global (user) scope** — the plugin is enabled in every project. 
 
 ```bash
 claude plugin marketplace add  /Volumes/KingstonXS1000/WORKSPACE/ABC/ifl-ios-pack/marketplace
-claude plugin install          ifl-ios-standards@ifl-ios-standards-local
+claude plugin install          ifl-ios-standards@ifl-ios-standards
 ```
 
 Or pre-seed settings (`~/.claude/settings.json` for global, repo `.claude/settings.local.json` for project):
@@ -36,18 +36,18 @@ Or pre-seed settings (`~/.claude/settings.json` for global, repo `.claude/settin
 ```json
 {
   "extraKnownMarketplaces": {
-    "ifl-ios-standards-local": {
+    "ifl-ios-standards": {
       "source": { "source": "directory", "path": "/Volumes/KingstonXS1000/WORKSPACE/ABC/ifl-ios-pack/marketplace" }
     }
   },
-  "enabledPlugins": { "ifl-ios-standards@ifl-ios-standards-local": true }
+  "enabledPlugins": { "ifl-ios-standards@ifl-ios-standards": true }
 }
 ```
 
 ## After install
 
 - Restart Claude Code, or run `/reload-plugins`, if discovery doesn't refresh.
-- Verify: `claude plugin list` shows `ifl-ios-standards@ifl-ios-standards-local` enabled;
+- Verify: `claude plugin list` shows `ifl-ios-standards@ifl-ios-standards` enabled;
   `/agents` lists the 10 `ios-*` agents; `/ifl-ios-standards:boardy-vip` resolves.
 - Wire the consuming repo: copy a starter from `standards/templates/portable-claude/` into the
   repo's `CLAUDE.md` and fill in scheme / module roots / build commands / base branch / remote.

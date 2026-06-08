@@ -1,7 +1,7 @@
 {
-  "name": "ifl-ios-standards-local",
+  "name": "ifl-ios-standards",
   "metadata": {
-    "description": "Local marketplace for the ifl-ios-standards plugin (Boardy+VIP iOS standards, agents, and scaffolders)."
+    "description": "Marketplace for the ifl-ios-standards plugin (Boardy+VIP iOS standards, agents, and scaffolders)."
   },
   "owner": {
     "name": "IFL iOS"
