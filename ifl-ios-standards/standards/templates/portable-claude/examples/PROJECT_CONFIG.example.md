@@ -1,0 +1,251 @@
+<!-- Created by claude-sonnet-4-6 on 2026-05-18 -->
+
+# PROJECT_CONFIG.example.md — SHAPE REFERENCE
+
+> ⚠️ **DO NOT COPY VALUES.** This file shows the *shape* of a real `PROJECT_CONFIG.md`. Fictional values use a generic example app (`ExampleApp` + modules `Auth`, `Profile`, `Catalog`, `Cart`, `Settings`). When SETUP.md generates the real file:
+> - Replace every identity value (project name, workspace, URLs, simulator) with the user's actual answers.
+> - Replace every module name with the project's real modules.
+> - Keep the section order, table columns, command formats, and placeholder syntax intact.
+> - Bindings root convention: `.ai/rules/` (semantic). Some teams keep tool config under `.claude/`; respect whichever the user chose.
+
+---
+
+# PROJECT_CONFIG — Project Configuration Contract
+
+> **Purpose**: Single editable configuration contract for project-wide values. Generic doctrine, rules, examples, and agents read values from here instead of hard-coding project details.
+>
+> **How to customize**: keep this structure stable; update values inside tables/blocks. A copied rules pack should work in another project by replacing this file's values, not by rewriting the constitution or generic specs.
+>
+> **Boundary**: this file contains global configuration only. Current schemes, modules, module purposes, and topology inventory live in `<BindingsRoot>/PROJECT_STRUCTURE.md` and must be updated with code/PRD structure changes.
+>
+> **Precedence**: when this file conflicts with a generic rule or agent prompt, this file wins for project-specific configuration values.
+
+---
+
+## 1. Identity Configuration
+
+| Key | Value |
+|-----|-------|
+| `{ProjectName}` | `ExampleApp` |
+| `{Workspace}` | `ExampleApp.xcworkspace` |
+| `{MainScheme}` | `ExampleApp` |
+| `{ModulePrefix}` | *(none — modules use bare names; alternative: short prefix like `EXA`)* |
+| `{BaseBranch}` | `main` |
+| `{GitRemote}` | `origin` |
+| `{GitRemoteURL}` | `https://github.com/example-org/ExampleApp.git` |
+| `{Simulator}` | `iPhone 17` |
+| `{Destination}` | `platform=iOS Simulator,name=iPhone 17` |
+
+---
+
+## 2. Project-Wide Path Configuration
+
+| Concern | Value |
+|---------|-------|
+| Module root | `submodules/` |
+| Project structure inventory | `<BindingsRoot>/PROJECT_STRUCTURE.md` |
+| AI workspace root | `.superpowers/` |
+| Plans root | `.superpowers/plans/` |
+| Specs root | `.superpowers/specs/` |
+| Brainstorms root | `.superpowers/brainstorms/` |
+| Reports root | `.superpowers/reports/` |
+| Reviews root | `.superpowers/reviews/` |
+| Scratch root | `.superpowers/scratch/` |
+
+---
+
+## 3. Tooling Configuration
+
+| Concern | Value |
+|---------|-------|
+| Dependency manager | CocoaPods *(alternatives: SwiftPM, Tuist, mixed — capture whichever the project uses)* |
+| App dependency file | `Podfile` |
+| Module dependency files | `*.podspec` |
+| App plugin host | `SceneDelegate.scene(_:willConnectTo:options:)` *(or `AppDelegate` / `App.swift` for SwiftUI lifecycle)* |
+| Interface source glob | `IO/**/*.swift` |
+| Implementation source glob | `Sources/**/*.swift` |
+| Interface target pattern | `{ModuleName}` |
+| Implementation target pattern | `{ModuleName}Plugins` |
+| Localization code generation | Run the project's chosen tool (e.g., `swiftgen`) already available on the machine; do not add a tool manager unless explicitly requested. |
+| Localization config location | Each module owns its own `swiftgen.yml`; no root config for module strings. |
+| Localization generated files | `{ModuleRoot}/{ModuleName}/Sources/Generated/{ModuleName}Strings.swift` |
+
+---
+
+## 4. Build/Test/Debug Configuration
+
+### 4.1 Destination Discovery
+
+Run destination discovery when `{Destination}` is stale or build output suggests unavailable simulator/device:
+
+```bash
+xcodebuild build -workspace {Workspace} -scheme {MainScheme} -showdestinations
+```
+
+### 4.2 Canonical Commands
+
+Build any scheme with filtered output:
+
+```bash
+xcodebuild build -workspace {Workspace} -scheme {Scheme} \
+  -destination '{Destination}' \
+  -derivedDataPath DerivedData 2>&1 \
+  | grep -E "(error:|warning:|BUILD SUCCEEDED|BUILD FAILED)"
+```
+
+Build main app with filtered output:
+
+```bash
+xcodebuild build -workspace {Workspace} -scheme {MainScheme} \
+  -destination '{Destination}' \
+  -derivedDataPath DerivedData 2>&1 \
+  | grep -E "(error:|warning:|BUILD SUCCEEDED|BUILD FAILED)"
+```
+
+Test any scheme with filtered output:
+
+```bash
+xcodebuild test -workspace {Workspace} -scheme {Scheme} \
+  -destination '{Destination}' \
+  -derivedDataPath DerivedData 2>&1 \
+  | grep -E "(error:|warning:|FAILED|PASSED|TEST SUCCEEDED|TEST FAILED|BUILD SUCCEEDED|BUILD FAILED)"
+```
+
+Get error context after failed build:
+
+```bash
+xcodebuild build -workspace {Workspace} -scheme {Scheme} \
+  -destination '{Destination}' \
+  -derivedDataPath DerivedData 2>&1 \
+  | grep -B 2 -A 5 "error:"
+```
+
+### 4.3 Verification Rules
+
+| Rule | Detail |
+|------|--------|
+| No quiet build | Never use `-quiet`; it hides errors and causes misleading silent failures. |
+| No silent pretty output | Never use `xcpretty -s`; it can suppress critical lines. |
+| Empty grep output | Treat as failure, not success. Re-run without grep and report the real issue. |
+| Build success | Requires explicit `** BUILD SUCCEEDED **`. |
+| Test success | Requires explicit `** TEST SUCCEEDED **` or all tests `PASSED`, with no `error:` lines. |
+| Destination validity | Use a real device from `-showdestinations`; stale device names mislead. |
+
+---
+
+## 5. Dependency/Project Generation Configuration
+
+| Trigger | Required action |
+|---------|-----------------|
+| New module | Add Podfile entries, then run `pod install`. |
+| New pod dependency | Update podspec/Podfile, then run `pod install`. |
+| Removed pod dependency | Update podspec/Podfile, then run `pod install`. |
+| Changed `source_files` or `resources` glob | Run `pod install`. |
+| New Swift files created outside Xcode project generation | Run `pod install` if CocoaPods/project generation must refresh file membership. |
+| Updated `Localizable.strings` in a module | Run `swiftgen config run --config swiftgen.yml` from that module directory. |
+| Added or changed a module `swiftgen.yml` | Run `swiftgen config run --config swiftgen.yml` from that module directory and commit generated Swift. |
+
+Podfile local path syntax:
+
+```ruby
+pod '{ModuleName}',        :path => 'submodules/{ModuleName}'
+pod '{ModuleName}Plugins', :path => 'submodules/{ModuleName}'
+```
+
+Podspec dependency syntax:
+
+```ruby
+s.dependency '{DependencyName}'
+```
+
+Never add local `:path` hints to `s.dependency`; local paths belong in the app-level dependency configuration.
+
+---
+
+## 6. AI Workflow Configuration
+
+All AI workflow artifacts stay under the project-local workspace root.
+
+| Artifact type | Location |
+|---------------|----------|
+| Workspace root | `.superpowers/` |
+| Plans | `.superpowers/plans/` |
+| Specs | `.superpowers/specs/` |
+| Brainstorms | `.superpowers/brainstorms/` |
+| Reports | `.superpowers/reports/` |
+| Reviews | `.superpowers/reviews/` |
+| Scratch / temporary analysis | `.superpowers/scratch/` |
+| Other typed artifacts | Create a typed subfolder under `.superpowers/` |
+
+Rules:
+
+- Do not place AI workflow artifacts in `docs/`.
+- Do not place AI workflow artifacts in `.claude/` (reserve `.claude/` for Claude tool config only).
+- Date-prefix report filenames: `YYYY-MM-DD-<topic>.md`.
+
+---
+
+## 7. File Trace Header Configuration
+
+Every new Swift source, spec, plan, report, or workflow artifact starts with a trace header.
+
+Swift/source variant:
+
+```swift
+// Created by <ai-model-id> on <YYYY-MM-DD>
+```
+
+Markdown variant:
+
+```markdown
+<!-- Created by <ai-model-id> on <YYYY-MM-DD> -->
+```
+
+Use the model ID that creates the file. Do not edit the header on later revisions.
+
+---
+
+## 8. Git / Phase Workflow Configuration
+
+| Rule | Binding |
+|------|---------|
+| Phase completion | After each user-approved phase, prepare reviewed changes for commit. |
+| Commit approval | Commit only after explicit user approval for the current phase. |
+| Push approval | Push only after explicit user approval for the current phase. |
+| Staging | Stage explicit reviewed file paths only; avoid broad staging. |
+| Target remote/branch | `{GitRemote}` / `{BaseBranch}` |
+
+---
+
+## 9. Placeholder Resolution Map
+
+| Placeholder | Resolution |
+|-------------|------------|
+| `{ProjectName}` | `ExampleApp` |
+| `{Workspace}` | `ExampleApp.xcworkspace` |
+| `{MainScheme}` | `ExampleApp` |
+| `{Scheme}` | Bound per task; use `{MainScheme}` unless a module scheme is specified. Current scheme inventory lives in `<BindingsRoot>/PROJECT_STRUCTURE.md`. |
+| `{Simulator}` | `iPhone 17` |
+| `{Destination}` | `platform=iOS Simulator,name=iPhone 17` |
+| `{BaseBranch}` | `main` |
+| `{GitRemote}` | `origin` |
+| `{GitRemoteURL}` | `https://github.com/example-org/ExampleApp.git` |
+| `{ModuleName}` | Bound per task. Current module inventory lives in `<BindingsRoot>/PROJECT_STRUCTURE.md`. |
+| `{ModulePluginsName}` | `{ModuleName}Plugins` |
+| `{NoPrefixName}` | Same as `{ModuleName}` because this example uses no default prefix. |
+| `{ModuleRoot}` | `submodules/` |
+| `{ProjectStructure}` | `<BindingsRoot>/PROJECT_STRUCTURE.md` |
+| `{AIWorkspaceRoot}` | `.superpowers/` |
+
+---
+
+## 10. Update Procedure
+
+When a project-wide configuration value changes:
+
+1. Update the relevant row or command block in this file.
+2. Do not edit root `AGENTS.md` / `CLAUDE.md` for project-local values.
+3. Do not scatter the value across generic specs, examples, or agents.
+4. If a generic rule needs a new project-wide configuration binding, add a row or section here using the existing structure.
+
+When schemes, modules, module purposes, or topology change, update `<BindingsRoot>/PROJECT_STRUCTURE.md` in the same change set.

@@ -1,0 +1,20 @@
+{
+  "name": "ifl-ios-standards",
+  "description": "Boardy+VIP iOS engineering standards for Claude Code. Ships 10 specialist subagents (orchestrator, planner, researcher, coder, tester, reviewer, review-triage, architect, doc-scribe, optimization), a QUICK_REF-driven router skill plus clustered task skills (new-module, new-board, io-interface, communication, service-layer, plugin-composition, testing, review, refactor, troubleshoot, adopt), the full architecture rulebook + specs as bundled reference, and Bazel module/board scaffolders (ifl-new-module / ifl-new-board) on PATH.",
+  "version": "0.14.0",
+  "author": {
+    "name": "IFL iOS"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "ios",
+    "boardy",
+    "vip",
+    "swift",
+    "bazel",
+    "architecture",
+    "standards",
+    "scaffolding",
+    "claude-code"
+  ]
+}

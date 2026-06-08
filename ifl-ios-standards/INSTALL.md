@@ -1,0 +1,67 @@
+# Install ifl-ios-standards
+
+## Quick install (recommended)
+
+From this plugin dir (drive must be mounted):
+
+```bash
+scripts/install-claude.sh
+```
+
+Defaults to **global (user) scope** — the plugin is enabled in every project. The script:
+
+1. `claude plugin validate` the plugin + the marketplace (offline check).
+2. `claude plugin marketplace add --scope user <marketplace root>`.
+3. `claude plugin install --scope user ifl-ios-standards@ifl-ios-standards-local`.
+4. Merges the auto-enable block into `~/.claude/settings.json` (via `jq`; prints it for manual
+   paste if `jq` is missing).
+
+## Scopes
+
+| Command | Effect | Settings file written |
+|---------|--------|-----------------------|
+| `scripts/install-claude.sh` | global — all projects | `~/.claude/settings.json` |
+| `scripts/install-claude.sh --scope=project --project=/path/to/repo` | one repo | `<repo>/.claude/settings.local.json` |
+| `scripts/install-claude.sh --scope=local` | this checkout only | none (CLI state only) |
+
+## Manual install
+
+```bash
+claude plugin marketplace add  /Volumes/KingstonXS1000/WORKSPACE/ABC/ifl-ios-pack/marketplace
+claude plugin install          ifl-ios-standards@ifl-ios-standards-local
+```
+
+Or pre-seed settings (`~/.claude/settings.json` for global, repo `.claude/settings.local.json` for project):
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "ifl-ios-standards-local": {
+      "source": { "source": "directory", "path": "/Volumes/KingstonXS1000/WORKSPACE/ABC/ifl-ios-pack/marketplace" }
+    }
+  },
+  "enabledPlugins": { "ifl-ios-standards@ifl-ios-standards-local": true }
+}
+```
+
+## After install
+
+- Restart Claude Code, or run `/reload-plugins`, if discovery doesn't refresh.
+- Verify: `claude plugin list` shows `ifl-ios-standards@ifl-ios-standards-local` enabled;
+  `/agents` lists the 10 `ios-*` agents; `/ifl-ios-standards:boardy-vip` resolves.
+- Wire the consuming repo: copy a starter from `standards/templates/portable-claude/` into the
+  repo's `CLAUDE.md` and fill in scheme / module roots / build commands / base branch / remote.
+
+## Removable-drive note
+
+The plugin is **copied into `~/.claude/plugins/cache/`** at install time, so it keeps working after
+the pack drive (`/Volumes/KingstonXS1000`) is unmounted. The drive only needs to be remounted to
+**re-install or update** (the `extraKnownMarketplaces.source.path` points at the drive). To make it
+fully drive-independent, copy the `marketplace/` dir to a stable location and point the marketplace
+source there instead.
+
+## Prerequisites
+
+- `claude` CLI on PATH.
+- `jq` (optional) for automatic settings merge; without it the script prints the block to paste.
+- For the scaffolders: the consuming project is a Bazel iOS repo (see `bin/ifl-new-module --help`).

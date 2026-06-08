@@ -1,0 +1,16 @@
+{
+  "name": "ifl-ios-standards-local",
+  "metadata": {
+    "description": "Local marketplace for the ifl-ios-standards plugin (Boardy+VIP iOS standards, agents, and scaffolders)."
+  },
+  "owner": {
+    "name": "IFL iOS"
+  },
+  "plugins": [
+    {
+      "name": "ifl-ios-standards",
+      "source": "./ifl-ios-standards",
+      "description": "Boardy+VIP iOS architecture standards: 10 specialist agents, a QUICK_REF task router skill + clustered task skills, the full rulebook/specs as bundled reference, and Bazel module/board scaffolders on PATH."
+    }
+  ]
+}
