@@ -33,7 +33,7 @@ cd /Volumes/KingstonXS1000/WORKSPACE/ABC/ifl-ios-pack/marketplace
 
 git init
 git add .
-git commit -m "ifl-ios-standards marketplace v0.14.0"
+git commit -m "ifl-ios-standards marketplace v0.15.0"
 
 # create the public repo under your account and push (gh is logged in as congncif)
 gh repo create congncif/ifl-ios-standards --public --source=. --remote=origin --push
@@ -42,8 +42,8 @@ gh repo create congncif/ifl-ios-standards --public --source=. --remote=origin --
 Tag the version so installs can pin it:
 
 ```bash
-git tag v0.14.0
-git push origin v0.14.0
+git tag v0.15.0
+git push origin v0.15.0
 ```
 
 > If `marketplace/` is also tracked by the parent `ifl-ios-pack` repo, keep it ignored there
@@ -58,12 +58,12 @@ Works exactly like any public plugin — **no clone, no drive, no jq**. Two CLI 
 ```bash
 claude plugin marketplace add  congncif/ifl-ios-standards          # default branch
 claude plugin install          ifl-ios-standards@ifl-ios-standards
-# (pin a version: add  congncif/ifl-ios-standards#v0.14.0  instead)
+# (pin a version: add  congncif/ifl-ios-standards#v0.15.0  instead)
 ```
 
 **Codex:**
 ```bash
-codex plugin marketplace add   congncif/ifl-ios-standards          # --ref v0.14.0 to pin
+codex plugin marketplace add   congncif/ifl-ios-standards          # --ref v0.15.0 to pin
 codex plugin add               ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -77,7 +77,7 @@ one-liner — it does **not** need the repo cloned:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
 # or with flags:
-curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash -s -- --ref=v0.14.0 --scope=project
+curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash -s -- --ref=v0.15.0 --scope=project
 ```
 
 Or settings-only auto-enable (`~/.claude/settings.json` for global):

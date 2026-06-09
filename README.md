@@ -15,20 +15,20 @@ claude plugin marketplace add  congncif/ifl-ios-standards
 claude plugin install          ifl-ios-standards@ifl-ios-standards
 ```
 
-Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.14.0`.
+Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.15.0`.
 Then `/reload-plugins` (or restart Claude Code).
 
 One-liner (no clone):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
-# flags: | bash -s -- --ref=v0.14.0 --scope=project
+# flags: | bash -s -- --ref=v0.15.0 --scope=project
 ```
 
 ## Install — Codex
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.14.0 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.15.0 to pin
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -85,7 +85,8 @@ This pack ships the **generic** standard. Per-project values — scheme, simulat
 build/test commands, base branch, git remote, naming prefix, ADR/decisions location — belong in the
 consuming repo's `CLAUDE.md`. A copyable starter ships at
 [`ifl-ios-standards/standards/templates/portable-claude/`](ifl-ios-standards/standards/templates/portable-claude/).
-The multi-agent scratch workspace (default `.superpowers/`) is optional.
+The multi-agent pipeline's handoff workspace (in-repo under `docs/02-working-docs/handoffs/` per the
+docs-organization process standard) is optional.
 
 ## Docs
 
@@ -96,4 +97,4 @@ The multi-agent scratch workspace (default `.superpowers/`) is optional.
 ## Versioning
 
 Plugin `version` (in `ifl-ios-standards/.claude-plugin/plugin.json`) follows the upstream pack
-`VERSION` (currently `0.14.0`). Bump on content changes; tag `vX.Y.Z` so installs can pin.
+`VERSION` (currently `0.15.0`). Bump on content changes; tag `vX.Y.Z` so installs can pin.

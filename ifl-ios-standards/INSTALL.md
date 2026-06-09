@@ -65,7 +65,7 @@ source there instead.
 Same repo serves Codex via its `.codex-plugin/` manifests:
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.14.0 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.15.0 to pin
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 

@@ -50,5 +50,5 @@ scripts/install-claude.sh --scope=project --project=/path/to/repo
 
 ## Versioning
 
-`plugin.json` `version` mirrors the upstream pack `VERSION` (currently `0.14.0`). Bump on content
+`plugin.json` `version` mirrors the upstream pack `VERSION` (currently `0.15.0`). Bump on content
 changes so installs pick up updates.

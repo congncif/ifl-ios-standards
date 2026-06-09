@@ -9,10 +9,10 @@ set -euo pipefail
 # Run it any of these ways:
 #   curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl-ios-standards/scripts/install-codex.sh | bash
 #   bash install-codex.sh
-#   bash install-codex.sh --ref=v0.14.0
+#   bash install-codex.sh --ref=v0.15.0
 #
 # Flags (all optional):
-#   --ref=BRANCH|TAG|SHA   pin a version (e.g. v0.14.0); omit = default branch (main)
+#   --ref=BRANCH|TAG|SHA   pin a version (e.g. v0.15.0); omit = default branch (main)
 
 REPO="congncif/ifl-ios-standards"
 MARKETPLACE="ifl-ios-standards"      # the "name" field inside .codex-plugin/marketplace.json
