@@ -1,33 +1,18 @@
-<!-- Created by claude-opus-4-7 on 2026-05-19 -->
 # SPEC: Plan Execution Workflow
 
-> **Purpose**: Define reusable execution cadence for long implementation plans.
+> **Superseded — single source of truth is the process standard.**
+> Plan-execution cadence (TDD tiering, checkpoint-based verification, plan phase structure) is
+> defined by `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`. Read that. This file
+> remains only as a stable routing target.
 
-## Long Plan Build Optimization
+## TL;DR (full detail in lean-verification.md)
 
-When executing a multi-step plan (3+ tasks), **skip `xcodebuild` after each individual task**.
+- **Tier every task** before coding: Tier 1 full TDD (core logic, public API, money/auth, regressions),
+  Tier 2 test-after-batched (adapters, CRUD, wiring), Tier 3 no tests (config, types, docs).
+- **Verify at checkpoints, not per task** — cheapest sufficient level: L0 compile → L1 changed-module
+  tests → L2 full suite (phase end) → L3 full gate (once, before "done"). Never a full build+suite after
+  each task.
+- **Plan structure**: group tasks into phases of 3–7; verification only at phase boundaries; each phase
+  declares its checkpoint level; each task carries its tier.
 
-Instead:
-- Implement all tasks without per-task build verification.
-- Create **one dedicated final task** at the end of the plan: `"Final review & build verification"`.
-- That final task runs the project's canonical build command (defined in the consuming repo's `CLAUDE.md`) and reports results once.
-
-**Rationale**: `xcodebuild` is slow (~60–120s per run). Running it after every task wastes time and blocks execution flow. A single end-of-plan build catches all compile errors in one pass.
-
-**Exception**: run an intermediate build only if:
-- A task introduces a new file, target, or dependency that must be linked before the next task can compile.
-- The user explicitly requests a mid-plan build check.
-
-## Task List Requirement
-
-For any 3+ task plan, include a final task named:
-
-```text
-Final review & build verification
-```
-
-That task owns:
-- final code review
-- architecture compliance check when relevant
-- canonical build/test verification
-- factual report of pass/fail output
+For the iOS build/test commands themselves, see the project's `CLAUDE.md` (Bazel/xcodebuild bindings).

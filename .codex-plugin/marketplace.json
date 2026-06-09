@@ -1,0 +1,22 @@
+{
+  "name": "ifl-ios-standards",
+  "interface": {
+    "displayName": "IFL iOS Standards"
+  },
+  "plugins": [
+    {
+      "name": "ifl-ios-standards",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/congncif/ifl-ios-standards.git",
+        "path": "./ifl-ios-standards",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    }
+  ]
+}

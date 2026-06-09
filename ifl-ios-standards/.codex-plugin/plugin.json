@@ -1,0 +1,40 @@
+{
+  "name": "ifl-ios-standards",
+  "version": "0.14.0",
+  "description": "Boardy+VIP iOS engineering standards for Codex. Ships specialist agents, a QUICK_REF-driven router skill plus clustered task skills (new-module, new-board, io-interface, communication, service-layer, plugin-composition, testing, review, refactor, troubleshoot, adopt), the full architecture rulebook + specs + process standards as bundled reference, and Bazel module/board scaffolders.",
+  "author": {
+    "name": "IFL iOS"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "ios",
+    "boardy",
+    "vip",
+    "swift",
+    "bazel",
+    "architecture",
+    "standards",
+    "scaffolding",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "IFL iOS Standards",
+    "shortDescription": "Boardy+VIP iOS architecture standards, agents, and scaffolders",
+    "longDescription": "Brings the Boardy+VIP iOS engineering standard into Codex: a task-routing skill set (new module/board, IO interface, communication, service layer, plugin composition, testing, review, refactor, troubleshoot, adopt), specialist agents for delegated delivery, the full rulebook + specs + process standards (docs-organization, lean-verification) as bundled reference, and Bazel module/board scaffolders. Reference paths shown as ${CLAUDE_PLUGIN_ROOT}/standards/… resolve relative to this plugin's root under Codex.",
+    "developerName": "IFL iOS",
+    "category": "Engineering",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Add a new Boardy VIP module to this iOS project",
+      "Review this Swift code against the Boardy+VIP standards",
+      "Scaffold a viewless board in module X"
+    ],
+    "brandColor": "#2F6BFF",
+    "screenshots": []
+  }
+}

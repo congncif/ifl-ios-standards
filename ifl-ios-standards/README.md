@@ -35,8 +35,9 @@ is **self-contained and portable**: it works in any project once enabled, no fil
 
 **Per-project values are NOT bundled** — scheme, simulator, module roots, build/test commands,
 base branch, git remote, naming prefix, and ADR/decisions location live in the **consuming repo's
-`CLAUDE.md`**. Copy a starter from `standards/templates/portable-claude/`. The multi-agent
-scratch workspace (default `.superpowers/`) is **optional**, used only by the orchestrator pipeline.
+`CLAUDE.md`**. Copy a starter from `standards/templates/portable-claude/`. The multi-agent pipeline's
+handoff workspace (in-repo under `docs/02-working-docs/handoffs/` per the docs-organization process
+standard) is **optional**, used only by the orchestrator pipeline.
 
 ## Install
 

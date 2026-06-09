@@ -48,7 +48,7 @@ Or pre-seed settings (`~/.claude/settings.json` for global, repo `.claude/settin
 
 - Restart Claude Code, or run `/reload-plugins`, if discovery doesn't refresh.
 - Verify: `claude plugin list` shows `ifl-ios-standards@ifl-ios-standards` enabled;
-  `/agents` lists the 10 `ios-*` agents; `/ifl-ios-standards:boardy-vip` resolves.
+  `/agents` lists the 9 `ios-*` agents; `/ifl-ios-standards:boardy-vip` resolves.
 - Wire the consuming repo: copy a starter from `standards/templates/portable-claude/` into the
   repo's `CLAUDE.md` and fill in scheme / module roots / build commands / base branch / remote.
 
@@ -60,8 +60,21 @@ the pack drive (`/Volumes/KingstonXS1000`) is unmounted. The drive only needs to
 fully drive-independent, copy the `marketplace/` dir to a stable location and point the marketplace
 source there instead.
 
+## Codex
+
+Same repo serves Codex via its `.codex-plugin/` manifests:
+
+```bash
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.14.0 to pin
+codex plugin add              ifl-ios-standards@ifl-ios-standards
+```
+
+Or the bundled installer: `scripts/install-codex.sh` (`--ref` optional). `codex plugin add`
+records the install in `~/.codex/config.toml`. Start a new Codex thread to pick up the skills/agents.
+Codex resolves `${CLAUDE_PLUGIN_ROOT}/standards/…` paths relative to the plugin root (no var expansion).
+
 ## Prerequisites
 
-- `claude` CLI on PATH.
-- `jq` (optional) for automatic settings merge; without it the script prints the block to paste.
+- `claude` CLI (Claude Code) or `codex` CLI (Codex) on PATH.
+- `jq` (optional) for the Claude installer's automatic settings merge; without it it prints the block to paste.
 - For the scaffolders: the consuming project is a Bazel iOS repo (see `bin/ifl-new-module --help`).

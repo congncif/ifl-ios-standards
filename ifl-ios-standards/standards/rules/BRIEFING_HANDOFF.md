@@ -4,18 +4,20 @@ The **briefing** is a single Markdown file passed between sub-agents during one 
 
 ## File location
 
-> **Optional workspace.** The multi-agent pipeline (orchestrator → sub-agents) uses a shared
-> per-project scratch workspace, by default `.superpowers/scratch/` in the consuming project root.
-> This is **optional**: it's only needed when running the delegated orchestrator pipeline. For a
-> single-agent task you can skip the briefing entirely. If the project configures a different
-> workspace root, substitute it for `.superpowers/` throughout this file.
+> **Optional, in-repo workspace.** The multi-agent pipeline (orchestrator → sub-agents) writes its
+> handoff artifacts into the project's working-docs tree, per
+> `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md` — **default
+> `docs/02-working-docs/handoffs/`** (handoffs bucket), archived to `docs/99-archive/handoffs/`.
+> This is **optional**: only the delegated orchestrator pipeline needs it; a single-agent task can
+> skip the briefing entirely. If the project's `CLAUDE.md` declares a different working-docs root,
+> substitute it for `docs/02-working-docs/` throughout this file.
 
 ```
-.superpowers/scratch/{task-slug}/briefing.md
+docs/02-working-docs/handoffs/{task-slug}/briefing.md
 ```
 
 - `{task-slug}` is the kebab-case feature name (same slug used for the git branch — `feature/{task-slug}`).
-- One briefing per task. Survives the duration of the task; archived to `.superpowers/scratch/_archive/` after PR merge.
+- One briefing per task. Survives the duration of the task; archived to `docs/99-archive/handoffs/` after PR merge.
 - Sibling files allowed: `discovery.cache.json`, `diff.patch`, `build.log`. Briefing references them by relative path.
 
 ## Required top sections (written by orchestrator step 1)
@@ -25,7 +27,7 @@ The **briefing** is a single Markdown file passed between sub-agents during one 
 
 ## Meta
 - Created: {YYYY-MM-DD HH:MM}
-- Orchestrator model: {combo-giao-su}
+- Orchestrator model: {opus}
 - Base branch: {from the project's configuration — see the consuming repo's CLAUDE.md}
 - Branch: feature/{task-slug}
 - Workspace / Scheme / Destination: {from the project's configuration}
@@ -37,7 +39,7 @@ The **briefing** is a single Markdown file passed between sub-agents during one 
 - Risks / ambiguities: {list, may be empty}
 
 ## Discovery cache
-- Path: .superpowers/scratch/{task-slug}/discovery.cache.json
+- Path: docs/02-working-docs/handoffs/{task-slug}/discovery.cache.json
 - Fields: module_roots, boardid_index, service_map_classes, base_branch
 
 ## Acceptance criteria
@@ -79,14 +81,14 @@ Each specialist appends **its own** section using a typed heading. **Never edit 
 When invoking a specialist via the `Task` tool:
 
 ```
-You are {agent-name}. Read .superpowers/scratch/{task-slug}/briefing.md and follow the rules in ${CLAUDE_PLUGIN_ROOT}/standards/rules/BRIEFING_HANDOFF.md. Append your typed section to the briefing. Do not echo prior sections in your reply — return only your STATUS line plus a one-paragraph summary of what you appended.
+You are {agent-name}. Read docs/02-working-docs/handoffs/{task-slug}/briefing.md and follow the rules in ${CLAUDE_PLUGIN_ROOT}/standards/rules/BRIEFING_HANDOFF.md. Append your typed section to the briefing. Do not echo prior sections in your reply — return only your STATUS line plus a one-paragraph summary of what you appended.
 ```
 
 No additional context paste. The briefing is the entire context.
 
 ## Discovery cache schema
 
-`.superpowers/scratch/discovery.cache.json` is project-wide (one file across tasks), not task-scoped. Owned by `ios-researcher`; read by every agent that needs structural facts.
+`docs/02-working-docs/handoffs/discovery.cache.json` is project-wide (one file across tasks), not task-scoped. Owned by `ios-researcher`; read by every agent that needs structural facts.
 
 ```jsonc
 {
@@ -127,7 +129,7 @@ The cache is **invalid** (must be rebuilt by `ios-researcher`) whenever any of t
 
 ## Archival
 
-After PR merge, the orchestrator moves the task folder to `.superpowers/scratch/_archive/{YYYY-MM-DD}-{task-slug}/` for traceability. Do not delete — the briefing is the audit trail for the change.
+After PR merge, the orchestrator moves the task folder to `docs/99-archive/handoffs/{YYYY-MM-DD}-{task-slug}/` for traceability. Do not delete — the briefing is the audit trail for the change.
 
 ## Why this exists
 

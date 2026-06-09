@@ -5,20 +5,26 @@ from anywhere (teammates, CI, fresh machines) with no drive and no clone.
 
 ## Repo shape
 
-GitHub marketplace add requires `.claude-plugin/marketplace.json` at the **repo root**. This
-`marketplace/` directory already has that shape:
+Both runtimes read a marketplace manifest at the **repo root**: Claude Code from
+`.claude-plugin/marketplace.json`, Codex from `.codex-plugin/marketplace.json`. This `marketplace/`
+directory has both:
 
 ```
 <repo root>/
-├── .claude-plugin/marketplace.json     # plugins[].source = "./ifl-ios-standards"
-├── ifl-ios-standards/                  # the plugin (manifest, agents, skills, standards, bin, scripts)
-├── install.sh                          # standalone installer (no clone/jq — add-by-repo-name + install)
+├── .claude-plugin/marketplace.json     # Claude — plugins[].source = "./ifl-ios-standards"
+├── .codex-plugin/marketplace.json      # Codex  — plugins[].source = git-subdir → ./ifl-ios-standards
+├── ifl-ios-standards/                  # the plugin
+│   ├── .claude-plugin/plugin.json      #   Claude plugin manifest
+│   ├── .codex-plugin/plugin.json       #   Codex plugin manifest
+│   ├── agents/ skills/ standards/ bin/ #   shared content (both runtimes)
+│   └── scripts/{install-claude,install-codex}.sh
+├── install.sh                          # standalone Claude installer (add-by-repo-name + install)
 ├── DEPLOY.md                           # this file
 └── README.md / INSTALL.md
 ```
 
 So the repo root = the **contents of this `marketplace/` dir** (a dedicated marketplace repo,
-separate from the ifl-ios-pack source).
+separate from the ifl-ios-pack source). One `git push` updates both runtimes.
 
 ## One-time push (run from the drive)
 
@@ -46,16 +52,24 @@ git push origin v0.14.0
 
 ## Install from GitHub (teammates / CI / fresh machine)
 
-Works exactly like any public plugin — **no clone, no drive, no jq**. Two CLI commands by repo name:
+Works exactly like any public plugin — **no clone, no drive, no jq**. Two CLI commands by repo name.
 
+**Claude Code:**
 ```bash
 claude plugin marketplace add  congncif/ifl-ios-standards          # default branch
 claude plugin install          ifl-ios-standards@ifl-ios-standards
 # (pin a version: add  congncif/ifl-ios-standards#v0.14.0  instead)
 ```
 
-`marketplace add` records the marketplace and `install` enables the plugin — the CLI persists both
-to settings, so nothing manual. Then `/reload-plugins` (or restart).
+**Codex:**
+```bash
+codex plugin marketplace add   congncif/ifl-ios-standards          # --ref v0.14.0 to pin
+codex plugin add               ifl-ios-standards@ifl-ios-standards
+```
+
+`marketplace add` records the marketplace and `install`/`add` enables the plugin — the CLI persists
+both (Claude → settings, Codex → `~/.codex/config.toml`), so nothing manual. Then `/reload-plugins`
+(Claude) or a new thread (Codex).
 
 The repo also ships `install.sh` (the same two commands, with `--ref` / `--scope` flags) for a
 one-liner — it does **not** need the repo cloned:

@@ -1,13 +1,12 @@
-# ifl-ios-standards — Claude Code marketplace
+# ifl-ios-standards — Claude Code + Codex marketplace
 
-A Claude Code **plugin marketplace** distributing the **Boardy+VIP iOS engineering standard**:
-specialist agents, a task-routing skill set, the full architecture rulebook/specs as bundled
-reference, and Bazel module/board scaffolders.
+A **plugin marketplace** distributing the **Boardy+VIP iOS engineering standard** — specialist
+agents, a task-routing skill set, the full architecture rulebook/specs as bundled reference, and
+Bazel module/board scaffolders. **One repo, both runtimes**: it ships
+`.claude-plugin/marketplace.json` (Claude Code) and `.codex-plugin/marketplace.json` (Codex) at its
+root, like a dual-runtime plugin.
 
-This repository is the marketplace root — its `.claude-plugin/marketplace.json` lists one plugin,
-[`ifl-ios-standards`](ifl-ios-standards/), which lives in the subdirectory of the same name.
-
-## Install
+## Install — Claude Code
 
 Like any public plugin — two CLI commands, no clone, no drive:
 
@@ -25,6 +24,23 @@ One-liner (no clone):
 curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
 # flags: | bash -s -- --ref=v0.14.0 --scope=project
 ```
+
+## Install — Codex
+
+```bash
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.14.0 to pin
+codex plugin add              ifl-ios-standards@ifl-ios-standards
+```
+
+One-liner:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl-ios-standards/scripts/install-codex.sh | bash
+```
+
+> Codex doesn't expand `${CLAUDE_PLUGIN_ROOT}` — reference paths shown that way in skills/agents
+> resolve **relative to the plugin's root directory** under Codex. Skills + agents are
+> auto-discovered the same way as in Claude Code.
 
 ## What you get
 

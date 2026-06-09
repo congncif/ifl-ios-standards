@@ -6,15 +6,15 @@
 
 | Agent | Model alias | Why this tier |
 |-------|-------------|---------------|
-| `ios-orchestrator` | `combo-giao-su` | Irreversible decisions (branch/commit/PR), cross-hop arbitration, ambiguity resolution |
-| `ios-planner` | `combo-giao-su` | PRD → phased plan; tradeoff judgement |
-| `ios-reviewer` | `combo-giao-su` | Final correctness gate; must reason about logic, not text |
-| `ios-architect` | `combo-huy-diet` | Designs IO contracts; structured but not open-ended |
-| `ios-coder` | `combo-huy-diet` | Implements against a contract; long context, structured |
-| `ios-tester` | `combo-giup-viec` | Mechanical: derive tests from implementation report + TESTING.compact |
-| `ios-researcher` | `combo-giup-viec` | One-shot codegraph / find / grep; sole discovery-cache writer |
-| `ios-review-triage` | `combo-giup-viec` | Surface-level diff nits (naming, whitespace, unused) before reviewer |
-| `ios-doc-scribe` | `combo-giup-viec` | Append spec changelogs + ADR stubs from briefing reports |
+| `ios-orchestrator` | `opus` | Irreversible decisions (branch/commit/PR), cross-hop arbitration, ambiguity resolution |
+| `ios-planner` | `opus` | PRD → phased plan; tradeoff judgement |
+| `ios-reviewer` | `opus` | Final correctness gate; must reason about logic, not text |
+| `ios-architect` | `sonnet` | Designs IO contracts; structured but not open-ended |
+| `ios-coder` | `sonnet` | Implements against a contract; long context, structured |
+| `ios-tester` | `haiku` | Mechanical: derive tests from implementation report + TESTING.compact |
+| `ios-researcher` | `haiku` | One-shot codegraph / find / grep; sole discovery-cache writer |
+| `ios-review-triage` | `haiku` | Surface-level diff nits (naming, whitespace, unused) before reviewer |
+| `ios-doc-scribe` | `haiku` | Append spec changelogs + ADR stubs from briefing reports |
 
 ## Superpowers verb → agent mapping
 

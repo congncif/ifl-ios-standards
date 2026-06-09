@@ -1,4 +1,4 @@
-<!-- Created by combo-huy-diet on 2026-05-14 -->
+<!-- Created by sonnet on 2026-05-14 -->
 <!-- Retrofitted to SPEC_CONTRACT 12 sections on 2026-05-23 -->
 
 # SPEC: Extensible Provider Architecture (OCP Pattern)

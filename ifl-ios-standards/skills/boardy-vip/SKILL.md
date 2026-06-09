@@ -15,12 +15,18 @@ This is the entry point for the **ifl-ios-standards** pack. It tells you which b
 reference doc and which task skill to load for the work at hand. All reference content ships
 inside the plugin at `${CLAUDE_PLUGIN_ROOT}/standards/…` (read it on demand — do not guess).
 
+> **Runtime note.** Paths shown as `${CLAUDE_PLUGIN_ROOT}/standards/…` point at this plugin's
+> installed root. Claude Code substitutes the variable inline. **Under Codex** (which does not
+> expand it), read the same paths **relative to this plugin's root directory** — e.g.
+> `standards/specs/IO_INTERFACE.md` within the installed plugin.
+
 **Per-project values** (scheme, simulator, module roots, build/test commands, base branch, git
 remote, naming prefix, ADR/decisions location) are **not** in this pack — they live in the
 consuming repo's `CLAUDE.md`. Read that for anything project-specific.
 
-The multi-agent pipeline workspace (default `.superpowers/scratch/`) is **optional** — only the
-delegated orchestrator flow uses it. Single-agent tasks ignore it.
+The multi-agent pipeline workspace (handoff artifacts under `docs/02-working-docs/handoffs/` per
+the docs-organization process standard) is **optional** — only the delegated orchestrator flow uses
+it. Single-agent tasks ignore it.
 
 ## 1. Task → load next
 
@@ -45,6 +51,10 @@ Companion canonicals (don't duplicate — read on demand):
 - Operating loop + 10 architecture hard rules: `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md`
 - Boardy+VIP cheatsheet (layout, naming tables, skeletons): `${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/BOARDY_CHEATSHEET.compact.md`
 - Full routing reference: `${CLAUDE_PLUGIN_ROOT}/standards/rules/QUICK_REF.md`
+
+Process standards (apply to every task):
+- Where project docs/plans/handoffs live: `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`
+- Verification cadence (TDD tiers + checkpoint levels): `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`
 
 ## 2. The 14 rules (never break)
 
