@@ -8,10 +8,10 @@ module/board scaffolders.
 
 | Component | What it is |
 |-----------|------------|
-| `agents/` (10) | Delegated pipeline: `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe`, `optimization` |
-| `skills/` (12) | Router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + 11 clustered task skills: `new-module`, `new-board`, `io-interface`, `communication`, `service-layer`, `plugin-composition`, `testing`, `review`, `refactor`, `troubleshoot`, `adopt` |
-| `standards/` | Bundled reference: `rules/` (7), `brain/` (rulebook + patterns), `specs/` (43 incl. compact), `scripts/` (4 lint), `templates/portable-claude/` |
-| `bin/` | `ifl-new-module`, `ifl-new-board` — Bazel scaffolders, added to PATH when the plugin is enabled |
+| `agents/` (9) | Delegated pipeline: `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
+| `skills/` (13) | Router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + 12 task skills: `init`, `new-module`, `new-board`, `io-interface`, `communication`, `service-layer`, `plugin-composition`, `testing`, `review`, `refactor`, `troubleshoot`, `adopt` |
+| `standards/` | Bundled reference: `rules/` (7), `brain/` (rulebook + patterns), `specs/` (43 incl. compact), `process/` (docs-organization, lean-verification), `scripts/` (4 lint), `templates/portable-claude/` |
+| `bin/` | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — added to PATH when the plugin is enabled |
 
 ## Activate
 

@@ -43,6 +43,7 @@ it. Single-agent tasks ignore it.
 | Code review | `/ifl-ios-standards:review` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/REVIEW_PLAYBOOK.md`, `REVIEWER_CHECKLIST.md` |
 | Refactor (split/merge module, extract/move board, rename public symbol) | `/ifl-ios-standards:refactor` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/REFACTOR_PLAYBOOK.md` |
 | Debug a symptom / error → cause → fix | `/ifl-ios-standards:troubleshoot` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/TROUBLESHOOTING.md` |
+| Init a project's CLAUDE.md + AGENTS.md bindings | `/ifl-ios-standards:init` | runs `${CLAUDE_PLUGIN_ROOT}/bin/ifl-init` + template starter |
 | Adopt into existing app / greenfield setup | `/ifl-ios-standards:adopt` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/BROWNFIELD_MIGRATION.md`, `GREENFIELD_SETUP.md`, `ADOPTION.md` |
 | Architecture overview / runtime composition | — | `${CLAUDE_PLUGIN_ROOT}/standards/specs/ARCHITECTURE.md` |
 | Code example | — | `${CLAUDE_PLUGIN_ROOT}/standards/specs/EXAMPLES.md` (index) → one `EXAMPLES_*.md` |
@@ -86,7 +87,8 @@ for anything spanning more than one board/file. Model-tier rationale per agent:
 
 ## 4. Scaffolders (on PATH when this plugin is enabled)
 
+- `ifl-init` — seed a project's `CLAUDE.md` + `AGENTS.md` bindings (detects git/manager/module-root). See `/ifl-ios-standards:init`.
 - `ifl-new-module <Name>` — scaffold a Bazel Boardy-VIP module (two `swift_library` targets).
 - `ifl-new-board <Module> <Board> <ui|viewless|flow|blocktask>` — scaffold a board.
 
-See `/ifl-ios-standards:new-module` and `:new-board`.
+See `/ifl-ios-standards:init`, `:new-module`, `:new-board`.

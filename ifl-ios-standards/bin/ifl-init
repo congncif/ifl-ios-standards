@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ifl-init — seed a project's CLAUDE.md + AGENTS.md bindings from the plugin's starter template.
+#
+# Copies the portable-claude starter to the repo root and pre-fills the placeholders it can
+# detect from the repo (git remote/branch, dependency manager, module root, workspace/project).
+# Placeholders it can't infer (scheme, simulator, build/test commands, module prefix, commit
+# prefix) are left as {Placeholders} for you — or for the `/ifl-ios-standards:init` skill — to fill.
+#
+# Usage:
+#   ifl-init [--root=PATH] [--force] [--dry-run]
+#
+# Flags:
+#   --root=PATH   target repo root (default: $PWD)
+#   --force       overwrite existing CLAUDE.md / AGENTS.md
+#   --dry-run     print what would happen; write nothing
+#
+# Refuses to overwrite existing CLAUDE.md / AGENTS.md unless --force.
+
+ROOT="$PWD"
+FORCE=0
+DRY=0
+
+for a in "$@"; do
+  case "$a" in
+    --root=*)   ROOT="${a#--root=}" ;;
+    --force)    FORCE=1 ;;
+    --dry-run)  DRY=1 ;;
+    -h|--help)  sed -n '4,21p' "$0"; exit 0 ;;
+    *) echo "ifl-init: unknown arg '$a'" >&2; exit 64 ;;
+  esac
+done
+
+[ -d "$ROOT" ] || { echo "ifl-init: root '$ROOT' not a directory" >&2; exit 65; }
+ROOT="$(cd "$ROOT" && pwd)"
+
+# Resolve the starter template relative to this script (works on PATH + standalone + in plugin cache).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEMPLATE_DIR="${CLAUDE_PLUGIN_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}/standards/templates/portable-claude"
+SRC="$TEMPLATE_DIR/CLAUDE.md"
+[ -f "$SRC" ] || { echo "ifl-init: starter template not found at $SRC" >&2; exit 65; }
+
+DST_CLAUDE="$ROOT/CLAUDE.md"
+DST_AGENTS="$ROOT/AGENTS.md"
+
+if [ "$FORCE" != 1 ]; then
+  for f in "$DST_CLAUDE" "$DST_AGENTS"; do
+    [ -e "$f" ] && { echo "ifl-init: ${f#$ROOT/} exists — pass --force to overwrite" >&2; exit 1; }
+  done
+fi
+
+# ── Detect bindings from the repo ────────────────────────────────────────────
+
+git_get() { git -C "$ROOT" "$@" 2>/dev/null || true; }
+
+PROJECT_NAME="$(basename "$ROOT")"
+GIT_REMOTE="$(git_get remote | head -1)"; GIT_REMOTE="${GIT_REMOTE:-origin}"
+GIT_URL="$(git_get remote get-url "$GIT_REMOTE")"; GIT_URL="${GIT_URL:-TODO}"
+BASE_BRANCH="$(git_get symbolic-ref --short HEAD)"; BASE_BRANCH="${BASE_BRANCH:-main}"
+
+# first_glob PATTERN  — echo the first matching path, or empty (never fails under set -e/pipefail).
+first_glob() {
+  local p
+  for p in $1; do [ -e "$p" ] && { printf '%s\n' "$p"; return 0; }; done
+  return 0
+}
+
+# Dependency manager + module root + module dependency file
+DEP_MGR="TODO (CocoaPods / Bazel / SPM)"; MODULE_ROOT="TODO"; MODULE_DEP_FILE="TODO"
+if [ -f "$ROOT/MODULE.bazel" ] || [ -f "$ROOT/WORKSPACE" ] || [ -f "$ROOT/WORKSPACE.bazel" ] || [ -n "$(first_glob "$ROOT/*.bazelrc")" ] || [ -f "$ROOT/.bazelrc" ]; then
+  DEP_MGR="Bazel (bazelisk) + rules_xcodeproj"; MODULE_DEP_FILE="BUILD.bazel"
+  if [ -d "$ROOT/Features" ]; then MODULE_ROOT="Features"; else MODULE_ROOT="TODO (e.g. Features)"; fi
+elif [ -f "$ROOT/Podfile" ] || [ -n "$(first_glob "$ROOT/*.podspec")" ]; then
+  DEP_MGR="CocoaPods"; MODULE_DEP_FILE="*.podspec"
+  for c in submodules Modules; do [ -d "$ROOT/$c" ] && { MODULE_ROOT="$c"; break; }; done
+elif [ -f "$ROOT/Package.swift" ]; then
+  DEP_MGR="Swift Package Manager"; MODULE_DEP_FILE="Package.swift"
+  [ -d "$ROOT/Packages" ] && MODULE_ROOT="Packages"
+fi
+
+# Workspace / xcodeproj
+WORKSPACE="TODO"
+WS="$(first_glob "$ROOT/*.xcworkspace")"
+PROJ="$(first_glob "$ROOT/*.xcodeproj")"
+if [ -n "$WS" ]; then WORKSPACE="$(basename "$WS")"; elif [ -n "$PROJ" ]; then WORKSPACE="$(basename "$PROJ")"; fi
+
+echo "ifl-init — seeding bindings"
+echo "  root:        $ROOT"
+echo "  template:    $SRC"
+echo "  detected:    project=$PROJECT_NAME  remote=$GIT_REMOTE  branch=$BASE_BRANCH"
+echo "               manager=$DEP_MGR  module-root=$MODULE_ROOT  workspace=$WORKSPACE"
+echo "  dry:         $DRY"
+echo
+
+# ── Fill placeholders + write ────────────────────────────────────────────────
+
+render() {
+  # stdin → stdout with detected values substituted; unknowns left as {Placeholders}
+  perl -pe '
+    BEGIN {
+      $pn=shift @ARGV; $ws=shift @ARGV; $bb=shift @ARGV; $gr=shift @ARGV;
+      $gu=shift @ARGV; $dm=shift @ARGV; $mr=shift @ARGV; $mdf=shift @ARGV;
+    }
+    s/\{ProjectName\}/$pn/g;
+    s/\{Workspace\}/$ws/g;
+    s/\{BaseBranch\}/$bb/g;
+    s/\{GitRemote\}/$gr/g;
+    s/\{GitRemoteURL\}/$gu/g;
+    s/\{DependencyManager\}/$dm/g;
+    s/\{ModuleRoot\}/$mr/g;
+    s/\{ModuleDependencyFile\}/$mdf/g;
+  ' -- "$PROJECT_NAME" "$WORKSPACE" "$BASE_BRANCH" "$GIT_REMOTE" "$GIT_URL" "$DEP_MGR" "$MODULE_ROOT" "$MODULE_DEP_FILE"
+}
+
+if [ "$DRY" = 1 ]; then
+  echo "DRY  would write $DST_CLAUDE + $DST_AGENTS (twins)"
+  echo "DRY  remaining {Placeholders} to fill by hand or via /ifl-ios-standards:init:"
+  render < "$SRC" | grep -oE '\{[A-Za-z]+\}' | sort -u | sed 's/^/       /'
+  exit 0
+fi
+
+render < "$SRC" > "$DST_CLAUDE"
+cp "$DST_CLAUDE" "$DST_AGENTS"
+
+echo "  WROTE  CLAUDE.md + AGENTS.md (identical twins)"
+echo
+echo "Remaining {Placeholders} to fill (scheme, simulator, build/test, prefixes):"
+grep -oE '\{[A-Za-z]+\}' "$DST_CLAUDE" | sort -u | sed 's/^/  /'
+echo
+echo "Next: fill them by hand, or run /ifl-ios-standards:init to detect + fill the rest interactively."

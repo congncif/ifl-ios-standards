@@ -47,17 +47,30 @@ curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl
 | Component | Count | What |
 |-----------|-------|------|
 | Agents | 9 | `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
-| Skills | 12 | Router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + `new-module`, `new-board`, `io-interface`, `communication`, `service-layer`, `plugin-composition`, `testing`, `review`, `refactor`, `troubleshoot`, `adopt` |
-| Reference | — | Full rulebook, 43 specs, lint scripts, `portable-claude` templates (bundled under `standards/`) |
-| Scaffolders | 2 | `ifl-new-module`, `ifl-new-board` — Bazel-aware, added to PATH when the plugin is enabled |
+| Skills | 13 | Router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + `init`, `new-module`, `new-board`, `io-interface`, `communication`, `service-layer`, `plugin-composition`, `testing`, `review`, `refactor`, `troubleshoot`, `adopt` |
+| Reference | — | Full rulebook, 43 specs + process standards, lint scripts, `portable-claude` templates (bundled under `standards/`) |
+| Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — Bazel-aware, added to PATH when the plugin is enabled |
+
+## New project? Init the bindings first
+
+A project adopts the standard by carrying a `CLAUDE.md` + `AGENTS.md` with its own bindings. Seed them:
+
+```bash
+ifl-init --root=.            # detects git/manager/module-root, writes CLAUDE.md + AGENTS.md
+# or, agent-driven (also fills scheme/build/test by introspection):
+/ifl-ios-standards:init
+```
+
+Then fill any remaining `{Placeholders}` (scheme, simulator, build/test commands).
 
 ## Use it
 
-After install, just describe an iOS Boardy+VIP task — the router skill fires by context — or call a
-skill directly:
+After install + init, just describe an iOS Boardy+VIP task — the router skill fires by context — or
+call a skill directly:
 
 ```text
 /ifl-ios-standards:boardy-vip          # router — read first, routes to the right skill/spec
+/ifl-ios-standards:init                # seed CLAUDE.md + AGENTS.md for a new project
 /ifl-ios-standards:new-module
 /ifl-ios-standards:new-board
 /ifl-ios-standards:review
