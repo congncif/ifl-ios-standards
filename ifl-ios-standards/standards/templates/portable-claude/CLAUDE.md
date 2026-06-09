@@ -78,12 +78,17 @@ Full 14 rules: `/ifl-ios-standards:boardy-vip` §2. The hard floor:
 
 | Concern | Value |
 |---------|-------|
-| Dependency manager | `{DependencyManager}` *(CocoaPods / Bazel + rules_xcodeproj / SPM)* |
-| Module root | `{ModuleRoot}` *(`Features` for Bazel; `submodules`/`Modules` for CocoaPods)* |
-| Module dependency file | `{ModuleDependencyFile}` *(`BUILD.bazel` or `*.podspec`)* |
+| Dependency manager | `{DependencyManager}` |
+| Module root | `{ModuleRoot}` |
+| Module dependency file | `{ModuleDependencyFile}` |
 | Interface target | `{ModuleName}` — glob `IO/**/*.swift` |
 | Implementation target | `{ModuleName}Plugins` — glob `Sources/**/*.swift` |
 | Test target | `{ModuleName}-Tests` — glob `Tests/**/*.swift` |
+
+> Dependency manager: CocoaPods / Bazel + rules_xcodeproj / SPM. Module root: `Features` for Bazel,
+> `submodules`/`Modules` for CocoaPods, `Packages` for SPM. Module dependency file: `BUILD.bazel` or
+> `*.podspec`. Keep the **Module root** value cell a single bare token (no prose/extra backticks) —
+> the scaffolders parse it.
 
 New modules emit the two-target split via `/ifl-ios-standards:new-module`. Keep the IO/Plugins
 split — it's the standard's whole point.
