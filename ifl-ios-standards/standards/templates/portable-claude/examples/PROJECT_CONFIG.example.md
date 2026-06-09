@@ -6,7 +6,7 @@
 > - Replace every identity value (project name, workspace, URLs, simulator) with the user's actual answers.
 > - Replace every module name with the project's real modules.
 > - Keep the section order, table columns, command formats, and placeholder syntax intact.
-> - Bindings root convention: `.ai/rules/` (semantic). Some teams keep tool config under `.claude/`; respect whichever the user chose.
+> - Bindings root convention: `.claude/project/` (default). Bindings may instead live directly in the repo's `CLAUDE.md`/`AGENTS.md` — respect whichever the project chose.
 
 ---
 
@@ -42,15 +42,15 @@
 
 | Concern | Value |
 |---------|-------|
-| Module root | `submodules/` |
+| Module root | `submodules/` *(CocoaPods; `Features/` for Bazel, `Packages/` for SPM)* |
 | Project structure inventory | `<BindingsRoot>/PROJECT_STRUCTURE.md` |
-| AI workspace root | `.superpowers/` |
-| Plans root | `.superpowers/plans/` |
-| Specs root | `.superpowers/specs/` |
-| Brainstorms root | `.superpowers/brainstorms/` |
-| Reports root | `.superpowers/reports/` |
-| Reviews root | `.superpowers/reviews/` |
-| Scratch root | `.superpowers/scratch/` |
+| Working-docs root | `docs/02-working-docs/` *(per `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`)* |
+| Plans root | `docs/02-working-docs/plans/` |
+| Specs root | `docs/02-working-docs/specs/` |
+| Research root | `docs/02-working-docs/research/` |
+| Reports root | `docs/02-working-docs/reports/` |
+| Handoffs root | `docs/02-working-docs/handoffs/` |
+| Archive root | `docs/99-archive/` |
 
 ---
 
@@ -58,9 +58,9 @@
 
 | Concern | Value |
 |---------|-------|
-| Dependency manager | CocoaPods *(alternatives: SwiftPM, Tuist, mixed — capture whichever the project uses)* |
-| App dependency file | `Podfile` |
-| Module dependency files | `*.podspec` |
+| Dependency manager | CocoaPods *(alternatives: Bazel + rules_xcodeproj, SwiftPM, Tuist, mixed — capture whichever the project uses)* |
+| App dependency file | `Podfile` *(Bazel: `MODULE.bazel` / root `BUILD.bazel`)* |
+| Module dependency files | `*.podspec` *(Bazel: `{ModuleRoot}/{ModuleName}/BUILD.bazel` with two `swift_library` targets)* |
 | App plugin host | `SceneDelegate.scene(_:willConnectTo:options:)` *(or `AppDelegate` / `App.swift` for SwiftUI lifecycle)* |
 | Interface source glob | `IO/**/*.swift` |
 | Implementation source glob | `Sources/**/*.swift` |
@@ -164,24 +164,24 @@ Never add local `:path` hints to `s.dependency`; local paths belong in the app-l
 
 ## 6. AI Workflow Configuration
 
-All AI workflow artifacts stay under the project-local workspace root.
+All AI workflow artifacts live in-repo under the `docs/` tree, per
+`${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`.
 
 | Artifact type | Location |
 |---------------|----------|
-| Workspace root | `.superpowers/` |
-| Plans | `.superpowers/plans/` |
-| Specs | `.superpowers/specs/` |
-| Brainstorms | `.superpowers/brainstorms/` |
-| Reports | `.superpowers/reports/` |
-| Reviews | `.superpowers/reviews/` |
-| Scratch / temporary analysis | `.superpowers/scratch/` |
-| Other typed artifacts | Create a typed subfolder under `.superpowers/` |
+| Plans | `docs/02-working-docs/plans/` |
+| Specs | `docs/02-working-docs/specs/` |
+| Research / spikes | `docs/02-working-docs/research/` |
+| Reports | `docs/02-working-docs/reports/` |
+| Handoffs (briefings) | `docs/02-working-docs/handoffs/` |
+| Living docs (PRD, architecture, ADR) | `docs/01-living-docs/…` |
+| Superseded / archived | `docs/99-archive/<original-bucket>/` |
 
 Rules:
 
-- Do not place AI workflow artifacts in `docs/`.
-- Do not place AI workflow artifacts in `.claude/` (reserve `.claude/` for Claude tool config only).
-- Date-prefix report filenames: `YYYY-MM-DD-<topic>.md`.
+- Place AI workflow artifacts under the repo `docs/` tree (in-repo, version-controlled, classified) — never in machine-global locations (`~/.claude/`, OS temp).
+- Do not scatter docs at the repo root or under `.claude/` (reserve `.claude/` for tool config only).
+- Working docs are date-prefixed: `YYYY-MM-DD-<topic>.md`. Living docs use stable kebab names. ADRs: `NNNN-kebab-title.md`.
 
 ---
 
@@ -233,9 +233,9 @@ Use the model ID that creates the file. Do not edit the header on later revision
 | `{ModuleName}` | Bound per task. Current module inventory lives in `<BindingsRoot>/PROJECT_STRUCTURE.md`. |
 | `{ModulePluginsName}` | `{ModuleName}Plugins` |
 | `{NoPrefixName}` | Same as `{ModuleName}` because this example uses no default prefix. |
-| `{ModuleRoot}` | `submodules/` |
+| `{ModuleRoot}` | `submodules/` *(Bazel: `Features/`)* |
 | `{ProjectStructure}` | `<BindingsRoot>/PROJECT_STRUCTURE.md` |
-| `{AIWorkspaceRoot}` | `.superpowers/` |
+| `{WorkingDocsRoot}` | `docs/02-working-docs/` |
 
 ---
 

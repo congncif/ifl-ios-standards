@@ -4,20 +4,22 @@
 # SETUP.md — One-Time Project Setup Playbook
 
 > **Audience**: AI agent performing first-time bootstrap of this template in a fresh project.
-> **Trigger**: User says *"setup project per `.ai/SETUP.md`"* (or equivalent) on a project that has root `AGENTS.md` / `CLAUDE.md` + `.ai/brain/` but lacks the binding files.
-> **Install location**: this file lives at `.ai/SETUP.md` (NOT repo root), to keep the project root clean.
-> **Goal**: Generate `PROJECT_CONFIG.md`, `PROJECT_STRUCTURE.md`, and (optionally) `QUICK_REF.md` by combining user input with project introspection. After this playbook completes, `CLAUDE.md` + brain + bindings form a complete agentic baseline.
+> **Trigger**: User says *"set up project bindings"* (or equivalent) on a project that has the
+> `ifl-ios-standards` plugin installed + a root `CLAUDE.md` / `AGENTS.md`, but lacks the binding files.
+> **Goal**: Generate `PROJECT_CONFIG.md`, `PROJECT_STRUCTURE.md`, and (optionally) `QUICK_REF.md` by
+> combining user input with project introspection. After this playbook completes, the plugin
+> standard + the project's bindings form a complete agentic baseline.
 > **Authority**: This file is a one-shot procedure. Once bindings exist, do not re-read SETUP.md per session.
 
 ---
 
 ## 1. Preconditions
 
-Before starting, verify all three:
+Before starting, verify:
 
-- [ ] `AGENTS.md` (and/or `CLAUDE.md` copy) exists at repo root.
-- [ ] `.ai/brain/QUICK_REF.md` and `.ai/brain/rulebook/` (chapter files) exist.
-- [ ] No `PROJECT_CONFIG.md` / `PROJECT_STRUCTURE.md` already present at the chosen bindings root (default: `.ai/rules/`, alternatives the user may prefer: `.claude/rules/` or `.config/`). If they exist, stop — setup has already been run.
+- [ ] The `ifl-ios-standards` plugin is installed and enabled (`claude plugin list` / `codex plugin list` shows it; `/ifl-ios-standards:boardy-vip` resolves). The standard's rulebook + specs ship in the plugin at `${CLAUDE_PLUGIN_ROOT}/standards/`.
+- [ ] A root `CLAUDE.md` (and/or twin `AGENTS.md`) exists — even a stub. Project bindings can live directly in it, or in separate files (this playbook generates the separate-file form).
+- [ ] No `PROJECT_CONFIG.md` / `PROJECT_STRUCTURE.md` already present at the chosen bindings root (default: `.claude/project/`). If they exist, stop — setup has already been run.
 
 If any precondition fails, stop and report what is missing.
 
@@ -36,14 +38,14 @@ Ask **all** of these in one batch. Do not guess. Group as one structured questio
 
 ### 2.2 Build environment
 - **Simulator / destination** — e.g. `iPhone 17` or `platform=iOS Simulator,name=iPhone 17`. Suggest discovering via `xcodebuild -showdestinations` if user is unsure.
-- **Dependency manager** — CocoaPods / Swift Package Manager / Tuist / mixed.
+- **Dependency manager** — CocoaPods / Bazel (rules_xcodeproj) / Swift Package Manager / Tuist / mixed.
 
 ### 2.3 Architecture choices
-- **Presentation pattern** — MVVM / MVP / MVI / TCA / VIP / Boardy+VIP / custom. The brain rulebook stays pattern-neutral; the project picks one. **Recommended default: VIP** (`.ai/brain/patterns/VIP.md` — works with or without Boardy). If the project adopts VIP, surface that pattern guide in the project's `QUICK_REF.md` routing table.
+- **Presentation pattern** — MVVM / MVP / MVI / TCA / VIP / Boardy+VIP / custom. The plugin's rulebook stays pattern-neutral; the project picks one. **Recommended default: Boardy+VIP** (`${CLAUDE_PLUGIN_ROOT}/standards/brain/patterns/VIP.md`). If the project adopts VIP, surface that pattern guide in the project's `QUICK_REF.md` routing table.
 - **Module-naming prefix** — empty or short prefix (e.g. `DAD`). Used in module/type naming patterns.
-- **Module root path** — where module folders live, e.g. `submodules/`, `Modules/`, `Packages/`, or `none` (single-target app).
-- **Bindings root path** — where `PROJECT_CONFIG.md` and `PROJECT_STRUCTURE.md` should live. Default: `.ai/rules/`.
-- **AI workspace root** — where plans/reports/scratch artifacts go. Default: `.superpowers/`.
+- **Module root path** — where module folders live, e.g. `Features/` (Bazel), `submodules/` / `Modules/` (CocoaPods), `Packages/` (SPM), or `none` (single-target app).
+- **Bindings root path** — where `PROJECT_CONFIG.md` and `PROJECT_STRUCTURE.md` should live. Default: `.claude/project/`.
+- **Working-docs root** — where plans/reports/handoffs artifacts go, per `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`. Default: `docs/02-working-docs/`.
 
 ### 2.4 Optional
 - **Localization** — does the project use string-generation (SwiftGen, etc.)? If yes, capture the command.
@@ -63,9 +65,10 @@ ls *.xcworkspace *.xcodeproj 2>/dev/null
 xcodebuild -workspace <Workspace> -list 2>/dev/null \
   || xcodebuild -project <Project> -list
 
-# Module discovery
-find <ModuleRoot> -maxdepth 2 -name "*.podspec" -print 2>/dev/null
-find . -maxdepth 3 -name "Package.swift" -print
+# Module discovery (by manager)
+find <ModuleRoot> -maxdepth 2 -name "BUILD.bazel" -print 2>/dev/null   # Bazel
+find <ModuleRoot> -maxdepth 2 -name "*.podspec"   -print 2>/dev/null   # CocoaPods
+find . -maxdepth 3 -name "Package.swift" -print                        # SPM
 
 # Destinations
 xcodebuild -workspace <Workspace> -scheme <MainScheme> -showdestinations 2>&1 \
@@ -87,9 +90,9 @@ Path: `<BindingsRoot>/PROJECT_CONFIG.md` (default `.claude/project/PROJECT_CONFI
 Required sections (in order):
 
 1. **Identity Configuration** — table: `{ProjectName}`, `{Workspace}`, `{MainScheme}`, `{ModulePrefix}`, `{BaseBranch}`, `{GitRemote}`, `{GitRemoteURL}`, `{Simulator}`, `{Destination}`.
-2. **Project-Wide Path Configuration** — module root, bindings root, AI workspace root + subfolders (`plans/`, `specs/`, `brainstorms/`, `reports/`, `reviews/`, `scratch/`).
-3. **Tooling Configuration** — dependency manager, interface/source globs, naming patterns, localization tool (if any).
-4. **Build/Test/Debug Configuration** — canonical filtered `xcodebuild build` and `xcodebuild test` commands, plus an error-context command. Use grep-filtered output (`(error:|warning:|BUILD SUCCEEDED|BUILD FAILED)` for build; `(error:|FAILED|PASSED|TEST SUCCEEDED|TEST FAILED)` for test). Forbid `-quiet` and `xcpretty -s`.
+2. **Project-Wide Path Configuration** — module root, bindings root, working-docs root + buckets (`docs/02-working-docs/{plans,specs,research,reports,handoffs}/` per `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`).
+3. **Tooling Configuration** — dependency manager (CocoaPods / Bazel / SPM), interface/source globs, naming patterns, localization tool (if any).
+4. **Build/Test/Debug Configuration** — the project's canonical build + test commands. For CocoaPods/xcodebuild, use grep-filtered output (`(error:|warning:|BUILD SUCCEEDED|BUILD FAILED)` for build; `(error:|FAILED|PASSED|TEST SUCCEEDED|TEST FAILED)` for test); forbid `-quiet`/`xcpretty -s`. For Bazel, `bazel build //…` / `bazel test //…`.
 5. **Dependency / Project-Generation Configuration** — triggers that require regeneration (e.g., new module → `pod install`).
 6. **AI Workflow Configuration** — table mapping artifact types to folders under AI workspace root.
 7. **File Trace Header Configuration** — if user opted in.
@@ -164,21 +167,21 @@ Do not commit or push. Setup output stays unstaged until the user approves.
 
 ## 9. Self-Check (before reporting "setup complete")
 
-- [ ] Root `AGENTS.md` / `CLAUDE.md` unchanged (this template doesn't edit it). Optionally update §5 if bindings root differs from the template default.
-- [ ] `.ai/brain/` unchanged.
+- [ ] Root `CLAUDE.md` / `AGENTS.md` carries the project's plugin pointer + bindings (or points at the separate binding files this playbook generated).
+- [ ] The plugin standard (`${CLAUDE_PLUGIN_ROOT}/standards/`) is untouched — it's read-only, shared.
 - [ ] `PROJECT_CONFIG.md` exists and contains every required section.
 - [ ] `PROJECT_STRUCTURE.md` exists and reflects current schemes/modules.
 - [ ] `QUICK_REF.md` exists only if the project actually needs it.
 - [ ] Canonical build command verified against real signal.
-- [ ] No project values scattered into `.ai/brain/` or root `AGENTS.md`/`CLAUDE.md` — bindings only.
+- [ ] No project values scattered into the plugin standard — bindings live in the repo only.
 - [ ] All generated files carry the trace header convention defined in `PROJECT_CONFIG.md`.
 
 If all boxes check, report **setup complete**. Otherwise list the gap.
 
 ---
 
-*End of one-time setup playbook. After completion, future sessions follow root `AGENTS.md`/`CLAUDE.md` → `.ai/brain/QUICK_REF.md` → bindings. SETUP.md is not loaded per session and may be deleted (or kept as historical record).*
+*End of one-time setup playbook. After completion, future sessions follow root `CLAUDE.md`/`AGENTS.md` → the `/ifl-ios-standards:boardy-vip` router (→ `${CLAUDE_PLUGIN_ROOT}/standards/…`) → project bindings. SETUP.md is not loaded per session and may be deleted (or kept as historical record).*
 
 ## Reference samples
 
-Worked examples of `PROJECT_CONFIG.md` and `PROJECT_STRUCTURE.md` generated for a real Boardy+VIP project live in `.ai/templates/portable-claude/examples/` of the template repository. Use them as shape references — do NOT copy values literally; values are project-specific.
+Worked examples of `PROJECT_CONFIG.md` and `PROJECT_STRUCTURE.md` live alongside this file in `${CLAUDE_PLUGIN_ROOT}/standards/templates/portable-claude/examples/`. Use them as shape references — do NOT copy values literally; values are project-specific.

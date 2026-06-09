@@ -8,7 +8,7 @@
 >
 > When SETUP.md generates the real file:
 > - Replace `<SpecsRoot>` with the project's chosen specs folder (declared in `PROJECT_CONFIG.md`).
-> - Replace `<BindingsRoot>` with the chosen bindings root (default `.ai/rules/`).
+> - Replace `<BindingsRoot>` with the chosen bindings root (default `.claude/project/`).
 > - Replace illustrative module names (`Auth`, `Profile`) with the project's actuals.
 > - Keep ONLY the sections relevant to the chosen pattern; drop the rest.
 > - This file is OPTIONAL — generate only if the project has ≥3 task-specific specs.
@@ -169,7 +169,7 @@ public struct AuthLauncherPlugin: LauncherPlugin {
 
 ## 7. Project-Specific Non-Negotiables (Boardy+VIP)
 
-> Add to the generic brain hard rules (`.ai/brain/rulebook/20-non-negotiable-rules.md`):
+> Add to the generic hard rules (`${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/20-non-negotiable-rules.md`):
 
 1. View has ZERO logic — renders ViewModels, forwards events only.
 2. Unidirectional flow: `ViewController → Interactor → UseCase → Presenter → ViewController`. Exception: direct UI navigation intents may go `ViewController → ActionDelegate(Board)`.

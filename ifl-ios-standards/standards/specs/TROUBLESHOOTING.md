@@ -24,37 +24,37 @@
 
 ## 1. Build / lint failures
 
-### 1.1 `audit-pack.sh` → `forbidden_imports`: `import UIKit` in Domain/
+### 1.1 lint → `forbidden_imports`: `import UIKit` in Domain/
 
 **Cause**: Domain layer leaked a UIKit type — most often `UIImage`, `UIColor`, or `UIViewController` snuck into a Domain `Result` / value object.
 **Fix**: Move the UIKit-typed value to a Presenter ViewModel. Domain stays pure Swift.
 **Ref**: `LAYERING.md`, `SERVICE_LAYER.md`, `forbidden_imports.swift` rule 1.
 
-### 1.2 `audit-pack.sh` → `forbidden_imports`: vendor SDK in Application/
+### 1.2 lint → `forbidden_imports`: vendor SDK in Application/
 
 **Cause**: Application layer (UseCase / Repository protocols) imported `Alamofire` / `Moya` / `Firebase*` / `GoogleSignIn` / `GoogleMobileAds` directly.
 **Fix**: Application defines a protocol; Infra/ implements it against the vendor SDK. Inject via Builder.
 **Ref**: `LAYERING.md` §Application, `forbidden_imports.swift` rule 2.
 
-### 1.3 `audit-pack.sh` → `forbidden_imports`: `import {Other}Plugins`
+### 1.3 lint → `forbidden_imports`: `import {Other}Plugins`
 
 **Cause**: One module's `Sources/**` imported a sibling module's `Plugins` target. Cross-module access must flow through the IO target.
 **Fix**: Replace with `import {Other}` (the IO target). If you need a type that only exists in `{Other}Plugins`, the type is in the wrong target — either it's construction wiring (stays in `Plugins`, never cross-module) or it's domain (move to `{Other}/IO/`).
 **Ref**: `CROSS_MODULE_DI.md`, `forbidden_imports.swift` rule 3, `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
 
-### 1.4 `audit-pack.sh` → `io_visibility`: `IO-missing-public`
+### 1.4 lint → `io_visibility`: `IO-missing-public`
 
 **Cause**: Top-level type declared in `{Module}/IO/**` without `public`/`open`.
 **Fix**: Prepend `public` to the type. IO is the cross-module surface — everything top-level must be public. `extension` blocks are exempt (their members carry their own modifiers).
 **Ref**: `IO_INTERFACE.md` §Naming, `io_visibility.swift` rule 1.
 
-### 1.5 `audit-pack.sh` → `io_visibility`: `Sources-has-public`
+### 1.5 lint → `io_visibility`: `Sources-has-public`
 
 **Cause**: Public symbol declared under `Sources/Microboards/**` or `Sources/Services/**` — these are internal.
 **Fix**: Drop the `public` modifier. If the symbol legitimately needs to be public (App constructs it for LauncherPlugin init), move it to `Sources/Plugins/**` — the pack's public-export zone.
 **Ref**: `IO_INTERFACE.md` §"Domain meaning vs construction wiring", `io_visibility.swift` rule 2.
 
-### 1.6 `audit-pack.sh` → `boardid_naming`: literal doesn't match pattern
+### 1.6 lint → `boardid_naming`: literal doesn't match pattern
 
 **Cause**: BoardID literal violates the naming contract. Two shapes:
 - Public (declared in `IO/`): MUST be `"pub.mod.{Module}.{Board}"`.
@@ -272,11 +272,13 @@ Then `pod install`.
 **Fix**: Break the cycle. Usually the shared types belong in a third module (or in DesignSystem / shared lib). Cross-module dep direction MUST be acyclic — see DECISION_TREES Tree §8.
 **Ref**: `DECISION_TREES.md` Tree §8, `CROSS_MODULE_DI.md`.
 
-### 9.3 Adopter ran `install-rules.sh` but `.claude/` files don't update on pack version bump
+### 9.3 Plugin skills/agents/specs are stale after a new version shipped
 
-**Cause**: `install-rules.sh` was run in `--mode=copy`. Copies are frozen at the time of install; symlinks track the pack live.
-**Fix**: Re-run `./.standards/bin/install-rules.sh --mode=link --force`. Default mode is `link`, but a prior `--mode=copy` invocation requires `--force` to replace the copied files with symlinks.
-**Ref**: `bin/install-rules.sh` header.
+**Cause**: the installed `ifl-ios-standards` plugin is pinned to an old ref, or the local cache hasn't refreshed.
+**Fix**: update the marketplace + reload.
+- Claude Code: `claude plugin marketplace update ifl-ios-standards` then `/reload-plugins` (or restart). If pinned, re-add with the new tag: `claude plugin marketplace add congncif/ifl-ios-standards#vX.Y.Z`.
+- Codex: `codex plugin marketplace upgrade ifl-ios-standards`, then start a new thread.
+**Ref**: the plugin's `INSTALL.md` / `DEPLOY.md`.
 
 ---
 
@@ -286,7 +288,7 @@ If your symptom isn't here:
 
 1. Identify the pattern in play (Board type, communication channel, layer) via `DECISION_TREES.md`.
 2. Read that pattern's spec — every spec has a §Pitfalls section with the recurring traps.
-3. Run `audit-pack.sh` — the lint output often pinpoints rule violations the eye missed.
+3. Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift`) — the lint output often pinpoints rule violations the eye missed.
 4. Check `17-anti-patterns.md` (rulebook) for the wider anti-pattern catalog.
 
 If you've diagnosed a new symptom worth recording, add it here as a §X.Y entry following the symptom → cause → fix → ref shape. New entries belong in the section that matches the failure mode, not the affected module.

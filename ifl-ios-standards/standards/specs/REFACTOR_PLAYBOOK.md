@@ -30,7 +30,7 @@ Each section below covers ONE of these. They're independent — read the section
 |-------|-----|
 | `git status` clean | Refactors generate large diffs; mix with feature work = unreviewable PR |
 | Working tree builds + tests green | Don't refactor on top of failing tests; you won't know which failures the refactor introduced |
-| `audit-pack.sh submodules` green | Same reason — refactor adds violations on top, you lose signal |
+| the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) green | Same reason — refactor adds violations on top, you lose signal |
 | Identify ALL callers of the surface you're about to change | `git grep` for the public BoardID literal, the IO ServiceMap accessor, the module name in imports |
 | Confirm no in-flight PRs touch the same files | Merge conflicts on a refactor are painful; coordinate timing |
 | Pack version pinned in `PROJECT_CONFIG.md` | If the pack itself just bumped, rebase the pack version first — don't conflate pack + refactor diffs |
@@ -60,7 +60,7 @@ If two halves of the proposed split call each other ≥ 3 times after the cut, y
 
 1. **Create the new module** with `new-module.sh`:
    ```bash
-   ./.standards/bin/new-module.sh OnboardingTutorial
+   ifl-new-module OnboardingTutorial
    ```
    Emits the canonical 5-file skeleton. Don't hand-create — you'll miss the ServiceMap accessor or the podspec naming.
 
@@ -86,7 +86,7 @@ If two halves of the proposed split call each other ≥ 3 times after the cut, y
 
 7. **Run `pod install`** — this regenerates the workspace's Pods project.
 
-8. **Run `audit-pack.sh submodules`** — must be clean before commit.
+8. **Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`)** — must be clean before commit.
 
 9. **Build + smoke-test** — at minimum, activate one Board from each side of the split and confirm it renders.
 
@@ -95,7 +95,7 @@ If two halves of the proposed split call each other ≥ 3 times after the cut, y
 - [ ] Both modules have IO + Plugins podspecs + ServiceMaps.
 - [ ] Cross-deps acyclic: `grep -E "s\\.dependency '{(Old|New)Module}'" submodules/*/*.podspec` shows at most one direction.
 - [ ] No public BoardID renamed (rename is a separate refactor — see Refactor 5).
-- [ ] `audit-pack.sh submodules` clean.
+- [ ] the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) clean.
 - [ ] App still launches; first Board on each side activates without `BoardID not registered` crash.
 
 ### Rollback
@@ -166,14 +166,14 @@ Pick a survivor module (`{Keeper}`) and an absorbed module (`{Absorbed}`). The K
 
 9. **Update App's `installAllModules()`** — remove `{Absorbed}LauncherPlugin()` install.
 
-10. **Run `pod install`** and `audit-pack.sh submodules`.
+10. **Run `pod install`** and the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`).
 
 11. **Build + smoke-test** — every flow that previously crossed the boundary should still work, now via in-module calls.
 
 ### Verification
 
 - [ ] `git grep "{Absorbed}"` returns nothing (other than the changelog entry documenting the merge).
-- [ ] `audit-pack.sh submodules` clean.
+- [ ] the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) clean.
 - [ ] No `BoardID not registered` crashes on the formerly-cross-module flows.
 - [ ] Module count in `submodules/` decreased by exactly one.
 
@@ -207,7 +207,7 @@ Don't extract because the file is long. Long files with a single coherent respon
 
 2. **Generate the skeleton**:
    ```bash
-   ./.standards/bin/new-board.sh {Module} {NewBoard} {type}
+   ifl-new-board {Module} {NewBoard} {type}
    ```
 
 3. **Move the extracted logic**:
@@ -233,7 +233,7 @@ Don't extract because the file is long. Long files with a single coherent respon
    - For internal: no LauncherPlugin change needed.
    - For public: add the case to the LauncherPlugin's exposed map.
 
-7. **Run `audit-pack.sh submodules`** — must be clean.
+7. **Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`)** — must be clean.
 
 8. **Test both Boards independently**. The new Board should be testable in isolation; that's the point of the extraction.
 
@@ -290,7 +290,7 @@ Internal Boards have no cross-module callers by definition. The move is mechanic
    git grep "mod{Source}Plugins.io{Board}"
    ```
 
-6. **Run `audit-pack.sh submodules`** — `boardid_naming` will catch any literal you missed.
+6. **Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`)** — `boardid_naming` will catch any literal you missed.
 
 ### Mechanical sequence — public Board (lives in `IO/`)
 
@@ -390,7 +390,7 @@ If the rename is just "I like Y better than X", don't do it. Drift between name 
 
 7. **For external callers (different repos / published SDKs)**: ship the new constant alongside the old one for one release. Mark old as `@available(*, deprecated)`. Remove in the next major version.
 
-8. **Run `audit-pack.sh submodules`**.
+8. **Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`)**.
 
 ### Mechanical sequence — module rename
 
@@ -430,7 +430,7 @@ If the rename is caught pre-merge: `git revert` the rename commit. Post-merge: y
 - ❌ **Merging because two modules share a service** — extract the service to a third module instead. Merging is the wrong response to a shared dependency.
 - ❌ **Renaming a public BoardID literal without a bridge** — external callers will hit `BoardID not registered` at runtime, silently. Always check for external callers; if any exist, bridge before removal.
 - ❌ **"While I'm in here..." cleanup** — refactor is already high-stakes. Don't compound it with unrelated improvements. Open a separate PR for each.
-- ❌ **Skipping `audit-pack.sh` between steps** — the lints exist to catch refactor mid-flight breakage. Run them between Board moves, not just at the end.
+- ❌ **Skipping `the bundled lint scripts` between steps** — the lints exist to catch refactor mid-flight breakage. Run them between Board moves, not just at the end.
 
 ---
 
@@ -439,7 +439,7 @@ If the rename is caught pre-merge: `git revert` the rename commit. Post-merge: y
 Tick before opening the PR:
 
 ### Split / Merge / Move
-- [ ] `audit-pack.sh submodules` clean.
+- [ ] the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) clean.
 - [ ] Cross-deps acyclic (`grep -E "s\\.dependency" submodules/*/*.podspec` review).
 - [ ] App launches; affected flows smoke-tested.
 - [ ] No leftover `import {Old}` / `mod{Old}` / `pub.mod.{Old}` references unless intentional (bridge alias).

@@ -1,16 +1,26 @@
 # Changelog — `portable-claude` template
 
-The portable-claude template is a **drop-in install** of the Boardy+VIP agent team + rules + brain snapshot for a new (or existing) project.
+The portable-claude template is a **bindings starter** for a project adopting the Boardy+VIP
+standard via the `ifl-ios-standards` plugin. It seeds the repo's `CLAUDE.md`/`AGENTS.md` bindings;
+the standard itself (rulebook, specs, agents, skills) ships in the plugin.
 
-This template follows [SemVer](https://semver.org/). The version is **bumped in lockstep** with `.ai/brain/CHANGELOG.md` because the template embeds (or pins) a brain snapshot.
+This template follows [SemVer](https://semver.org/), versioned independently of the plugin standard.
 
 - **Patch (x.y.Z)** — typo, link fix, README clarification with no semantic change.
 - **Minor (x.Y.0)** — new agent, new rule file, new setup step. Adopters confirm at next semi-annual review.
 - **Major (X.0.0)** — removed/renamed agent, breaking change to setup contract, brain major bump. Adopters re-audit + re-run setup.
 
-## [Unreleased]
+## [2.0.0] — 2026-06-09
 
-_no changes yet_
+Rewritten for the **plugin model**.
+
+- `CLAUDE.md`/`AGENTS.md` are now a thin **bindings starter** that points at the `ifl-ios-standards`
+  plugin for the standard and holds only project bindings (no more `.ai/brain/` copy-into-repo).
+- `README.md` + `SETUP.md` describe plugin install (Claude Code + Codex) instead of the
+  `.standards/` submodule + `bootstrap.sh` flow.
+- Docs/plans/handoffs follow `process/docs-organization.md` (`docs/02-working-docs/…`) — replaces
+  the `.superpowers/` workspace.
+- Package-manager-neutral (CocoaPods / Bazel / SPM) — was CocoaPods-only.
 
 ## [0.1.0] — 2026-05-23
 
@@ -26,5 +36,5 @@ Initial versioned baseline. Captures the template as it shipped with QuizCombatA
 
 ### Versioning policy
 
-- Pinned brain version is declared in `SETUP.md` step 0 ("Preconditions"). Adopters MUST verify the pinned brain version matches the live `.ai/brain/VERSION` before running setup, otherwise the brain has drifted and setup is unsafe.
-- Adopter projects record the template version they installed in their `.claude/project/PROJECT_CONFIG.md` (new field `template_version`). When a new major template ships, adopters can audit their bindings against the new contract.
+- The standard's version is the installed plugin version (`ifl-ios-standards` `plugin.json`); adopters pin it via `claude/codex plugin marketplace add …#vX.Y.Z` if they need a fixed version.
+- Adopter projects may record the template version they seeded from in their `CLAUDE.md`. When a new major template ships, adopters can audit their bindings against the new contract.

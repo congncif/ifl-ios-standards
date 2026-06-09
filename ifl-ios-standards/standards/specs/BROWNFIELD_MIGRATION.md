@@ -67,28 +67,26 @@ Total ≤ 5 → great first candidate. Total ≥ 10 → migrate this last.
 
 ---
 
-## Phase 1 — install the pack
+## Phase 1 — install the standard + write bindings
+
+Install the `ifl-ios-standards` plugin (once per machine):
 
 ```bash
-# At repo root:
-git submodule add <pack-remote> .standards
-./.standards/bin/bootstrap.sh --remote=<pack-remote>
+# Claude Code
+claude plugin marketplace add congncif/ifl-ios-standards && claude plugin install ifl-ios-standards@ifl-ios-standards
+# Codex
+codex plugin marketplace add  congncif/ifl-ios-standards && codex plugin add     ifl-ios-standards@ifl-ios-standards
 ```
 
-After bootstrap:
+Then seed the repo's bindings (the standard reads these for everything project-specific):
 
-1. Open `.claude/project/PROJECT_CONFIG.md` — fill in `{ProjectName}`, `{Workspace}`, `{MainScheme}`, `{Simulator}`, `{Destination}`, etc.
-2. If your modules don't live under `submodules/`, set `Module root` to the actual path.
-3. Commit: pack content is symlinked from `.standards/` (default); a `--mode=copy` install is also supported if your CI can't follow symlinks.
-4. Open `.claude/rules/QUICK_REF.md` — this is your daily routing entry-point.
-5. Open `.ai/specs/DECISION_TREES.md` — the "which pattern do I need" navigator.
+1. Copy the starter from `${CLAUDE_PLUGIN_ROOT}/standards/templates/portable-claude/CLAUDE.md` to your repo root as `CLAUDE.md` (+ twin `AGENTS.md`).
+2. Fill in identity (`{ProjectName}`, `{Workspace}`, `{MainScheme}`, `{Simulator}`, `{Destination}`), `Module root` (your modules' actual path — `Features/` for Bazel, `submodules`/`Modules` for CocoaPods), and the build/test commands.
+3. Daily routing entry-point: the `/ifl-ios-standards:boardy-vip` router skill.
+4. "Which pattern do I need" navigator: `/ifl-ios-standards:boardy-vip` → `${CLAUDE_PLUGIN_ROOT}/standards/specs/DECISION_TREES.md`.
 
-Verify:
-
-```bash
-./.standards/bin/audit-pack.sh
-# Expect: spec_doc_lint OK
-```
+Verify the plugin is live: `claude plugin list` (or `codex plugin list`) shows `ifl-ios-standards`;
+`/agents` lists the `ios-*` agents.
 
 ---
 
@@ -110,8 +108,9 @@ Use Tree §1 in `DECISION_TREES.md`: typical answers per archetype:
 ### Step 2 — Scaffold
 
 ```bash
-./.standards/bin/new-module.sh <Module> --module-root=<your-module-root>
-./.standards/bin/new-board.sh  <Module> <Board> <ui|viewless|flow|blocktask>
+ifl-new-module <Module> --module-root=<your-module-root>   # on PATH when the plugin is enabled
+ifl-new-board  <Module> <Board> <ui|viewless|flow|blocktask>
+# or the skills: /ifl-ios-standards:new-module , /ifl-ios-standards:new-board
 ```
 
 This produces:
@@ -171,11 +170,13 @@ Replace the legacy screen's host with a Boardy motherboard. Bigger lift; only do
 ### Step 6 — Verify
 
 ```bash
-# Pack lints (run on your module root)
-./.standards/bin/audit-pack.sh <module-root>
+# Standard lints (bundled in the plugin) — run on your module root
+swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/io_visibility.swift   <module-root>
+swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/forbidden_imports.swift <module-root>
+swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/boardid_naming.swift  <module-root>
 
-# Build
-xcodebuild build ... | grep -E "(error:|BUILD SUCCEEDED|BUILD FAILED)"
+# Build (your project's canonical command — see CLAUDE.md)
+bazel build //<module-root>/...    # or: xcodebuild build ... | grep -E "(error:|BUILD SUCCEEDED|BUILD FAILED)"
 ```
 
 Smoke-test the migrated screen end-to-end in the simulator before merging.
@@ -208,7 +209,7 @@ Now the boring part. For each subsequent screen:
 3. Port — same Phase 2 step 4 mechanics.
 4. Update legacy callers to go through the new ServiceMap.
 5. Delete the legacy code when no callers remain.
-6. Run `audit-pack.sh <module-root>` before merge.
+6. Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) before merge.
 
 Aim for one screen per PR. Stack PRs against `main`; don't run a parallel "migration branch" that diverges for weeks.
 
@@ -244,7 +245,7 @@ Aim for one screen per PR. Stack PRs against `main`; don't run a parallel "migra
 
 Before merging a port PR:
 
-- [ ] `audit-pack.sh <module-root>` reports 0 violations for the touched module
+- [ ] The bundled lint scripts report 0 violations for the touched module
 - [ ] `xcodebuild build` reports `BUILD SUCCEEDED` for `{MainScheme}` AND the module's own scheme if one exists
 - [ ] The migrated screen renders identically (or intentionally better) compared to pre-port
 - [ ] All legacy entry points to the screen now go through `ServiceMap.mod{Module}Plugins.io{Board}` — no direct `{Board}ViewController()` calls

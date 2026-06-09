@@ -1,112 +1,122 @@
-<!-- Created by claude-sonnet-4-6 on 2026-05-18 -->
-<!-- template-version: 1.0.0 -->
+<!-- template-version: 2.0.0 -->
 
-# AGENTS.md — Project Constitution (Portable Template)
+# CLAUDE.md — {ProjectName} Project Constitution (starter)
 
-> **Purpose**: Drop-in per-session constitution for any modern modular iOS project that adopts the generic agentic baseline.
-> **Twin file**: A copy of this file MAY also exist at the project root as `CLAUDE.md`. Both files have identical content — `CLAUDE.md` is provided for Claude-tooling discoverability; `AGENTS.md` is the universal cross-tool name. Keep them in sync.
-> **Pairs with**: `.ai/brain/QUICK_REF.md` (routing index) + `.ai/brain/rulebook/*.md` (chapter files) + project bindings (see §5).
-> **First-time setup**: see `.ai/SETUP.md` (one-shot procedure, not loaded per session).
-
----
-
-## 0. Precondition Check (every session)
-
-Before doing any work, verify the project has been bootstrapped:
-
-1. Does `PROJECT_CONFIG.md` exist at the bindings root declared in §5?
-2. Does `PROJECT_STRUCTURE.md` exist at the same root?
-
-If either is missing → **stop**. Setup has not been run. Tell the user: *"Project bindings not found. Run the procedure in `.ai/SETUP.md` first."* Do not guess values, do not proceed with the task.
-
-If both exist → continue normally.
+> **Drop-in starter.** Copy this file to your repo root as `CLAUDE.md` (and a twin `AGENTS.md`),
+> then fill in the `{Placeholders}`. It holds only **your project's bindings** — the Boardy+VIP
+> standard itself ships in the `ifl-ios-standards` plugin.
+> **Twin file**: keep `CLAUDE.md` and `AGENTS.md` identical (`CLAUDE.md` for Claude tooling,
+> `AGENTS.md` the universal cross-tool name).
 
 ---
 
-## 1. Manifesto
+## 0. The standard lives in the plugin
 
-We build modular iOS systems of explicit capabilities. Each capability has a stable interface, a clear owner, and a bounded implementation. Domain stays pure. Presentation stays humble. Infrastructure stays at the edge. Communication is contractual.
+The Boardy+VIP architecture standard — rulebook, specs, the 14 rules, naming/protocol tables,
+review checklist, process standards, scaffolders — is provided by the **`ifl-ios-standards`**
+plugin, not by files in this repo. Use it:
 
-Default behavior: preserve the model, make the smallest correct change, verify with real signals.
+- **Router skill** (read first for any Boardy+VIP task): `/ifl-ios-standards:boardy-vip`
+- **Task skills**: `/ifl-ios-standards:new-module`, `:new-board`, `:io-interface`,
+  `:communication`, `:service-layer`, `:plugin-composition`, `:testing`, `:review`, `:refactor`,
+  `:troubleshoot`, `:adopt` — auto-fire by task context, or call explicitly.
+- **Agents** (multi-step delivery): `ios-orchestrator` (start here), `ios-planner`,
+  `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`,
+  `ios-review-triage`, `ios-doc-scribe` — appear in `/agents`.
+- **Scaffolders on PATH** when the plugin is enabled: `ifl-new-module`, `ifl-new-board`.
+
+Install once if missing:
+```bash
+# Claude Code
+claude plugin marketplace add congncif/ifl-ios-standards && claude plugin install ifl-ios-standards@ifl-ios-standards
+# Codex
+codex plugin marketplace add  congncif/ifl-ios-standards && codex plugin add     ifl-ios-standards@ifl-ios-standards
+```
+
+The plugin's agents/skills read **this file** for everything project-specific below.
 
 ---
 
-## 2. Authority Order
-
-When instructions conflict:
+## 1. Authority order
 
 1. User's explicit current instruction.
-2. This constitution.
-3. Project bindings (see §5).
-4. `.ai/brain/QUICK_REF.md` — generic agentic entry point.
-5. `.ai/brain/rulebook/*.md` — generic rulebook chapters (load one file on demand via the routing table in `QUICK_REF.md`).
-6. Existing code patterns in the target module.
-
-Project bindings override the brain rulebook. The brain rulebook overrides nothing of bindings — it only fills gaps.
+2. This constitution (project bindings, §3–§5).
+3. The `ifl-ios-standards` plugin standard (router skill → rulebook/specs).
+4. Existing code patterns in the target module.
 
 ---
 
-## 3. Mandatory Load Order
+## 2. Non-negotiable boundaries
 
-> **Context rule**: Reference rule files by plain path (no `@`-imports). The `@path` syntax auto-loads everything at session start and burns context. Use the Read tool on demand.
+Full 14 rules: `/ifl-ios-standards:boardy-vip` §2. The hard floor:
 
-Before generating or reviewing code:
-
-1. Read `.ai/brain/QUICK_REF.md` first — it is the routing index + hard rules.
-2. Read project binding files listed in §5 when their domain applies.
-3. Read one `.ai/brain/rulebook/*.md` chapter file selected from the routing table in `QUICK_REF.md`.
-4. Read code in the target module last — preserve existing shape.
-
-Load exactly the files needed. Do not pre-load speculatively.
-
----
-
-## 4. Non-Negotiable Boundaries
-
-(Mirrors `.ai/brain/rulebook/20-non-negotiable-rules.md`.)
-
-1. Domain is pure Swift — no UIKit, no networking, no vendor SDKs, no Codable.
+1. Domain is pure Swift — no UIKit, Boardy, networking, or vendor SDKs.
 2. Dependencies point inward: Infrastructure → Business → Domain. Never reverse.
-3. Consumers depend on contracts, not implementations.
-4. No vendor types in public interfaces.
-5. Views are humble. UI updates run on the main actor.
-6. Concrete types instantiated only at composition roots.
-7. One state, one writer.
-8. No speculative abstraction. No unrelated changes.
-9. No bypass of safety checks. Verify with real signals. Empty output ≠ success.
-10. When in doubt, stop and ask.
+3. IO targets are `public` contracts; consumers import IO only, never another module's `{Name}Plugins`.
+4. Views are humble; UI updates run on the main actor.
+5. One state, one writer. Concrete types built only at composition roots.
+6. No speculative abstraction, no unrelated changes. Verify with real signals — empty output ≠ success.
+7. When in doubt, stop and ask.
 
 ---
 
-## 5. Project Bindings
+## 3. Identity
 
-Project-specific values live **only** in binding files. This constitution and the brain rulebook stay portable.
-
-**Default bindings root**: `.ai/rules/` (semantic: `.ai/` = AI knowledge, `.claude/` = Claude tool config). `SETUP.md` may set a different root — if so, update this section once.
-
-Required (created by `.ai/SETUP.md`):
-
-- `<BindingsRoot>/PROJECT_CONFIG.md` — workspace name, scheme, simulator/destination, build/test commands, paths, naming prefix.
-- `<BindingsRoot>/PROJECT_STRUCTURE.md` — current modules, schemes, ownership topology. Update whenever modules change.
-
-Optional:
-
-- `<BindingsRoot>/QUICK_REF.md` — project-specific task → spec routing table.
-- `<BindingsRoot>/REVIEWER_CHECKLIST.md` — project-specific review enforcement.
-- Task-specific specs and example files under a project-specific specs root (declared in `PROJECT_CONFIG.md`).
-
-When a generic rule needs a project value, resolve via the binding files. Never inline project values into this constitution or the brain rulebook.
+| Key | Value |
+|-----|-------|
+| Project | `{ProjectName}` |
+| Xcode project / workspace | `{Workspace}` |
+| Main scheme | `{MainScheme}` |
+| Base branch | `{BaseBranch}` |
+| Git remote | `{GitRemote}` → `{GitRemoteURL}` |
+| Simulator / destination | `{Simulator}` / `{Destination}` |
+| Module prefix | `{ModulePrefix}` *(empty if none)* |
 
 ---
 
-## 6. Operating Discipline
+## 4. Structure & tooling
 
-- Treat empty or ambiguous verification output as failure.
-- Stage commits by explicit reviewed file paths only. Avoid broad staging.
-- Commit or push only after explicit user approval for the current phase.
-- New source files carry a one-line authorship trace header per project convention (declared in `PROJECT_CONFIG.md`).
-- AI workflow artifacts (plans, reports, brainstorms, reviews, scratch) live under a single project-local workspace declared in `PROJECT_CONFIG.md`, not scattered across `docs/` or `.claude/`.
+| Concern | Value |
+|---------|-------|
+| Dependency manager | `{DependencyManager}` *(CocoaPods / Bazel + rules_xcodeproj / SPM)* |
+| Module root | `{ModuleRoot}` *(`Features` for Bazel; `submodules`/`Modules` for CocoaPods)* |
+| Module dependency file | `{ModuleDependencyFile}` *(`BUILD.bazel` or `*.podspec`)* |
+| Interface target | `{ModuleName}` — glob `IO/**/*.swift` |
+| Implementation target | `{ModuleName}Plugins` — glob `Sources/**/*.swift` |
+| Test target | `{ModuleName}-Tests` — glob `Tests/**/*.swift` |
+
+New modules emit the two-target split via `/ifl-ios-standards:new-module`. Keep the IO/Plugins
+split — it's the standard's whole point.
 
 ---
 
-*End. Keep this file short. Move detail into bindings or into the brain rulebook. Initial project setup is governed by `.ai/SETUP.md` (run once), not by this file.*
+## 5. Build / test / verify
+
+```bash
+{BuildCommand}      # e.g. bazel build //Features/{ModuleName}:{ModuleName}Plugins  — or xcodebuild …
+{TestCommand}       # e.g. bazel test  //Features/{ModuleName}:{ModuleName}-Tests
+```
+
+Verification cadence (TDD tiers + checkpoint levels): `/ifl-ios-standards:boardy-vip` →
+`${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`.
+
+---
+
+## 6. Operating discipline
+
+- Commit/push only after explicit user approval for the current phase. Stage by explicit reviewed paths.
+- Commit message convention: `{CommitPrefix}` *(e.g. a ticket-key prefix, if your team requires one)*.
+- Project docs/plans/handoffs live in-repo under `docs/` per
+  `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md` (working docs →
+  `docs/02-working-docs/…`). The multi-agent pipeline workspace
+  (`docs/02-working-docs/handoffs/`) is optional — only the `ios-orchestrator` flow uses it.
+- New source files carry the project's authorship-trace header convention.
+
+> **Optional separate binding files.** Instead of filling §3–§5 inline, you may keep
+> `PROJECT_CONFIG.md` + `PROJECT_STRUCTURE.md` under `.claude/project/` and point here at them.
+> See `${CLAUDE_PLUGIN_ROOT}/standards/templates/portable-claude/SETUP.md` for that one-time flow.
+
+---
+
+*Keep this file short. The architecture standard is the plugin's job; this file is only your
+project's bindings + boundaries. Update §3–§5 when project values change.*

@@ -142,7 +142,7 @@ IO declarations themselves are non-concurrent — they are `struct` / `enum` / `
 
 - `Input.init` stub factories live in test bundles per `compact/TESTING.compact.md`.
 - `Output` / `Command` enums are tested through Interactor / Presenter tests — they have no behavior of their own.
-- IO module itself has no unit tests; correctness is enforced by `forbidden_imports` + `io_visibility` lints (pack `bin/audit-pack.sh`).
+- IO module itself has no unit tests; correctness is enforced by `forbidden_imports` + `io_visibility` lints (bundled lint scripts under `${CLAUDE_PLUGIN_ROOT}/standards/scripts/`).
 
 ## Pitfalls
 

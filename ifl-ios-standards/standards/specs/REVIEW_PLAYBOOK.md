@@ -15,7 +15,7 @@ Reviewer fatigue degrades quality as files pile up. Most reviews silently follow
 | # | Read | Why first |
 |---|------|-----------|
 | 1 | PR description | If the goal isn't clear, stop and ask. Never review code whose intent you can't restate. |
-| 2 | `audit-pack.sh` output (CI badge) | If lint fails, the PR isn't ready. Don't review further until green. |
+| 2 | lint output (CI badge) | If lint fails, the PR isn't ready. Don't review further until green. |
 | 3 | `Podfile` + every `*.podspec` diff | Module structure decisions cascade. A wrong podspec dep contaminates downstream files. |
 | 4 | `IO/**` diffs (new + modified) | IO is the public surface. Mistakes here are breaking changes. |
 | 5 | `Sources/Plugins/**` diffs | ModulePlugin + LauncherPlugin + construction wiring. Wiring mistakes cause runtime crashes the tests won't catch. |
@@ -244,7 +244,7 @@ These come up in every review but are NOT worth your time as a reviewer:
 
 - **Formatting / whitespace** — let the formatter handle it. If the formatter passes, move on.
 - **Auto-generated files** (`Pods.xcconfig`, `*.pbxproj`) — read for unintended changes (target removed, dep version bump) but don't review the syntax.
-- **Issues the lint already flagged** — the author can read the CI output. Don't restate every `audit-pack.sh` failure as a review comment.
+- **Issues the lint already flagged** — the author can read the CI output. Don't restate every lint failure as a review comment.
 - **Style preferences without a rule** — if `QUICK_REF.md` / specs don't mandate it, it's a Nit at most. Don't argue style.
 - **Architecture decisions that are already in DECISION_TREES.md** — if the author picked a valid path (e.g. `flow` Board vs `viewless` for a routing case), don't second-guess unless they picked the wrong path.
 

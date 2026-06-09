@@ -23,7 +23,7 @@
 
 | Placeholder | Meaning |
 |-------------|---------|
-| `<BindingsRoot>` | Project's chosen bindings root (default `.ai/rules/`) |
+| `<BindingsRoot>` | Project's chosen bindings root (default `.claude/project/`) |
 | `<SpecsRoot>` | Project's chosen specs folder (declared in `PROJECT_CONFIG.md`) |
 | `{ProjectName}`, `{Workspace}`, `{Scheme}`, etc. | Identity placeholders — see PROJECT_CONFIG §9 for resolution map |
 | `{ModuleName}`, `{BoardName}`, `{Name}` | Per-task placeholders bound at the time of the task |
@@ -32,4 +32,4 @@
 
 ## Single source warning
 
-These examples drift from real projects over time. They are NOT a snapshot of any specific live project. If the team wants to keep a working-project snapshot for reference, store it under the project's `.ai/` workspace, not in this template folder.
+These examples drift from real projects over time. They are NOT a snapshot of any specific live project. If the team wants to keep a working-project snapshot for reference, store it under the project's `docs/01-living-docs/` tree, not in this template folder.
