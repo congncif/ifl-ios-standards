@@ -70,7 +70,9 @@ codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
 Or the bundled installer: `scripts/install-codex.sh` (`--ref` optional). `codex plugin add`
-records the install in `~/.codex/config.toml`. Start a new Codex thread to pick up the skills/agents.
+records the install in `~/.codex/config.toml`; the installer also creates `~/.local/bin` shims for
+`ifl-init`, `ifl-new-module`, and `ifl-new-board` because Codex does not currently guarantee plugin
+`bin/` directories are exported to shell PATH. Start a new Codex thread to pick up the skills/agents.
 Codex resolves `${CLAUDE_PLUGIN_ROOT}/standards/…` paths relative to the plugin root (no var expansion).
 
 ## Prerequisites

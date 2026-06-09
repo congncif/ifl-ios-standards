@@ -15,16 +15,17 @@ only seeds the project's own values.
 
 ## 1. Seed via the bundled helper
 
-Run the scaffolder (on PATH when the plugin is enabled). It copies the starter template to the repo
-root and pre-fills what it can detect (project name, git remote/branch, dependency manager, module
-root, workspace):
+Run the scaffolder. It copies the starter template to the repo root and pre-fills what it can detect
+(project name, git remote/branch, dependency manager, module root, workspace). Claude normally exposes
+the plugin `bin/` on PATH; Codex requires the `scripts/install-codex.sh` shim step for PATH commands:
 
 ```bash
 ifl-init --root=.            # add --force to overwrite existing CLAUDE.md/AGENTS.md
 # preview first: ifl-init --root=. --dry-run
 ```
 
-If `ifl-init` isn't on PATH, run it from the plugin: `${CLAUDE_PLUGIN_ROOT}/bin/ifl-init --root=.`
+If `ifl-init` isn't on PATH, run `scripts/install-codex.sh` to create `~/.local/bin` shims, or run it
+from the plugin cache/root: `${CLAUDE_PLUGIN_ROOT}/bin/ifl-init --root=.`
 
 It refuses to overwrite an existing `CLAUDE.md`/`AGENTS.md` without `--force` — if the repo already
 has bindings, stop and ask the user before clobbering.
