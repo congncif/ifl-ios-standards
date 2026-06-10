@@ -119,7 +119,7 @@ Goal: scaffold the first feature module + its first Board. Pick a small, self-co
 
 ```bash
 ifl-new-module Onboarding          # scaffolder on PATH when the plugin is enabled
-# or: /ifl-ios-standards:new-module
+# or: /ifl-ios-standards:boardy-new-module
 ```
 
 Emits under `{ModuleRoot}/Onboarding/` (build file per your manager):
@@ -133,7 +133,7 @@ Pick Board type via `DECISION_TREES.md` Tree §1. For a launch/splash screen, `u
 
 ```bash
 ifl-new-board Onboarding Welcome ui
-# or: /ifl-ios-standards:new-board
+# or: /ifl-ios-standards:boardy-new-board
 ```
 
 Emits the IO trio (`WelcomeIOInterface.swift`, `WelcomeInOut.swift`, `ServiceMap+Welcome.swift`) plus the per-type Sources skeleton (Board + Builder + Interactor + Presenter + ViewController + Protocols + `ServiceMap+`).
@@ -158,7 +158,7 @@ end
 
 ### Step 2d — fill in the Board
 
-Scaffolded files contain `// TODO:` markers. Work in this order (see `/ifl-ios-standards:new-board` + `EXAMPLES_VIP_BOARD.md`):
+Scaffolded files contain `// TODO:` markers. Work in this order (see `/ifl-ios-standards:boardy-new-board` + `EXAMPLES_VIP_BOARD.md`):
 1. `WelcomeInOut.swift` — `Input`/`Output`/`Command`/`Action`. Splash with no params: `Input` may be `Void` + `weak var context: UIViewController?`.
 2. `WelcomeViewController.swift` — render methods (`Viewable`). Keep it dumb — zero logic.
 3. `WelcomePresenter.swift` — map Domain → ViewModel.

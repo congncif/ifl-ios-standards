@@ -1,5 +1,5 @@
 ---
-name: io-interface
+name: boardy-io-interface
 description: >-
   Use when defining or changing a Boardy module's public IO surface — BoardID constants,
   InOut models (Input/Output/Command/Action), the MainDestination/io factory, or ServiceMap

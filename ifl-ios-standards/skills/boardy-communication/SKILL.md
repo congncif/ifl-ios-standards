@@ -1,5 +1,5 @@
 ---
-name: communication
+name: boardy-communication
 description: >-
   Use when wiring board-to-board communication in Boardy+VIP — event buses, flows,
   finishBus, addTarget callbacks, or context navigation (backToPrevious / returnHere).

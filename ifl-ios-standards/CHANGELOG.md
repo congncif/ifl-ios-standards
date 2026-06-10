@@ -4,6 +4,30 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [0.16.0] — 2026-06-10
+
+### Added
+- **Brain process-stage skills** (pattern-neutral, driven by `standards/brain/` rulebook chapters):
+  `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`,
+  `brain-review` — one skill per lifecycle stage, each loading only its chapters, each with a
+  Boardy forwarding hook when the project's `CLAUDE.md` binds the pattern.
+- **`brain-flow`** — end-to-end workflow automation (analyze → design → architect → plan →
+  execute → test → review → done). Detects scale + pattern binding: large Boardy tasks delegate
+  to the `ios-orchestrator` pipeline; small tasks run the inline stage pipeline with per-stage
+  `boardy-*` forwarding.
+
+### Changed
+- **BREAKING — skill renames**: all Boardy task skills gained the `boardy-` prefix to separate the
+  pattern layer from the new brain process layer: `adopt`→`boardy-adopt`,
+  `communication`→`boardy-communication`, `io-interface`→`boardy-io-interface`,
+  `new-board`→`boardy-new-board`, `new-module`→`boardy-new-module`,
+  `plugin-composition`→`boardy-plugin-composition`, `refactor`→`boardy-refactor`,
+  `review`→`boardy-review`, `service-layer`→`boardy-service-layer`, `testing`→`boardy-testing`,
+  `troubleshoot`→`boardy-troubleshoot`. `boardy-vip` (router) and `init` unchanged. Old slash
+  names no longer resolve — update any project docs referencing them (the bundled
+  `portable-claude` templates and specs are already updated).
+- `boardy-vip` router now also routes process-stage work to the `brain-*` skills.
+
 ## [0.15.0] — 2026-06-09
 
 ### Added

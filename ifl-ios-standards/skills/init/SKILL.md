@@ -55,8 +55,8 @@ table prose, not values to resolve.
 - Both files exist at repo root, identical.
 - The `Module root` row parses as a single token (the scaffolders read it — no extra backticks/prose in the value cell).
 - No remaining `{MainScheme}`/`{BuildCommand}`/`{TestCommand}` placeholders (those break real use).
-- Tell the user the plugin is wired; next step is `/ifl-ios-standards:new-module` for the first module,
-  or `/ifl-ios-standards:adopt` for a brownfield migration plan.
+- Tell the user the plugin is wired; next step is `/ifl-ios-standards:boardy-new-module` for the first module,
+  or `/ifl-ios-standards:boardy-adopt` for a brownfield migration plan.
 
 > Per `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`, project docs/plans/handoffs go
 > under `docs/` — the bindings already point there. The `.superpowers`-style scratch dir is not used.

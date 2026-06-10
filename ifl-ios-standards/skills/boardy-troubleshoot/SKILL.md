@@ -1,5 +1,5 @@
 ---
-name: troubleshoot
+name: boardy-troubleshoot
 description: >-
   Use when debugging a Boardy+VIP symptom — a crash, an assertion, a board that won't activate,
   a bus that fires twice, a duplicate handler, a lifecycle leak. Triggers: "why does this crash",

@@ -110,7 +110,7 @@ Use Tree §1 in `DECISION_TREES.md`: typical answers per archetype:
 ```bash
 ifl-new-module <Module> --module-root=<your-module-root>   # on PATH when the plugin is enabled
 ifl-new-board  <Module> <Board> <ui|viewless|flow|blocktask>
-# or the skills: /ifl-ios-standards:new-module , /ifl-ios-standards:new-board
+# or the skills: /ifl-ios-standards:boardy-new-module , /ifl-ios-standards:boardy-new-board
 ```
 
 This produces:

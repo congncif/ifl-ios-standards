@@ -5,8 +5,8 @@ description: >-
   Use when working on iOS Swift modules built with Boardy + VIP — creating modules or boards,
   wiring IO/BoardID/ServiceMap, board communication/buses, services/use-cases, plugin composition,
   testing, code review, refactoring, troubleshooting, or adopting the pattern. Routes the task to
-  the right bundled spec and to the matching `/ifl-ios-standards:<task>` skill, and states the
-  14 non-negotiable rules + naming/protocol-placement conventions.
+  the right bundled spec and to the matching `/ifl-ios-standards:boardy-<task>` skill, and states
+  the 14 non-negotiable rules + naming/protocol-placement conventions.
 ---
 
 # Boardy+VIP — task router
@@ -33,20 +33,25 @@ it. Single-agent tasks ignore it.
 | Task | Skill | Bundled doc |
 |------|-------|-------------|
 | Pick a pattern (Board type / ID prefix / bus shape / scope) — FIRST | — | `${CLAUDE_PLUGIN_ROOT}/standards/specs/DECISION_TREES.md` |
-| New module | `/ifl-ios-standards:new-module` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/MODULE_CREATION.md` |
-| New board (UI / viewless / flow / blocktask) | `/ifl-ios-standards:new-board` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/MICROBOARD_UI.md`, `MICROBOARD_NONUI.md` |
-| IO / BoardID / InOut / ServiceMap | `/ifl-ios-standards:io-interface` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/IO_INTERFACE.md` |
-| Board communication / Bus / flows / context nav | `/ifl-ios-standards:communication` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/COMMUNICATION.md`, `BUS_PATTERNS.md`, `CONTEXT_NAVIGATION.md` |
-| Service / UseCase / Repository / Infra / layering / cross-module DI | `/ifl-ios-standards:service-layer` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/SERVICE_LAYER.md`, `LAYERING.md`, `CROSS_MODULE_DI.md` |
-| Plugin / LauncherPlugin / ComposableBoard / TabBar / providers / barrier | `/ifl-ios-standards:plugin-composition` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/PLUGINS_INTEGRATION.md`, `COMPOSABLE_BOARD.md`, `EXTENSIBLE_PROVIDER.md`, `ACTIVATION_BARRIER.md` |
-| Tests | `/ifl-ios-standards:testing` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/TESTING.compact.md` → `TESTING.md` |
-| Code review | `/ifl-ios-standards:review` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/REVIEW_PLAYBOOK.md`, `REVIEWER_CHECKLIST.md` |
-| Refactor (split/merge module, extract/move board, rename public symbol) | `/ifl-ios-standards:refactor` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/REFACTOR_PLAYBOOK.md` |
-| Debug a symptom / error → cause → fix | `/ifl-ios-standards:troubleshoot` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/TROUBLESHOOTING.md` |
+| New module | `/ifl-ios-standards:boardy-new-module` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/MODULE_CREATION.md` |
+| New board (UI / viewless / flow / blocktask) | `/ifl-ios-standards:boardy-new-board` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/MICROBOARD_UI.md`, `MICROBOARD_NONUI.md` |
+| IO / BoardID / InOut / ServiceMap | `/ifl-ios-standards:boardy-io-interface` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/IO_INTERFACE.md` |
+| Board communication / Bus / flows / context nav | `/ifl-ios-standards:boardy-communication` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/COMMUNICATION.md`, `BUS_PATTERNS.md`, `CONTEXT_NAVIGATION.md` |
+| Service / UseCase / Repository / Infra / layering / cross-module DI | `/ifl-ios-standards:boardy-service-layer` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/SERVICE_LAYER.md`, `LAYERING.md`, `CROSS_MODULE_DI.md` |
+| Plugin / LauncherPlugin / ComposableBoard / TabBar / providers / barrier | `/ifl-ios-standards:boardy-plugin-composition` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/PLUGINS_INTEGRATION.md`, `COMPOSABLE_BOARD.md`, `EXTENSIBLE_PROVIDER.md`, `ACTIVATION_BARRIER.md` |
+| Tests | `/ifl-ios-standards:boardy-testing` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/TESTING.compact.md` → `TESTING.md` |
+| Code review | `/ifl-ios-standards:boardy-review` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/REVIEW_PLAYBOOK.md`, `REVIEWER_CHECKLIST.md` |
+| Refactor (split/merge module, extract/move board, rename public symbol) | `/ifl-ios-standards:boardy-refactor` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/REFACTOR_PLAYBOOK.md` |
+| Debug a symptom / error → cause → fix | `/ifl-ios-standards:boardy-troubleshoot` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/TROUBLESHOOTING.md` |
 | Init a project's CLAUDE.md + AGENTS.md bindings | `/ifl-ios-standards:init` | runs `${CLAUDE_PLUGIN_ROOT}/bin/ifl-init` + template starter |
-| Adopt into existing app / greenfield setup | `/ifl-ios-standards:adopt` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/BROWNFIELD_MIGRATION.md`, `GREENFIELD_SETUP.md`, `ADOPTION.md` |
+| Adopt into existing app / greenfield setup | `/ifl-ios-standards:boardy-adopt` | `${CLAUDE_PLUGIN_ROOT}/standards/specs/BROWNFIELD_MIGRATION.md`, `GREENFIELD_SETUP.md`, `ADOPTION.md` |
 | Architecture overview / runtime composition | — | `${CLAUDE_PLUGIN_ROOT}/standards/specs/ARCHITECTURE.md` |
 | Code example | — | `${CLAUDE_PLUGIN_ROOT}/standards/specs/EXAMPLES.md` (index) → one `EXAMPLES_*.md` |
+
+**Process-stage skills** (pattern-neutral, brain-rulebook-driven — pick by *stage* of work rather
+than Boardy topic): `/ifl-ios-standards:brain-design`, `:brain-architect`, `:brain-plan`,
+`:brain-execute`, `:brain-testing`, `:brain-review`. End-to-end automation:
+`/ifl-ios-standards:brain-flow` (auto-detects the Boardy binding and forwards back to the table above).
 
 Companion canonicals (don't duplicate — read on demand):
 - Operating loop + 10 architecture hard rules: `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md`
@@ -91,4 +96,4 @@ for anything spanning more than one board/file. Model-tier rationale per agent:
 - `ifl-new-module <Name>` — scaffold a Bazel Boardy-VIP module (two `swift_library` targets).
 - `ifl-new-board <Module> <Board> <ui|viewless|flow|blocktask>` — scaffold a board.
 
-See `/ifl-ios-standards:init`, `:new-module`, `:new-board`.
+See `/ifl-ios-standards:init`, `:boardy-new-module`, `:boardy-new-board`.

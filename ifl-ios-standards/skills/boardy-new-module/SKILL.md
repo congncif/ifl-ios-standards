@@ -1,5 +1,5 @@
 ---
-name: new-module
+name: boardy-new-module
 description: >-
   Use when creating a new Boardy+VIP iOS module / Business Unit — scaffolding the two-target
   module (IO interface + Plugins implementation), its ServiceMap, ModulePlugin, and Bazel BUILD.
@@ -24,7 +24,7 @@ and a `Tests/` stub. Module root defaults to the project's convention (see the c
 
 ## Then
 1. Fill `PLUGINS_DEPENDENCIES` in the generated `BUILD.bazel` with real deps (copy from a neighbour module).
-2. Add boards: `/ifl-ios-standards:new-board`.
+2. Add boards: `/ifl-ios-standards:boardy-new-board`.
 3. Register each board in `{Module}ModulePlugin.swift` (`ServiceType` case + `build()`).
 4. Verify per the project's build command (see its `CLAUDE.md`), e.g. `bazel build //<root>/<Module>:<Module>Plugins`.
 

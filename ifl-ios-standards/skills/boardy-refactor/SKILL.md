@@ -1,5 +1,5 @@
 ---
-name: refactor
+name: boardy-refactor
 description: >-
   Use when performing a structural refactor on a Boardy+VIP codebase — splitting or merging a
   module, extracting or moving a board across modules, or renaming a public symbol. Triggers:

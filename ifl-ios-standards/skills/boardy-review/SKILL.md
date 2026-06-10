@@ -1,5 +1,5 @@
 ---
-name: review
+name: boardy-review
 description: >-
   Use when reviewing Boardy+VIP iOS code against the architecture standard — running the review
   procedure, triaging findings, or applying the exhaustive rule checklist. Triggers: "review this

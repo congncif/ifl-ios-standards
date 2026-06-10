@@ -1,5 +1,5 @@
 ---
-name: testing
+name: boardy-testing
 description: >-
   Use when writing or reviewing tests for Boardy+VIP iOS code — interactor tests, mocks,
   stubs, async sequences, snapshot, integration. Triggers: "write tests", "unit test a board",

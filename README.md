@@ -15,20 +15,20 @@ claude plugin marketplace add  congncif/ifl-ios-standards
 claude plugin install          ifl-ios-standards@ifl-ios-standards
 ```
 
-Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.15.0`.
+Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.16.0`.
 Then `/reload-plugins` (or restart Claude Code).
 
 One-liner (no clone):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
-# flags: | bash -s -- --ref=v0.15.0 --scope=project
+# flags: | bash -s -- --ref=v0.16.0 --scope=project
 ```
 
 ## Install — Codex
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.15.0 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.16.0 to pin
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl
 | Component | Count | What |
 |-----------|-------|------|
 | Agents | 9 | `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
-| Skills | 13 | Router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + `init`, `new-module`, `new-board`, `io-interface`, `communication`, `service-layer`, `plugin-composition`, `testing`, `review`, `refactor`, `troubleshoot`, `adopt` |
+| Skills | 20 | **Brain stages** (pattern-neutral): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy tasks**: router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
 | Reference | — | Full rulebook, 43 specs + process standards, lint scripts, `portable-claude` templates (bundled under `standards/`) |
 | Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — Bazel-aware; Claude exposes plugin `bin/` directly, while Codex uses `scripts/install-codex.sh` to create shims in `~/.local/bin` |
 
@@ -71,9 +71,11 @@ call a skill directly:
 ```text
 /ifl-ios-standards:boardy-vip          # router — read first, routes to the right skill/spec
 /ifl-ios-standards:init                # seed CLAUDE.md + AGENTS.md for a new project
-/ifl-ios-standards:new-module
-/ifl-ios-standards:new-board
-/ifl-ios-standards:review
+/ifl-ios-standards:brain-flow          # automate the whole workflow: analyze → … → done
+/ifl-ios-standards:boardy-new-module
+/ifl-ios-standards:boardy-new-board
+/ifl-ios-standards:boardy-review
+# … per-stage: :brain-design :brain-architect :brain-plan :brain-execute :brain-testing :brain-review
 ```
 
 For multi-step delivery, delegate to the bundled agents (start with `ios-orchestrator`); they
@@ -97,4 +99,4 @@ docs-organization process standard) is optional.
 ## Versioning
 
 Plugin `version` (in `ifl-ios-standards/.claude-plugin/plugin.json`) follows the upstream pack
-`VERSION` (currently `0.15.0`). Bump on content changes; tag `vX.Y.Z` so installs can pin.
+`VERSION` (currently `0.16.0`). Bump on content changes; tag `vX.Y.Z` so installs can pin.

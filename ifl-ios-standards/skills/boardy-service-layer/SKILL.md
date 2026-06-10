@@ -1,5 +1,5 @@
 ---
-name: service-layer
+name: boardy-service-layer
 description: >-
   Use when building the non-UI layers of a Boardy module — domain services, use cases,
   repositories, infrastructure — or deciding layering / cross-module dependency injection.

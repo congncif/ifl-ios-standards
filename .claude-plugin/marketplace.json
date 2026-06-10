@@ -10,7 +10,7 @@
     {
       "name": "ifl-ios-standards",
       "source": "./ifl-ios-standards",
-      "description": "Boardy+VIP iOS architecture standards: 10 specialist agents, a QUICK_REF task router skill + clustered task skills, the full rulebook/specs as bundled reference, and Bazel module/board scaffolders on PATH."
+      "description": "Boardy+VIP iOS architecture standards: 10 specialist agents, pattern-neutral brain process-stage skills (incl. brain-flow end-to-end automation), a QUICK_REF task router skill + clustered boardy task skills, the full rulebook/specs as bundled reference, and Bazel module/board scaffolders on PATH."
     }
   ]
 }

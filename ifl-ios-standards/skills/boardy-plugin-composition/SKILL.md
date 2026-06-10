@@ -1,5 +1,5 @@
 ---
-name: plugin-composition
+name: boardy-plugin-composition
 description: >-
   Use when composing Boardy boards into the app — LauncherPlugin / ModuleBuilderPlugin
   registration, ComposableBoard / TabBar containers, interchangeable providers / extensible

@@ -17,9 +17,9 @@ review checklist, process standards, scaffolders — is provided by the **`ifl-i
 plugin, not by files in this repo. Use it:
 
 - **Router skill** (read first for any Boardy+VIP task): `/ifl-ios-standards:boardy-vip`
-- **Task skills**: `/ifl-ios-standards:new-module`, `:new-board`, `:io-interface`,
-  `:communication`, `:service-layer`, `:plugin-composition`, `:testing`, `:review`, `:refactor`,
-  `:troubleshoot`, `:adopt` — auto-fire by task context, or call explicitly.
+- **Task skills**: `/ifl-ios-standards:boardy-new-module`, `:boardy-new-board`, `:boardy-io-interface`,
+  `:boardy-communication`, `:boardy-service-layer`, `:boardy-plugin-composition`, `:boardy-testing`, `:boardy-review`, `:boardy-refactor`,
+  `:boardy-troubleshoot`, `:boardy-adopt` — auto-fire by task context, or call explicitly.
 - **Agents** (multi-step delivery): `ios-orchestrator` (start here), `ios-planner`,
   `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`,
   `ios-review-triage`, `ios-doc-scribe` — appear in `/agents`.
@@ -90,7 +90,7 @@ Full 14 rules: `/ifl-ios-standards:boardy-vip` §2. The hard floor:
 > `*.podspec`. Keep the **Module root** value cell a single bare token (no prose/extra backticks) —
 > the scaffolders parse it.
 
-New modules emit the two-target split via `/ifl-ios-standards:new-module`. Keep the IO/Plugins
+New modules emit the two-target split via `/ifl-ios-standards:boardy-new-module`. Keep the IO/Plugins
 split — it's the standard's whole point.
 
 ---

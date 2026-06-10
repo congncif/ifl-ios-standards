@@ -9,7 +9,7 @@ module/board scaffolders.
 | Component | What it is |
 |-----------|------------|
 | `agents/` (9) | Delegated pipeline: `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
-| `skills/` (13) | Router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + 12 task skills: `init`, `new-module`, `new-board`, `io-interface`, `communication`, `service-layer`, `plugin-composition`, `testing`, `review`, `refactor`, `troubleshoot`, `adopt` |
+| `skills/` (20) | **Brain stages** (pattern-neutral, brain-rulebook-driven): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy tasks**: router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
 | `standards/` | Bundled reference: `rules/` (7), `brain/` (rulebook + patterns), `specs/` (43 incl. compact), `process/` (docs-organization, lean-verification), `scripts/` (4 lint), `templates/portable-claude/` |
 | `bin/` | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — Claude exposes these on PATH; Codex installs stable shims via `scripts/install-codex.sh` |
 
@@ -18,10 +18,12 @@ module/board scaffolders.
 ```bash
 # every task type is also auto-detected by description — these are explicit entry points:
 /ifl-ios-standards:boardy-vip          # router — read first, routes to the right skill/spec
-/ifl-ios-standards:new-module
-/ifl-ios-standards:new-board
-/ifl-ios-standards:review
-# … :io-interface :communication :service-layer :plugin-composition :testing :refactor :troubleshoot :adopt
+/ifl-ios-standards:brain-flow          # automate the whole workflow: analyze → … → done
+/ifl-ios-standards:boardy-new-module
+/ifl-ios-standards:boardy-new-board
+/ifl-ios-standards:boardy-review
+# … boardy: :boardy-io-interface :boardy-communication :boardy-service-layer :boardy-plugin-composition :boardy-testing :boardy-refactor :boardy-troubleshoot :boardy-adopt
+# … brain stages: :brain-design :brain-architect :brain-plan :brain-execute :brain-testing :brain-review
 ```
 
 Or just describe an iOS Boardy task — the router (broadest `description`) fires first and points
@@ -50,5 +52,5 @@ scripts/install-claude.sh --scope=project --project=/path/to/repo
 
 ## Versioning
 
-`plugin.json` `version` mirrors the upstream pack `VERSION` (currently `0.15.0`). Bump on content
+`plugin.json` `version` mirrors the upstream pack `VERSION` (currently `0.16.0`). Bump on content
 changes so installs pick up updates.

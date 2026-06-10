@@ -1,5 +1,5 @@
 ---
-name: new-board
+name: boardy-new-board
 description: >-
   Use when adding a board to an existing Boardy+VIP iOS module — UI (VIP stack), viewless
   (controller-backed), flow, or blocktask. Triggers: "add a board", "new VIP screen",

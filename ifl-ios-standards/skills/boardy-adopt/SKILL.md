@@ -1,5 +1,5 @@
 ---
-name: adopt
+name: boardy-adopt
 description: >-
   Use when bringing the Boardy+VIP standard into a project — migrating an existing UIKit/RIBs
   codebase incrementally, or standing up a new app greenfield on the pattern. Triggers: "adopt
@@ -26,4 +26,4 @@ The multi-agent pipeline's handoff workspace (in-repo under `docs/02-working-doc
 delegated `ios-orchestrator` flow.
 
 ## First module
-Once `CLAUDE.md` is wired, scaffold with `/ifl-ios-standards:new-module`.
+Once `CLAUDE.md` is wired, scaffold with `/ifl-ios-standards:boardy-new-module`.
