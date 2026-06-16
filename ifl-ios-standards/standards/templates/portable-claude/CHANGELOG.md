@@ -10,6 +10,14 @@ This template follows [SemVer](https://semver.org/), versioned independently of 
 - **Minor (x.Y.0)** — new agent, new rule file, new setup step. Adopters confirm at next semi-annual review.
 - **Major (X.0.0)** — removed/renamed agent, breaking change to setup contract, brain major bump. Adopters re-audit + re-run setup.
 
+## [2.2.0] — 2026-06-17
+
+Added generic large-scale iOS architecture rules to the portable constitution.
+
+- Added `2.1 Modern large-scale iOS development rules` to `CLAUDE.md`/`AGENTS.md`.
+- Generalized Boardy-specific concepts into pattern-neutral composition, workflow, service-contract, and runtime-orchestration wording.
+- Kept Boardy/VIP routing language scoped to Boardy/VIP projects only.
+
 ## [2.1.0] — 2026-06-16
 
 Generalized template wording beyond Boardy-only projects.

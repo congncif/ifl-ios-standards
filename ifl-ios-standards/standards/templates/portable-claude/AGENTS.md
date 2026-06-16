@@ -1,4 +1,4 @@
-<!-- template-version: 2.1.0 -->
+<!-- template-version: 2.2.0 -->
 
 # CLAUDE.md — {ProjectName} Project Constitution (starter)
 
@@ -47,13 +47,31 @@ The plugin's agents/skills read **this file** for everything project-specific be
 
 Full architecture rules live in `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/` and the task-specific specs in `${CLAUDE_PLUGIN_ROOT}/standards/specs/`. The hard floor:
 
-1. Domain is pure Swift — no UIKit, Boardy, networking, or vendor SDKs.
+1. Domain is pure Swift — no UIKit, networking, persistence, or vendor SDKs.
 2. Dependencies point inward: Infrastructure → Business → Domain. Never reverse.
 3. IO targets are `public` contracts; consumers import IO only, never another module's `{Name}Plugins`.
 4. Views are humble; UI updates run on the main actor.
 5. One state, one writer. Concrete types built only at composition roots.
 6. No speculative abstraction, no unrelated changes. Verify with real signals — empty output ≠ success.
 7. When in doubt, stop and ask.
+
+### 2.1 Modern large-scale iOS development rules
+
+Apply these rules when translating product work into iOS architecture:
+
+1. **Prefer the platform SDK first.** Maximize Swift, UIKit, SwiftUI-hosting, Foundation, and Apple SDK capabilities; add third-party libraries only when they provide clear product value, and prefer internal libraries built on stable platform APIs.
+2. **Optimize for independent change.** Split the app by business capability. Each feature owns a bounded context, public contract, implementation, tests, and build target.
+3. **Use interface modules as public contracts.** Export only the minimal stable API needed by consumers. Modules communicate through IO interfaces, never through another module's concrete implementation.
+4. **Keep dependency direction explicit.** App-level composition wires concrete modules at the edge. Feature code imports inward-facing contracts only and does not reach sideways across business units.
+5. **Put domain meaning at the center.** Model enterprise business rules with domain services, entities, and value objects. Keep DTOs, SDK objects, persistence records, and transport details in adapters.
+6. **Preserve clean layering.** Domain is pure Swift. Business Application coordinates use cases and presentation workflow. Infrastructure/UI contains views, data access, SDK integration, and other humble adapters.
+7. **Keep business flow unidirectional.** UI forwards intent into an interactor/use case, presentation maps output into view models or render state, and the view only renders state and emits user events.
+8. **Build composable business capabilities.** Expose small workflow or service contracts such as `start`, `handle`, `activate`, `interact`, `execute`, or `observe` APIs. Communicate through input/output/command/action events instead of concrete screens.
+9. **Centralize orchestration and registration.** App/plugin composition roots register factories, services, and feature entry points; runtime orchestration resolves and invokes capabilities through IO interfaces.
+10. **Hide external systems behind adapters.** Networking, persistence, analytics, experiments, URL opening, and vendor SDKs stay in infrastructure and are injected behind protocols so they can be tested or replaced.
+11. **Design for build scalability.** Prefer small independently compilable targets. Avoid broad shared modules that become dumping grounds. Introduce shared code only after real duplication or multiple consumers.
+12. **Verify at the module boundary.** Add or update focused unit tests for domain/use-case behavior, compile the changed module, and run integration/UI checks only when composition wiring or user flow changes.
+13. **Evolve incrementally.** Migrate legacy code by adding seams and contracts first, then moving behavior. Do not rewrite working flows or create platform abstractions without concrete pressure.
 
 ---
 

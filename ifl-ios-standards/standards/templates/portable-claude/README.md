@@ -1,4 +1,4 @@
-<!-- template-version: 2.1.0 -->
+<!-- template-version: 2.2.0 -->
 
 # Portable CLAUDE/AGENTS bindings starter
 
