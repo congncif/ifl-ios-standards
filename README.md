@@ -18,6 +18,41 @@ claude plugin install          ifl-ios-standards@ifl-ios-standards
 Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.18.0`.
 Then `/reload-plugins` (or restart Claude Code).
 
+### Update installed plugin
+
+Update the configured marketplace, then update the installed plugin for the desired scope:
+
+```bash
+# user scope
+claude plugin marketplace update ifl-ios-standards
+claude plugin update -s user ifl-ios-standards@ifl-ios-standards
+
+# project scope
+claude plugin marketplace update ifl-ios-standards
+claude plugin update -s project ifl-ios-standards@ifl-ios-standards
+```
+
+Update from a specific branch, tag, or ref:
+
+```bash
+./install.sh --ref=main --scope=user
+claude plugin marketplace update ifl-ios-standards
+claude plugin update -s user ifl-ios-standards@ifl-ios-standards
+
+# or pin a release tag
+./install.sh --ref=v0.18.0 --scope=user
+claude plugin marketplace update ifl-ios-standards
+claude plugin update -s user ifl-ios-standards@ifl-ios-standards
+```
+
+Verify:
+
+```bash
+claude plugin list | grep -A4 -B1 'ifl-ios-standards@ifl-ios-standards'
+```
+
+Run `/reload-plugins` or restart Claude Code after updating.
+
 One-liner (no clone):
 
 ```bash
