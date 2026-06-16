@@ -1,7 +1,7 @@
 {
   "name": "ifl-ios-standards",
-  "version": "0.16.0",
-  "description": "Boardy+VIP iOS engineering standards for Codex. Ships specialist agents, pattern-neutral brain process-stage skills (brain-design, brain-architect, brain-plan, brain-execute, brain-testing, brain-review, brain-flow end-to-end automation), a QUICK_REF-driven router skill plus clustered boardy task skills (boardy-new-module, boardy-new-board, boardy-io-interface, boardy-communication, boardy-service-layer, boardy-plugin-composition, boardy-testing, boardy-review, boardy-refactor, boardy-troubleshoot, boardy-adopt), the full architecture rulebook + specs + process standards as bundled reference, and Bazel module/board scaffolders.",
+  "version": "0.17.0",
+  "description": "Reusable iOS engineering standards. Ships specialist agents, pattern-neutral brain process-stage skills (brain-design, brain-architect, brain-plan, brain-execute, brain-testing, brain-review, brain-flow), Boardy/VIP task skills, bundled architecture rulebook/specs/process standards, and Bazel module/board scaffolders.",
   "author": {
     "name": "IFL iOS"
   },
@@ -20,8 +20,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "IFL iOS Standards",
-    "shortDescription": "Boardy+VIP iOS architecture standards, agents, and scaffolders",
-    "longDescription": "Brings the Boardy+VIP iOS engineering standard into Codex: pattern-neutral brain process-stage skills (design, architect, plan, execute, testing, review, plus brain-flow end-to-end automation), a boardy task-routing skill set (new module/board, IO interface, communication, service layer, plugin composition, testing, review, refactor, troubleshoot, adopt), specialist agents for delegated delivery, the full rulebook + specs + process standards (docs-organization, lean-verification) as bundled reference, and Bazel module/board scaffolders. Reference paths shown as ${CLAUDE_PLUGIN_ROOT}/standards/… resolve relative to this plugin's root under Codex.",
+    "shortDescription": "Reusable iOS standards, agents, skills, and scaffolders",
+    "longDescription": "Brings reusable iOS engineering standards into Codex: pattern-neutral brain process-stage skills (design, architect, plan, execute, testing, review, plus brain-flow end-to-end automation), Boardy/VIP task skills (new module/board, IO interface, communication, service layer, plugin composition, testing, review, refactor, troubleshoot, adopt), specialist agents for delegated delivery, bundled rulebook + specs + process standards (docs-organization, lean-verification), and Bazel module/board scaffolders. Reference paths shown as ${CLAUDE_PLUGIN_ROOT}/standards/\u2026 resolve relative to this plugin root under Codex.",
     "developerName": "IFL iOS",
     "category": "Engineering",
     "capabilities": [
@@ -30,9 +30,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Add a new Boardy VIP module to this iOS project",
-      "Review this Swift code against the Boardy+VIP standards",
-      "Scaffold a viewless board in module X"
+      "Set up iOS project bindings with the reusable standards",
+      "Review this Swift code against the iOS standards",
+      "Scaffold a Boardy/VIP module in module X"
     ],
     "brandColor": "#2F6BFF",
     "screenshots": []

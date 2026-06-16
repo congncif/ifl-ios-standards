@@ -1,9 +1,9 @@
-<!-- template-version: 2.0.0 -->
+<!-- template-version: 2.1.0 -->
 
 # Portable CLAUDE/AGENTS bindings starter
 
-Drop-in **bindings starter** for an iOS project adopting the Boardy+VIP standard via the
-`ifl-ios-standards` plugin. The standard (rulebook, specs, agents, skills, scaffolders) ships
+Drop-in **bindings starter** for an iOS project adopting the reusable iOS standards from the
+`ifl-ios-standards` plugin. The standards (rulebook, specs, agents, skills, scaffolders) ship
 **in the plugin** — this template only seeds your repo's project-specific bindings.
 
 ## Contents
@@ -44,7 +44,7 @@ There is **no `.ai/brain/` to copy** — the rulebook + specs live in the plugin
    ```
    Edit §3–§5 (identity / structure / build commands). Done — the plugin's agents/skills read these.
 
-3. **Use it**: describe a Boardy+VIP task (the router skill fires) or call `/ifl-ios-standards:boardy-vip`.
+3. **Use it**: describe the iOS task. Use `brain-*` skills for pattern-neutral workflow, or call `/ifl-ios-standards:boardy-vip` for Boardy/VIP work.
 
 ## Two ways to hold bindings
 
@@ -55,8 +55,8 @@ There is **no `.ai/brain/` to copy** — the rulebook + specs live in the plugin
 
 ## Authority order (downstream project)
 
-User instruction > root `CLAUDE.md` (= `AGENTS.md`, project bindings) > the `ifl-ios-standards`
-plugin standard (router skill → rulebook/specs) > existing code.
+User instruction > root `CLAUDE.md` (= `AGENTS.md`, project bindings) > the relevant `ifl-ios-standards`
+skill/spec/process docs > existing code.
 
 ## Versioning
 
@@ -69,3 +69,4 @@ The plugin standard versions independently (see the plugin's `plugin.json` / `VE
 |------|----------|--------|
 | 2026-05-18 | 1.0.0 | Initial release (copy-`.ai/brain`-into-repo model). |
 | 2026-06-09 | 2.0.0 | Rewritten for the plugin model: bindings starter only; standard ships in the `ifl-ios-standards` plugin; docs/handoffs follow docs-organization; package-manager-neutral. |
+| 2026-06-16 | 2.1.0 | Generalized wording beyond Boardy-only projects; clarified routing and plugin paths; removed install commands from seeded CLAUDE/AGENTS template. |

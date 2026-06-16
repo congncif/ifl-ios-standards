@@ -1,8 +1,8 @@
 # ifl-ios-standards — Claude Code + Codex marketplace
 
-A **plugin marketplace** distributing the **Boardy+VIP iOS engineering standard** — specialist
-agents, a task-routing skill set, the full architecture rulebook/specs as bundled reference, and
-Bazel module/board scaffolders. **One repo, both runtimes**: it ships
+A **plugin marketplace** distributing reusable **iOS engineering standards** — specialist
+agents, pattern-neutral brain workflows, Boardy/VIP task skills, the full architecture references,
+and Bazel module/board scaffolders. **One repo, both runtimes**: it ships
 `.claude-plugin/marketplace.json` (Claude Code) and `.codex-plugin/marketplace.json` (Codex) at its
 root, like a dual-runtime plugin.
 
@@ -15,20 +15,20 @@ claude plugin marketplace add  congncif/ifl-ios-standards
 claude plugin install          ifl-ios-standards@ifl-ios-standards
 ```
 
-Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.16.0`.
+Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.17.0`.
 Then `/reload-plugins` (or restart Claude Code).
 
 One-liner (no clone):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
-# flags: | bash -s -- --ref=v0.16.0 --scope=project
+# flags: | bash -s -- --ref=v0.17.0 --scope=project
 ```
 
 ## Install — Codex
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.16.0 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.17.0 to pin
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl
 | Component | Count | What |
 |-----------|-------|------|
 | Agents | 9 | `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
-| Skills | 20 | **Brain stages** (pattern-neutral): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy tasks**: router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
+| Skills | 20 | **Brain stages** (pattern-neutral): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` (for Boardy/VIP routing) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
 | Reference | — | Full rulebook, 43 specs + process standards, lint scripts, `portable-claude` templates (bundled under `standards/`) |
 | Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — Bazel-aware; Claude exposes plugin `bin/` directly, while Codex uses `scripts/install-codex.sh` to create shims in `~/.local/bin` |
 
@@ -65,8 +65,8 @@ Then fill any remaining `{Placeholders}` (scheme, simulator, build/test commands
 
 ## Use it
 
-After install + init, just describe an iOS Boardy+VIP task — the router skill fires by context — or
-call a skill directly:
+After install + init, describe the iOS task. Use `brain-*` skills for pattern-neutral workflow,
+or call a Boardy/VIP skill directly when the project uses Boardy/VIP:
 
 ```text
 /ifl-ios-standards:boardy-vip          # router — read first, routes to the right skill/spec
@@ -99,4 +99,4 @@ docs-organization process standard) is optional.
 ## Versioning
 
 Plugin `version` (in `ifl-ios-standards/.claude-plugin/plugin.json`) follows the upstream pack
-`VERSION` (currently `0.16.0`). Bump on content changes; tag `vX.Y.Z` so installs can pin.
+`VERSION` (currently `0.17.0`). Bump on content changes; tag `vX.Y.Z` so installs can pin.
