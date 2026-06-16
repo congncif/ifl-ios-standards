@@ -1,7 +1,7 @@
 <!-- Created by claude-opus-4-7 on 2026-05-09 -->
-# Boardy+VIP Rules Pack
+# iOS Standards Specs
 
-Generic design and execution standards for modular iOS apps built with Boardy, VIP, plugin composition, and domain-driven layering.
+Reusable design and execution standards for modular iOS apps, including pattern-neutral guidance plus Boardy/VIP, plugin composition, and domain-driven layering references.
 
 ---
 
@@ -9,63 +9,65 @@ Generic design and execution standards for modular iOS apps built with Boardy, V
 
 | # | Pillar | Rule home |
 |---|--------|-----------|
-| 1 | SDK-first | `.ai/specs/SDK_FIRST.md` |
-| 2 | Modular + Interface Module | `.ai/specs/MODULE_CREATION.md`, `.ai/specs/IO_INTERFACE.md` |
-| 3 | Plugin Architecture | `.ai/specs/PLUGINS_INTEGRATION.md` |
-| 4 | Micro-services Composable | `.ai/specs/MICROBOARD_UI.md`, `.ai/specs/MICROBOARD_NONUI.md`, `.ai/specs/COMMUNICATION.md`, `.ai/specs/COMPOSABLE_BOARD.md` |
-| 5 | Domain-driven Layered | `.ai/specs/ARCHITECTURE.md`, `.ai/specs/LAYERING.md`, `.ai/specs/SERVICE_LAYER.md`, `.ai/specs/VIP_COMPONENTS.md` |
+| 1 | SDK-first | `standards/specs/SDK_FIRST.md` |
+| 2 | Modular + Interface Module | `standards/specs/MODULE_CREATION.md`, `standards/specs/IO_INTERFACE.md` |
+| 3 | Plugin Architecture | `standards/specs/PLUGINS_INTEGRATION.md` |
+| 4 | Micro-services Composable | `standards/specs/MICROBOARD_UI.md`, `standards/specs/MICROBOARD_NONUI.md`, `standards/specs/COMMUNICATION.md`, `standards/specs/COMPOSABLE_BOARD.md` |
+| 5 | Domain-driven Layered | `standards/specs/ARCHITECTURE.md`, `standards/specs/LAYERING.md`, `standards/specs/SERVICE_LAYER.md`, `standards/specs/VIP_COMPONENTS.md` |
 
 ---
 
 ## Quick Start
 
-1. Copy `.ai/specs/` and `@.claude/agents/` into the target project.
-2. Fill `.claude/project/PROJECT_CONFIG.md` with project-specific values: workspace, scheme, simulator, module root, base branch, app entry file.
-3. Ensure project `@CLAUDE.md` says: load `.claude/rules/QUICK_REF.md` first, then task-specific specs.
-4. Use `.ai/specs/ADOPTION.md` as the migration checklist.
-5. Keep project-specific examples out of generic rule files; place them in `.claude/project/PROJECT_CONFIG.md`, project `@CLAUDE.md`, or feature PRDs.
+1. Install and enable the `ifl-ios-standards` plugin.
+2. Seed the target project bindings with `ifl-init` or `/ifl-ios-standards:init`.
+3. Fill the target repo's `CLAUDE.md` / `AGENTS.md` project values: workspace, scheme, simulator, module root, base branch, app entry file.
+4. Use `standards/specs/ADOPTION.md` as the migration checklist when adopting the standards in an existing project.
+5. Keep project-specific examples out of reusable rule files; place them in the consuming repo's `CLAUDE.md`, `AGENTS.md`, `.claude/project/PROJECT_CONFIG.md`, or feature PRDs.
 
 ---
 
 ## Task Routing
 
+Use `${CLAUDE_PLUGIN_ROOT}/standards/specs/...` paths when referencing these files from Claude Code skills/agents. Under Codex, resolve the same paths relative to the plugin root.
+
 | I want to... | Load |
 |--------------|------|
-| Pick a pattern (Board type / ID prefix / bus shape / resource scope) | `.ai/specs/DECISION_TREES.md` |
-| Adopt pack into a legacy UIKit project (brownfield) | `.ai/specs/BROWNFIELD_MIGRATION.md` |
-| Stand up a new iOS app on the pack (greenfield) | `.ai/specs/GREENFIELD_SETUP.md` |
-| Debug a symptom / lint failure / runtime crash | `.ai/specs/TROUBLESHOOTING.md` |
-| Understand architecture | `.claude/rules/QUICK_REF.md` → `.ai/specs/ARCHITECTURE.md` |
-| Choose or add a dependency | `.claude/rules/QUICK_REF.md` → `.ai/specs/SDK_FIRST.md` |
-| Create a module | `.claude/rules/QUICK_REF.md` → `.ai/specs/MODULE_CREATION.md` → `.ai/specs/IO_INTERFACE.md` |
-| Define public board IO | `.claude/rules/QUICK_REF.md` → `.ai/specs/IO_INTERFACE.md` |
-| Build a UI board | `.claude/rules/QUICK_REF.md` → `.ai/specs/MICROBOARD_UI.md` → `.ai/specs/VIP_COMPONENTS.md` |
-| Build a non-UI board | `.claude/rules/QUICK_REF.md` → `.ai/specs/MICROBOARD_NONUI.md` |
-| Wire board communication | `.claude/rules/QUICK_REF.md` → `.ai/specs/COMMUNICATION.md` |
-| Add plugin integration | `.claude/rules/QUICK_REF.md` → `.ai/specs/PLUGINS_INTEGRATION.md` |
-| Share service across modules | `.claude/rules/QUICK_REF.md` → `.ai/specs/CROSS_MODULE_DI.md` |
-| Implement service layer | `.claude/rules/QUICK_REF.md` → `.ai/specs/SERVICE_LAYER.md` → `.ai/specs/LAYERING.md` |
-| Write tests | `.claude/rules/QUICK_REF.md` → `.ai/specs/TESTING.md` |
-| Review code — procedural runbook (triage, categorize, comment templates) | `.claude/rules/QUICK_REF.md` → `.ai/specs/REVIEW_PLAYBOOK.md` |
-| Review code — exhaustive rule reference | `.claude/rules/QUICK_REF.md` → `.ai/specs/REVIEWER_CHECKLIST.md` |
-| Refactor — split/merge module, extract/move Board, rename public symbol | `.claude/rules/QUICK_REF.md` → `.ai/specs/REFACTOR_PLAYBOOK.md` |
-| Find skeleton code | `.claude/rules/QUICK_REF.md` → `.ai/specs/EXAMPLES.md` → one matching `EXAMPLES_*.md` |
+| Pick a pattern (Board type / ID prefix / bus shape / resource scope) | `standards/specs/DECISION_TREES.md` |
+| Adopt pack into a legacy UIKit project (brownfield) | `standards/specs/BROWNFIELD_MIGRATION.md` |
+| Stand up a new iOS app on the pack (greenfield) | `standards/specs/GREENFIELD_SETUP.md` |
+| Debug a symptom / lint failure / runtime crash | `standards/specs/TROUBLESHOOTING.md` |
+| Understand architecture | `standards/brain/rulebook/` → `standards/specs/ARCHITECTURE.md` |
+| Choose or add a dependency | `standards/specs/SDK_FIRST.md` |
+| Create a module | `standards/specs/MODULE_CREATION.md` → `standards/specs/IO_INTERFACE.md` |
+| Define public board IO | `standards/specs/IO_INTERFACE.md` |
+| Build a UI board | `standards/specs/MICROBOARD_UI.md` → `standards/specs/VIP_COMPONENTS.md` |
+| Build a non-UI board | `standards/specs/MICROBOARD_NONUI.md` |
+| Wire board communication | `standards/specs/COMMUNICATION.md` |
+| Add plugin integration | `standards/specs/PLUGINS_INTEGRATION.md` |
+| Share service across modules | `standards/specs/CROSS_MODULE_DI.md` |
+| Implement service layer | `standards/specs/SERVICE_LAYER.md` → `standards/specs/LAYERING.md` |
+| Write tests | `standards/specs/TESTING.md` |
+| Review code — procedural runbook (triage, categorize, comment templates) | `standards/specs/REVIEW_PLAYBOOK.md` |
+| Review code — exhaustive rule reference | `standards/specs/REVIEWER_CHECKLIST.md` |
+| Refactor — split/merge module, extract/move Board, rename public symbol | `standards/specs/REFACTOR_PLAYBOOK.md` |
+| Find skeleton code | `standards/specs/EXAMPLES.md` → one matching `EXAMPLES_*.md` |
 
 ---
 
 ## Assumed Project Shape
 
-The pack assumes an iOS project with:
+The specs support modular iOS projects with:
 
 - Module root such as `{ModuleRoot}/{ModuleName}/`.
 - Interface target `{ModuleName}` containing `IO/**/*.swift`.
 - Implementation target `{ModuleName}Plugins` containing `Sources/**/*.swift`.
-- App-level dependency configuration such as `Podfile` or equivalent package wiring.
-- Boardy `Motherboard`, `BoardProducer`, and `ServiceMap` usage.
-- Plugin host that installs `LauncherPlugin`s before launch.
-- Build/test commands documented outside generic specs, referenced via `.claude/project/PROJECT_CONFIG.md`.
+- App-level dependency configuration such as `Podfile`, `BUILD.bazel`, `Package.swift`, or equivalent package wiring.
+- Optional Boardy `Motherboard`, `BoardProducer`, and `ServiceMap` usage when the project adopts Boardy/VIP.
+- Optional plugin host that installs `LauncherPlugin`s before launch.
+- Build/test commands documented outside reusable specs, referenced via the consuming repo's `CLAUDE.md` / `AGENTS.md` or `.claude/project/PROJECT_CONFIG.md`.
 
-If your project uses different folders or package tooling, update `.claude/project/PROJECT_CONFIG.md` and project `@CLAUDE.md`; do not hard-code those values into generic rules.
+If your project uses different folders or package tooling, update the consuming repo's project bindings; do not hard-code those values into reusable rules.
 
 ---
 
@@ -90,7 +92,7 @@ If your project uses different folders or package tooling, update `.claude/proje
 
 ## Non-Negotiables
 
-- Load `.claude/rules/QUICK_REF.md` first.
+- Start from the consuming repo's `CLAUDE.md` / `AGENTS.md` bindings, then load the relevant plugin skill/spec/process docs.
 - Keep Interface Modules public and Implementation Modules internal.
 - Consumers import Interface Modules only, never Plugins.
 - Board → Controller communication uses event buses, not stored/retrieved controller references.
@@ -99,4 +101,4 @@ If your project uses different folders or package tooling, update `.claude/proje
 - Presenter is the only Domain → ViewModel mapper.
 - Domain stays pure: no UIKit, Boardy, networking SDKs, DTOs, or vendor types.
 - Concrete Builder structs are composition roots; Board depends on `Buildable` protocol only.
-- Project-specific values live in `.claude/project/PROJECT_CONFIG.md`.
+- Project-specific values live in the consuming repo's project bindings.

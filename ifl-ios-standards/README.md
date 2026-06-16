@@ -1,7 +1,7 @@
 # ifl-ios-standards
 
-A Claude Code plugin packaging the **Boardy+VIP iOS engineering standard**: specialist agents,
-a task-routing skill set, the full architecture rulebook/specs as bundled reference, and Bazel
+A Claude Code plugin packaging reusable **iOS engineering standards**: specialist agents,
+pattern-neutral brain workflows, Boardy/VIP task skills, bundled architecture references, and Bazel
 module/board scaffolders.
 
 ## What's inside
@@ -9,7 +9,7 @@ module/board scaffolders.
 | Component | What it is |
 |-----------|------------|
 | `agents/` (9) | Delegated pipeline: `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
-| `skills/` (20) | **Brain stages** (pattern-neutral, brain-rulebook-driven): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy tasks**: router `boardy-vip` (auto-fires, reads the QUICK_REF routing table) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
+| `skills/` (20) | **Brain stages** (pattern-neutral, brain-rulebook-driven): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` (for Boardy/VIP routing) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
 | `standards/` | Bundled reference: `rules/` (7), `brain/` (rulebook + patterns), `specs/` (43 incl. compact), `process/` (docs-organization, lean-verification), `scripts/` (4 lint), `templates/portable-claude/` |
 | `bin/` | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — Claude exposes these on PATH; Codex installs stable shims via `scripts/install-codex.sh` |
 
@@ -26,8 +26,8 @@ module/board scaffolders.
 # … brain stages: :brain-design :brain-architect :brain-plan :brain-execute :brain-testing :brain-review
 ```
 
-Or just describe an iOS Boardy task — the router (broadest `description`) fires first and points
-at the matching task skill.
+Or describe the iOS task and choose the matching skill family: `brain-*` for pattern-neutral flow,
+`boardy-*` for Boardy/VIP projects.
 
 ## How references resolve
 
@@ -52,5 +52,5 @@ scripts/install-claude.sh --scope=project --project=/path/to/repo
 
 ## Versioning
 
-`plugin.json` `version` mirrors the upstream pack `VERSION` (currently `0.16.0`). Bump on content
+`plugin.json` `version` mirrors the upstream pack `VERSION` (currently `0.17.0`). Bump on content
 changes so installs pick up updates.

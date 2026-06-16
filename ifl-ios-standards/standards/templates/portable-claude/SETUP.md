@@ -17,7 +17,7 @@
 
 Before starting, verify:
 
-- [ ] The `ifl-ios-standards` plugin is installed and enabled (`claude plugin list` / `codex plugin list` shows it; `/ifl-ios-standards:boardy-vip` resolves). The standard's rulebook + specs ship in the plugin at `${CLAUDE_PLUGIN_ROOT}/standards/`.
+- [ ] The `ifl-ios-standards` plugin is installed and enabled (`claude plugin list` / `codex plugin list` shows it; `/ifl-ios-standards:init` or a relevant `brain-*` / `boardy-*` skill resolves). The reusable rulebook + specs ship in the plugin at `${CLAUDE_PLUGIN_ROOT}/standards/`.
 - [ ] A root `CLAUDE.md` (and/or twin `AGENTS.md`) exists — even a stub. Project bindings can live directly in it, or in separate files (this playbook generates the separate-file form).
 - [ ] No `PROJECT_CONFIG.md` / `PROJECT_STRUCTURE.md` already present at the chosen bindings root (default: `.claude/project/`). If they exist, stop — setup has already been run.
 
@@ -180,7 +180,7 @@ If all boxes check, report **setup complete**. Otherwise list the gap.
 
 ---
 
-*End of one-time setup playbook. After completion, future sessions follow root `CLAUDE.md`/`AGENTS.md` → the `/ifl-ios-standards:boardy-vip` router (→ `${CLAUDE_PLUGIN_ROOT}/standards/…`) → project bindings. SETUP.md is not loaded per session and may be deleted (or kept as historical record).*
+*End of one-time setup playbook. After completion, future sessions follow root `CLAUDE.md`/`AGENTS.md` → the relevant `ifl-ios-standards` skill/spec/process docs (under `${CLAUDE_PLUGIN_ROOT}/standards/…`) → project bindings. SETUP.md is not loaded per session and may be deleted (or kept as historical record).*
 
 ## Reference samples
 

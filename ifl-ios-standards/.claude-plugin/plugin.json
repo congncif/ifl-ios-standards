@@ -1,7 +1,7 @@
 {
   "name": "ifl-ios-standards",
-  "description": "Boardy+VIP iOS engineering standards for Claude Code. Ships 10 specialist subagents (orchestrator, planner, researcher, coder, tester, reviewer, review-triage, architect, doc-scribe, optimization), pattern-neutral brain process-stage skills (brain-design, brain-architect, brain-plan, brain-execute, brain-testing, brain-review, brain-flow end-to-end automation), a QUICK_REF-driven router skill plus clustered boardy task skills (boardy-new-module, boardy-new-board, boardy-io-interface, boardy-communication, boardy-service-layer, boardy-plugin-composition, boardy-testing, boardy-review, boardy-refactor, boardy-troubleshoot, boardy-adopt), the full architecture rulebook + specs as bundled reference, and Bazel module/board scaffolders (ifl-new-module / ifl-new-board) on PATH.",
-  "version": "0.16.0",
+  "description": "Reusable iOS engineering standards. Ships specialist agents, pattern-neutral brain process-stage skills (brain-design, brain-architect, brain-plan, brain-execute, brain-testing, brain-review, brain-flow), Boardy/VIP task skills, bundled architecture rulebook/specs/process standards, and Bazel module/board scaffolders.",
+  "version": "0.17.0",
   "author": {
     "name": "IFL iOS"
   },
