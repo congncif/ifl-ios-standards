@@ -4,6 +4,11 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [0.18.1] — 2026-06-17
+
+### Changed
+- Portable Claude templates now define the cross-module import rule as a generic **Public contract boundary**, covering IO contracts, documented public library APIs, shared contracts, design-system primitives, platform abstractions, generated schema contracts, test-only support imports, and IO/facade boundaries for modules without a clear contract.
+
 ## [0.16.0] — 2026-06-10
 
 ### Added

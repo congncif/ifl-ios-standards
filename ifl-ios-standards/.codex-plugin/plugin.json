@@ -1,6 +1,6 @@
 {
   "name": "ifl-ios-standards",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "description": "Reusable iOS engineering standards. Ships specialist agents, pattern-neutral brain process-stage skills (brain-design, brain-architect, brain-plan, brain-execute, brain-testing, brain-review, brain-flow), Boardy/VIP task skills, bundled architecture rulebook/specs/process standards, and Bazel module/board scaffolders.",
   "author": {
     "name": "IFL iOS"

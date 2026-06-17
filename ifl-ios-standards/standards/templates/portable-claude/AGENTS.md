@@ -49,7 +49,7 @@ Full architecture rules live in `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/
 
 1. Domain is pure Swift — no UIKit, networking, persistence, or vendor SDKs.
 2. Dependencies point inward: Infrastructure → Business → Domain. Never reverse.
-3. IO targets are `public` contracts; consumers import IO only, never another module's `{Name}Plugins`.
+3. Public contract boundary: Consumers depend only on another module's public contract, normally its IO target or documented public API surface. Allowed public imports include IO/contract targets, documented library APIs, shared value-model/contracts, design-system primitives, platform abstractions, and generated schema contracts; test-support imports are allowed only from test targets. Never import internal composition, plugin registry, feature implementation, concrete adapter, mock, or private targets. If no clear contract exists, introduce an IO/facade boundary before adding new cross-module dependencies.
 4. Views are humble; UI updates run on the main actor.
 5. One state, one writer. Concrete types built only at composition roots.
 6. No speculative abstraction, no unrelated changes. Verify with real signals — empty output ≠ success.

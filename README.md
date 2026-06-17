@@ -15,7 +15,7 @@ claude plugin marketplace add  congncif/ifl-ios-standards
 claude plugin install          ifl-ios-standards@ifl-ios-standards
 ```
 
-Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.18.0`.
+Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.18.1`.
 Then `/reload-plugins` (or restart Claude Code).
 
 ### Update installed plugin
@@ -40,7 +40,7 @@ claude plugin marketplace update ifl-ios-standards
 claude plugin update -s user ifl-ios-standards@ifl-ios-standards
 
 # or pin a release tag
-./install.sh --ref=v0.18.0 --scope=user
+./install.sh --ref=v0.18.1 --scope=user
 claude plugin marketplace update ifl-ios-standards
 claude plugin update -s user ifl-ios-standards@ifl-ios-standards
 ```
@@ -57,13 +57,13 @@ One-liner (no clone):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
-# flags: | bash -s -- --ref=v0.18.0 --scope=project
+# flags: | bash -s -- --ref=v0.18.1 --scope=project
 ```
 
 ## Install — Codex
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.18.0 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.18.1 to pin
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -134,4 +134,4 @@ docs-organization process standard) is optional.
 ## Versioning
 
 Plugin `version` (in `ifl-ios-standards/.claude-plugin/plugin.json`) follows the upstream pack
-`VERSION` (currently `0.18.0`). Bump on content changes; tag `vX.Y.Z` so installs can pin.
+`VERSION` (currently `0.18.1`). Bump on content changes; tag `vX.Y.Z` so installs can pin.
