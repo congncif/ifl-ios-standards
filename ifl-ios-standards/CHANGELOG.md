@@ -4,6 +4,16 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [0.18.2] — 2026-07-09
+
+### Added
+- `brain-flow` now supports co-working and auto approval modes with a Requirement Intake Gate, Plan Gate, pattern extension contract, and checkpoint/failure-loop semantics.
+- Added process docs for requirement intake, approval modes, long-document writing, and a process-doc index.
+
+### Changed
+- `BRIEFING_HANDOFF.md` now records requirement/plan gates and uses a generic context-cache contract with Boardy+VIP as a pattern extension.
+- Brain plan/execute/review/testing stages now align with human vs AI gate approval and checkpoint-only verification.
+
 ## [0.18.1] — 2026-06-17
 
 ### Changed

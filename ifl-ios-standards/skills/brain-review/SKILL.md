@@ -20,10 +20,12 @@ Pattern-neutral review stage of the brain rulebook.
 - Non-negotiable rule violations (chapter 20) — blocking, no exceptions without documented ADR.
 - Dependency direction breaks, vendor types in contracts, domain impurity.
 - New `public` surface without a named consumer; logic in view code.
+- Drift from the approved requirement summary or approved implementation plan.
 - Named anti-patterns from chapter 17 — cite the section in the finding.
 
 ## Triage
 Blocking (rule break) → must fix. Should-fix (drift, naming, placement) → batch. Nit → optional.
+In auto `brain-flow`, blocking findings loop back to Execute; material requirement/plan drift escalates to the relevant gate instead of being patched blindly.
 State facts with file:line; no theater.
 
 ## Pattern hook

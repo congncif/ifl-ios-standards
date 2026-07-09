@@ -52,6 +52,17 @@ Inner subfolders are create-on-demand — only the bucket a document belongs in 
 - A working doc that is completed or superseded moves to `99-archive/<original-bucket>/…` (same name, archived-date prefix).
 - A living doc is edited in place; when retired, it is archived the same way.
 
+## 6. Long generated documents
+
+For long generated documents (briefings, plans, specs, reports, ADR drafts, research notes, migration
+guides), follow `process/long-document-writing.md`:
+
+- create a skeleton first;
+- write one major section per chunk;
+- keep section-local status truthful;
+- use correction sections for append-only artifacts;
+- write or correct the final report after final verification.
+
 ## Verification
 
 This process is being followed when:
@@ -60,5 +71,6 @@ This process is being followed when:
 - Tool-generated plans/specs land in `docs/02-working-docs/`, not `~/.claude/` or `docs/superpowers/`.
 
 ## See also
-- `process/lean-verification.en.md` — checkpoint cadence for plan execution.
-- `process/README.md` — the process-doc index.
+- `process/lean-verification.md` — checkpoint cadence for plan execution.
+- `process/long-document-writing.md` — chunk-safe writing for generated plans, specs, reports, and handoffs.
+- `process/README.md` — the process-doc index, when present.

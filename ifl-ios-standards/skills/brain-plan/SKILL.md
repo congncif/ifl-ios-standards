@@ -17,15 +17,20 @@ Pattern-neutral planning stage of the brain rulebook. Consumes the output of
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/18-decision-heuristics.md` — sizing/split heuristics.
 - `${CLAUDE_PLUGIN_ROOT}/standards/rules/PLAN_EXECUTION.md` — plan format + execution contract.
 - `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md` — TDD tiers + checkpoint levels.
+- `${CLAUDE_PLUGIN_ROOT}/standards/process/approval-modes.md` — co-working vs auto gate semantics.
 
 ## Plan shape
 - Group tasks into **phases**; verification steps at **phase boundaries only** — not per task.
 - Each phase names: files touched, the cheapest sufficient check (typecheck → targeted test → build), and its TDD tier per lean-verification.
 - Full build + full suite exactly once, before reporting completion.
-- Get user approval on the plan before execution.
+- Get plan approval before execution:
+  - co-working mode → human/user approval;
+  - auto mode → AI gate approval through configured reviewers/subagents;
+  - always ask the user for material product/scope ambiguity, missing bindings, or blockers.
 
 ## Guardrails
 - Smallest correct change per phase; no drive-by edits in the plan.
+- A plan is executable only after the Plan Gate verdict is `USER_APPROVED` or `AUTO_APPROVED`.
 - If a binding value (scheme, commands, module root) is missing from the project's `CLAUDE.md`, stop and ask — don't guess.
 
 ## Pattern hook

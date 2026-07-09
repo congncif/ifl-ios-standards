@@ -9,7 +9,9 @@ description: >-
 # Brain — Execute (operating loop, verify, report)
 
 Pattern-neutral execution stage of the brain rulebook. Runs an approved plan from
-`/ifl-ios-standards:brain-plan`, or applies the loop directly for small standalone changes.
+`/ifl-ios-standards:brain-plan`, or applies the loop directly for small standalone changes. In
+`brain-flow`, an approved plan means `USER_APPROVED` in co-working mode or `AUTO_APPROVED` in auto
+mode.
 
 ## Read
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md` — §1 operating loop, §2 the 10 hard rules, §4 pre-completion self-review.
@@ -22,6 +24,7 @@ Pattern-neutral execution stage of the brain rulebook. Runs an approved plan fro
 Skipping understanding → noise. Skipping verification → lies. Empty output ≠ success.
 
 ## Guardrails
+- Execute only an approved plan. If the plan gate verdict is missing, `CHANGES_REQUIRED`, `USER_INPUT_REQUIRED`, or `BLOCKED`, stop and escalate instead of coding.
 - Smallest correct change. No drive-by edits, no speculative abstraction (hard rule 8).
 - Preserve naming, layering, dependency direction, access modifiers of surrounding code.
 - Verify with real signal at phase boundaries; full build + suite once before "done".
