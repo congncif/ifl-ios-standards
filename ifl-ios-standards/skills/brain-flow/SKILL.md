@@ -117,9 +117,13 @@ AI-reviewed in auto mode.
      Continue only when the requirement gate is `AUTO_APPROVED`.
 8. Once requirements are clear and approved, create the work-item folder and write the summary/spec to
    `docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/requirements.md` (or the project's bound
-   working-docs root). Keep related plan/report/handoff/artifact files in that same folder. For long
-   artifacts, follow `${CLAUDE_PLUGIN_ROOT}/standards/process/long-document-writing.md`: split by
-   purpose first, then append one major section per chunk. Then continue to Design.
+   working-docs root). Keep related files in the same folder using the canonical structure:
+   `requirements.md`, `plan.md`, `reports/{implementation-report,verification-report,review-report,final-report}.md`,
+   `handoffs/briefing.md`, and `artifacts/*`. Do not invent additional top-level work-item files unless
+   the user or project binding explicitly requires them; put design/architecture notes in `plan.md` or
+   link to a separate living/standalone doc when they become durable docs. For long artifacts, follow
+   `${CLAUDE_PLUGIN_ROOT}/standards/process/long-document-writing.md`: split by purpose first, then
+   append one major section per chunk. Then continue to Design.
 
 See `${CLAUDE_PLUGIN_ROOT}/standards/process/requirement-intake.md` for the template and reviewer
 contract.

@@ -4,6 +4,11 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [0.18.4] — 2026-07-09
+
+### Fixed
+- Clarified the canonical work-item artifact structure so E2E `brain-flow` does not infer extra top-level `design.md` or `architecture.md` files.
+
 ## [0.18.3] — 2026-07-09
 
 ### Added
