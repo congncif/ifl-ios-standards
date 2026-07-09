@@ -20,7 +20,7 @@ Pattern-neutral review stage of the brain rulebook.
 - Non-negotiable rule violations (chapter 20) — blocking, no exceptions without documented ADR.
 - Dependency direction breaks, vendor types in contracts, domain impurity.
 - New `public` surface without a named consumer; logic in view code.
-- Drift from the approved requirement summary or approved implementation plan.
+- Drift from the approved requirement summary, Definition of Done, or approved implementation plan.
 - Named anti-patterns from chapter 17 — cite the section in the finding.
 
 ## Triage

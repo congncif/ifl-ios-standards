@@ -24,6 +24,7 @@ When unsure which tier applies, ask once.
 - Test behavior through the public seam, not implementation details.
 - A test that can't fail is theater — watch new full-TDD tests fail first.
 - Run checkpoint verification at plan phase boundaries only; do not add full build/test cycles after every small task.
+- Map verification signals back to the approved Definition of Done checklist.
 - Run targeted test files during work; full suite once at completion.
 
 ## Pattern hook

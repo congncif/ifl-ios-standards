@@ -21,6 +21,7 @@ Pattern-neutral planning stage of the brain rulebook. Consumes the output of
 
 ## Plan shape
 - Group tasks into **phases**; verification steps at **phase boundaries only** — not per task.
+- Each phase maps back to one or more approved Definition of Done items; uncovered DoD items are blockers or explicit deferrals.
 - Each phase names: files touched, the cheapest sufficient check (typecheck → targeted test → build), and its TDD tier per lean-verification.
 - Full build + full suite exactly once, before reporting completion.
 - Get plan approval before execution:

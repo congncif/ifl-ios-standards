@@ -21,6 +21,8 @@ mode.
 
 ## The loop (every task)
 1. **Understand** → 2. **Locate** → 3. **Preserve** → 4. **Implement** → 5. **Verify** → 6. **Report**.
+The approved Definition of Done is the loop goal: keep iterating until each item is completed,
+explicitly deferred, or blocked with a reason.
 Skipping understanding → noise. Skipping verification → lies. Empty output ≠ success.
 
 ## Guardrails
@@ -28,7 +30,7 @@ Skipping understanding → noise. Skipping verification → lies. Empty output �
 - Smallest correct change. No drive-by edits, no speculative abstraction (hard rule 8).
 - Preserve naming, layering, dependency direction, access modifiers of surrounding code.
 - Verify with real signal at phase boundaries; full build + suite once before "done".
-- Run the §4 pre-completion self-review before reporting.
+- Run the §4 pre-completion self-review and report the final status of every Definition of Done item before claiming done.
 
 ## Pattern hook
 Project's `CLAUDE.md` binds Boardy+VIP → load the matching task skill for the change at hand:

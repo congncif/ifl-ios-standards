@@ -5,7 +5,7 @@ implementation begins.
 
 The requirement intake gate prevents the pipeline from implementing a misunderstood request. It
 turns the user's prompt, ticket, and supporting documents into a concise requirement summary, records
-assumptions, and decides whether the pipeline can continue.
+assumptions, defines a Definition of Done checklist, and decides whether the pipeline can continue.
 
 ## 1. Requirement summary template
 
@@ -23,10 +23,28 @@ Produce this summary before moving past Stage 1:
 - Source code areas likely affected:
 - Risks and assumptions:
 - Open questions:
+- Definition of Done:
+  - [ ] {observable completion criterion}
 ```
 
 Keep it concise. Prefer bullets over prose. If a field is not applicable, write `N/A` with a short
-reason instead of omitting it.
+reason instead of omitting it. The Definition of Done checklist is the downstream agent loop goal:
+every plan phase, execution loop, checkpoint, review, and final report maps back to these items until
+each item is completed, explicitly deferred, or blocked with a reason.
+
+### Ticket/work item ID generation
+
+If the user provides a ticket/work item ID, preserve it. If not, generate one:
+
+```text
+<PROJECT-CODE>-NNNN
+```
+
+- `PROJECT-CODE` is the uppercase project-name abbreviation, unless a project binding declares an
+  explicit code. Derive the abbreviation from project name words, e.g. `ifl-ios-standards` → `IIS`.
+- `NNNN` is the next zero-padded auto-increment number found by scanning existing task artifacts for
+  the same project code. If none exists, start at `0001`.
+- The generated title should be a short kebab/title phrase derived from the user goal.
 
 ## 2. Open question and proposal classification
 
@@ -46,19 +64,25 @@ continuing.
 
 ### Co-working mode
 
-1. Present the requirement summary.
+1. Present the requirement summary and Definition of Done checklist.
 2. Present open questions and proposals, if any.
 3. If any material item is unresolved, ask the smallest necessary question and stop.
-4. Once material items are resolved, ask the user to confirm the summary before Design starts.
-5. Write the approved summary to the task briefing/spec file.
+4. Once material items are resolved, ask the user to confirm the summary and Definition of Done before
+   Design starts.
+5. After approval, ask whether downstream stages should continue in co-working mode or switch to auto
+   mode until the Definition of Done is complete.
+6. Write the approved summary, Definition of Done, and downstream mode choice to the task briefing/spec
+   file.
 
 ### Auto mode
 
-1. Present or record the requirement summary.
+1. Present or record the requirement summary and Definition of Done checklist.
 2. Spawn requirement gate reviewers/subagents when the work is non-trivial.
-3. Continue only when the requirement gate verdict is `AUTO_APPROVED`.
+3. Continue only when the requirement gate verdict is `AUTO_APPROVED` and the Definition of Done is
+   measurable enough to drive the loop.
 4. Ask the user only for material ambiguity, material proposals, missing bindings, destructive or hard-to-reverse actions, standards conflicts, or blockers.
-5. Write the approved summary and gate verdict to the task briefing/spec file.
+5. Write the approved summary, Definition of Done, downstream mode (`auto`), and gate verdict to the
+   task briefing/spec file.
 
 Auto mode does not authorize guessing product intent. It authorizes applying project standards to
 internal implementation choices.
@@ -72,6 +96,7 @@ be enough; for medium/large work, use independent subagents.
 |----------|---------|
 | Requirement completeness reviewer | Checks every template field is present and meaningful. |
 | Scope guard reviewer | Checks in-scope/out-of-scope are bounded and avoid drive-by work. |
+| DoD measurability reviewer | Checks each Definition of Done item is observable enough to drive the agent loop. |
 | Product ambiguity reviewer | Looks for unresolved user-visible behavior, UX, API/data, or acceptance ambiguity. |
 | Technical surface reviewer | Checks likely affected source areas are plausible and no obvious code area is missing. |
 | Pattern binding reviewer | When a pattern is bound, checks the requirement maps cleanly to the pattern concepts and specs. |
@@ -96,22 +121,33 @@ Findings:
 - no `BLOCKED` verdict;
 - no `USER_INPUT_REQUIRED` verdict;
 - no unresolved material requirement ambiguity;
+- a measurable Definition of Done checklist exists;
 - all blocking standards satisfied;
 - any non-blocking assumptions recorded in the briefing/spec.
 
 ## 6. Write the artifact
 
-After approval, write the requirement summary to the task artifact. Preferred location for
+After approval, write the requirement summary to the work-item artifact folder. Preferred location for
 brain-flow/orchestrator runs:
 
 ```text
-docs/02-working-docs/handoffs/{task-slug}/briefing.md
+docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/requirements.md
+```
+
+The same work-item folder owns related files:
+
+```text
+plan.md
+reports/{implementation-report,verification-report,review-report,final-report}.md
+handoffs/briefing.md
+artifacts/*
 ```
 
 If the consuming repo declares a different working-docs root, use that root. For long generated
-artifacts, follow `process/long-document-writing.md`: create a skeleton first, append one major
-section per chunk, and write final status after verification. In append-only handoff flows, do not edit
-a prior summary; append `## Correction — Requirement summary` or `## Requirement summary v{n}`.
+artifacts, follow `process/long-document-writing.md`: split work-item docs by purpose first, create a
+skeleton file, append one major section per chunk, and write final status after verification. In
+append-only handoff flows, do not edit a prior summary; append `## Correction — Requirement summary`
+or `## Requirement summary v{n}`.
 
 ## Verification
 
@@ -120,4 +156,4 @@ This process is being followed when:
 - the requirement summary exists before Design/Architect/Plan;
 - material ambiguity is resolved by the user, not guessed;
 - auto mode records reviewer verdicts or a justified self-review for trivial work;
-- the approved summary is written to the task artifact.
+- the approved summary is written to the work-item `requirements.md` artifact.

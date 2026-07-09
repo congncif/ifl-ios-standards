@@ -1,36 +1,44 @@
 # Briefing handoff — single artifact, append-only
 
-The **briefing** is a single Markdown file passed between stages/sub-agents during one task. It
-replaces re-loading the same specs / re-running the same `find`/`git diff` across every hop. Each
-hop **reads** the briefing as its primary context and **appends** a typed section for the next hop. No
-agent re-reads files the previous hop already cited.
+The **briefing** is a compact Markdown handoff/index passed between stages/sub-agents during one task.
+It replaces re-loading the same specs / re-running the same `find`/`git diff` across every hop. Each
+hop **reads** the briefing first, follows links to the split work-item files it needs, and **appends**
+only its current handoff state. No agent re-reads files the previous hop already cited.
 
-The briefing is also the audit trail for `/ifl-ios-standards:brain-flow` gates: requirement intake,
-plan approval, implementation, testing, review, and final report.
+The full audit trail for `/ifl-ios-standards:brain-flow` lives in the work-item folder: requirements,
+plan, reports, handoffs, and artifacts are split by file so one report/briefing does not grow forever.
 
 ## File location
 
 > **Optional, in-repo workspace.** The multi-agent pipeline (orchestrator → sub-agents) writes its
-> handoff artifacts into the project's working-docs tree, per
+> work-item artifacts into the project's working-docs tree, per
 > `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md` — **default
-> `docs/02-working-docs/handoffs/`** (handoffs bucket), archived to `docs/99-archive/handoffs/`.
-> This is **optional** for very small single-agent tasks, but any `brain-flow` run that passes through
-> a requirement or plan gate should write a lightweight briefing/spec. If the project's `CLAUDE.md`
-> declares a different working-docs root, substitute it for `docs/02-working-docs/` throughout this
-> file.
+> `docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/`**. If the project's `CLAUDE.md` declares a
+> different working-docs root, substitute it for `docs/02-working-docs/` throughout this file.
 
 ```text
-docs/02-working-docs/handoffs/{task-slug}/briefing.md
+docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/
+├── requirements.md
+├── plan.md
+├── reports/
+├── handoffs/
+│   └── briefing.md
+└── artifacts/
 ```
 
-- `{task-slug}` is the kebab-case feature name (same slug used for the git branch — `feature/{task-slug}`).
-- One briefing per task. Survives the duration of the task; archived to `docs/99-archive/handoffs/` after PR merge.
-- Sibling files allowed: `discovery.cache.json`, `diff.patch`, `build.log`. Briefing references them by relative path.
+- `<WORK-ITEM-ID>` is provided by the user/tracker or generated during requirement intake.
+- `{slug}` is the kebab-case task title (often also used for the git branch — `feature/{slug}`).
+- One work-item folder per task. It survives the duration of the task and may be archived to
+  `docs/99-archive/work-items/{YYYY-MM-DD}-<WORK-ITEM-ID>-<slug>/` after completion/merge.
+- Support files such as `diff.patch`, `build.log`, screenshots, and context caches live under
+  `artifacts/`; the briefing references them by relative path.
 
-## Required top sections (written by orchestrator or brain-flow Stage 1)
+## Work-item file templates
+
+### `requirements.md` (written by orchestrator or brain-flow Stage 1)
 
 ```markdown
-# Briefing — {task-slug}
+# Requirements — {WORK-ITEM-ID} {title}
 
 ## Meta
 - Created: {YYYY-MM-DD HH:MM}
@@ -43,7 +51,7 @@ docs/02-working-docs/handoffs/{task-slug}/briefing.md
 - Project execution target: {workspace/scheme/destination, package target, app target, or N/A}
 
 ## Requirement summary
-- Ticket/work item ID and title: {ID + title, or N/A with reason}
+- Ticket/work item ID and title: {provided ID, or generated <PROJECT-CODE>-NNNN + title}
 - Business/user goal: {one paragraph or bullets}
 - In scope: {list}
 - Out of scope: {list}
@@ -52,12 +60,16 @@ docs/02-working-docs/handoffs/{task-slug}/briefing.md
 - Source code areas likely affected: {paths/modules/components}
 - Risks and assumptions: {list, may be empty}
 - Open questions: {list, may be empty after approval}
+- Definition of Done:
+  - [ ] {observable completion criterion}
 
 ## Requirement gate
 - Mode: {co-working|auto}
+- Downstream mode after approval: {co-working|auto|N/A}
 - Verdict: {USER_APPROVED|AUTO_APPROVED|USER_INPUT_REQUIRED|BLOCKED}
 - Reviewer(s): {human user, self-review, subagent roles}
-- User confirmation, if any: {summary or N/A}
+- User confirmation, if any: {summary + Definition of Done approval, or N/A}
+- Definition of Done approved: {yes|no}
 - Assumptions accepted: {list}
 - Open questions resolved: {list}
 
@@ -79,15 +91,19 @@ docs/02-working-docs/handoffs/{task-slug}/briefing.md
 existing specialist agents. `## Context cache` is optional; a bound pattern may define a concrete cache
 schema below.
 
-## Plan gate sections
+### `plan.md`
 
-When `/ifl-ios-standards:brain-plan` runs, append an implementation plan and a gate record before any
+When `/ifl-ios-standards:brain-plan` runs, write an implementation plan and a gate record before any
 execution begins:
 
 ```markdown
+# Plan — {WORK-ITEM-ID} {title}
+
 ## Implementation plan
 - Mode: {co-working|auto}
+- Downstream mode source: {initial mode|co-working user switched to auto after DoD approval}
 - Phase summary: {short list}
+- Definition of Done coverage: {map DoD item IDs/checklist entries to phases}
 - Verification strategy: {checkpoint levels per phase, final gate}
 - TDD tiers: {Tier 1/2/3 notes per phase}
 - Pattern forwarding: {Boardy IO/Sources/Plugins seams or N/A}
@@ -103,12 +119,33 @@ Checkpoint:
 
 ## Plan gate
 - Mode: {co-working|auto}
+- Definition of Done coverage: {all items mapped|exceptions listed}
 - Verdict: {USER_APPROVED|AUTO_APPROVED|CHANGES_REQUIRED|USER_INPUT_REQUIRED|BLOCKED}
 - Reviewer(s): {human user or AI reviewer roles}
 - User approval, if any: {summary or N/A}
 - Findings resolved: {list}
 - Deferred non-blocking work: {list or none}
 ```
+
+### Report files
+
+Reports live under `reports/` instead of being appended forever to the briefing:
+
+```text
+reports/implementation-report.md
+reports/verification-report.md
+reports/review-report.md
+reports/final-report.md
+```
+
+Each report states the relevant Definition of Done item status and links to evidence under
+`artifacts/` when needed.
+
+### `handoffs/briefing.md`
+
+The briefing is a lightweight current-context index. It should link to `../requirements.md`,
+`../plan.md`, relevant `../reports/*`, and `../artifacts/*`; append only the current handoff state that
+the next stage needs.
 
 ## Reviewer verdict format
 
@@ -141,17 +178,17 @@ Gate aggregation rules:
 Each specialist appends **its own** section using a typed heading. **Never edit a prior section.** If
 a fact in a prior section is wrong, append a new section titled `## Correction — {section being corrected}`.
 
-| Hop | Heading the hop must append |
+| Hop | File / heading the hop owns |
 |-----|-----------------------------|
-| `brain-flow` Stage 1 | `## Requirement summary` + `## Requirement gate` |
-| `brain-plan` / plan gate | `## Implementation plan` + `## Plan gate` |
-| architect stage/agent | `## Architecture decision` — contracts/types chosen, boundaries, visibility, ADR refs |
-| implementer stage/agent | `## Implementation report` — files created/modified, build status, deferred TODOs |
-| tester stage/agent | `## Test report` — files created, coverage or signal table |
-| reviewer stage/agent | `## Review report` — verdict, blockers, warnings, suggestions |
-| researcher stage/agent | `## Lookup result — {short label}` — paths + line numbers only (no source dump) |
-| docs stage/agent | `## Docs report` — changelog / ADR / generated-doc status |
-| final reporter | `## Final report` — changed files, commands run, results, remaining work |
+| `brain-flow` Stage 1 | `requirements.md` — `## Requirement summary` + `## Requirement gate` |
+| `brain-plan` / plan gate | `plan.md` — `## Implementation plan` + `## Plan gate` |
+| architect stage/agent | `handoffs/briefing.md` or `plan.md` — `## Architecture decision` |
+| implementer stage/agent | `reports/implementation-report.md` |
+| tester stage/agent | `reports/verification-report.md` or test-specific report |
+| reviewer stage/agent | `reports/review-report.md` |
+| researcher stage/agent | `handoffs/briefing.md` — `## Lookup result — {short label}` with paths + line numbers only |
+| docs stage/agent | `reports/docs-report.md` or the relevant living/release doc |
+| final reporter | `reports/final-report.md` — changed files, commands run, DoD status, remaining work |
 
 ## Reading rules (every hop)
 
@@ -186,10 +223,10 @@ a fact in a prior section is wrong, append a new section titled `## Correction �
 When invoking a specialist via the `Task` tool:
 
 ```text
-You are {agent-name}. Read docs/02-working-docs/handoffs/{task-slug}/briefing.md and follow the rules in ${CLAUDE_PLUGIN_ROOT}/standards/rules/BRIEFING_HANDOFF.md. Append your typed section to the briefing. Do not echo prior sections in your reply — return only your STATUS line plus a one-paragraph summary of what you appended.
+You are {agent-name}. Read docs/02-working-docs/work-items/{work-item-id}-{task-slug}/handoffs/briefing.md first, then follow links to the split work-item files you need. Follow ${CLAUDE_PLUGIN_ROOT}/standards/rules/BRIEFING_HANDOFF.md. Write only the file/section owned by your stage. Do not echo prior sections in your reply — return only your STATUS line plus a one-paragraph summary of what you wrote.
 ```
 
-No additional context paste. The briefing is the entire context.
+No additional context paste. The work-item folder is the entire context; the briefing is the entry index.
 
 For any task delegated by `brain-flow`, pass the detected flow mode in the briefing `## Meta`. The
 orchestrator must preserve the same gate semantics:
@@ -201,7 +238,7 @@ orchestrator must preserve the same gate semantics:
 
 A context cache is optional and pattern-specific. Use it when discovery is expensive or reused by
 multiple hops. Keep the cache project-wide only when it is safe to share across tasks; otherwise keep
-it under the task handoff folder.
+it under the work-item `artifacts/` folder.
 
 ```jsonc
 {
@@ -259,15 +296,16 @@ A Boardy+VIP binding may extend the generic cache with fields such as:
 
 ## Archival
 
-After PR merge, the orchestrator moves the task folder to
-`docs/99-archive/handoffs/{YYYY-MM-DD}-{task-slug}/` for traceability. Do not delete — the briefing is
-the audit trail for the change.
+After PR merge/completion, the orchestrator may move the work-item folder to
+`docs/99-archive/work-items/{YYYY-MM-DD}-<WORK-ITEM-ID>-<slug>/` for traceability. Do not delete — the
+work-item folder is the audit trail for the change.
 
 ## Why this exists
 
 Before: every specialist re-read `QUICK_REF.md` + relevant specs + `PROJECT_CONFIG.md` + ran its own
 `find`/`git diff`. Across 4 hops, the same ~5 KB of context was re-tokenized ~16 times.
 
-After: the orchestrator pays the discovery cost once; each specialist pays only its own delta. The new
-requirement/plan gates add traceability without reintroducing repeated discovery. Estimated token
-savings per task remain 55–70% on specialist hops, 30–40% end-to-end.
+After: the orchestrator pays the discovery cost once; each specialist pays only its own delta. The
+work-item folder keeps requirements, plans, reports, handoffs, and artifacts maintainable without
+reintroducing repeated discovery. Estimated token savings per task remain 55–70% on specialist hops,
+30–40% end-to-end.

@@ -4,8 +4,8 @@
 ADR draft, report, research note, migration guide, or handoff artifact.
 
 Long documents are easy to corrupt when generated in one large write: sections go missing, final
-status becomes stale, and append-only audit trails get rewritten accidentally. Write them in small,
-reviewable chunks.
+status becomes stale, and append-only audit trails get rewritten accidentally. First split work-item
+material into separate files by purpose; then write each file in small, reviewable chunks.
 
 ## 1. When to chunk
 
@@ -21,7 +21,24 @@ Use section-by-section writing when any of these is true:
 Short single-section docs may be written in one operation, but still follow the docs organization
 rules for path and naming.
 
-## 2. Chunk-safe writing pattern
+## 2. Split before chunking
+
+For ticket/work-item documentation, do not grow one monolithic `briefing.md` or report forever. Use the
+work item folder from `process/docs-organization.md` and split by purpose first:
+
+```text
+docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/
+├── requirements.md
+├── plan.md
+├── reports/
+├── handoffs/
+└── artifacts/
+```
+
+Then apply chunk-safe writing within each file. A handoff/briefing file should link to the split files
+and carry only the current handoff state needed by the next stage.
+
+## 3. Chunk-safe writing pattern
 
 1. **Create a skeleton first.** Write only the title, metadata, and section outline.
 2. **Append one major section at a time.** Treat each `##` section as the default chunk boundary.
@@ -36,22 +53,21 @@ rules for path and naming.
 7. **Verify after the last chunk.** Run the cheapest sufficient document check, usually
    `git diff --check` plus any project markdown lint/sanity check.
 
-## 3. Recommended briefing order
+## 4. Recommended work-item order
 
-For `docs/02-working-docs/handoffs/{task-slug}/briefing.md`:
+For `docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/`:
 
-1. Create skeleton: title, `## Meta`, and a section checklist.
-2. Append `## Requirement summary`.
-3. Append `## Requirement gate`.
-4. Append `## Implementation plan`.
-5. Append `## Plan gate`.
-6. Append `## Implementation report`.
-7. Append `## Test report` or `## Test / Verification report`.
-8. Append `## Review report`, if review ran.
-9. Run the final verification/checkpoint.
-10. Append `## Final report` with final verified facts.
+1. Create the folder and file skeletons.
+2. Write `requirements.md` with the requirement summary, Definition of Done, and requirement gate.
+3. Write `plan.md` with the implementation plan, DoD coverage, and plan gate.
+4. Write `handoffs/briefing.md` only when a stage/agent handoff needs a compact current-context index.
+5. Write `reports/implementation-report.md` after implementation.
+6. Write `reports/verification-report.md` after checkpoint/final verification.
+7. Write `reports/review-report.md` if review ran.
+8. Run the final verification/checkpoint.
+9. Write `reports/final-report.md` with final verified facts and DoD status.
 
-If final verification runs after `## Final report` was drafted, append:
+If final verification runs after `reports/final-report.md` was drafted, append:
 
 ```markdown
 ## Correction — Final report
@@ -62,7 +78,7 @@ If final verification runs after `## Final report` was drafted, append:
 STATUS: {READY|BLOCKED|INFO_REQUIRED}
 ```
 
-## 4. Ownership and concurrency
+## 5. Ownership and concurrency
 
 - Each stage/agent owns only its section.
 - Do not rewrite another stage's section to make the document read more smoothly.
@@ -70,7 +86,7 @@ STATUS: {READY|BLOCKED|INFO_REQUIRED}
 - If multiple agents are writing, the orchestrator serializes writes; no two agents write the same
   document at the same time.
 
-## 5. Tooling notes
+## 6. Tooling notes
 
 - Prefer an append/insert operation for later chunks when the tool supports it.
 - If the only available operation overwrites the whole file, first read the current file, preserve all
@@ -83,6 +99,7 @@ STATUS: {READY|BLOCKED|INFO_REQUIRED}
 
 This process is being followed when:
 
+- ticket/work-item docs are split into the work-item folder files before chunking;
 - long generated docs are created from a skeleton and appended section-by-section;
 - append-only docs use correction sections instead of rewriting old facts;
 - final status is written after final verification, or corrected afterward;

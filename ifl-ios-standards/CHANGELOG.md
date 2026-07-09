@@ -4,6 +4,18 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [0.18.3] — 2026-07-09
+
+### Added
+- `brain-flow` Requirement Intake now produces a Definition of Done checklist that becomes the downstream agent loop goal.
+- Co-working mode can switch downstream stages to auto mode after the user approves the requirement summary and Definition of Done.
+- Requirement Intake can auto-generate missing ticket/work item IDs as `<PROJECT-CODE>-NNNN`.
+- Work-item documentation now uses one folder per ticket/work item with split `requirements.md`, `plan.md`, `reports/*`, `handoffs/*`, and `artifacts/*` files.
+
+### Changed
+- Briefing handoff is now a compact handoff/index over split work-item files instead of the full audit trail.
+- Long-document writing now requires splitting work-item material by purpose before chunking sections.
+
 ## [0.18.2] — 2026-07-09
 
 ### Added
