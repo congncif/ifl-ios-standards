@@ -19,6 +19,20 @@ extension CanonSchemaFileTests {
             #expect(problems.isEmpty, "\(expectation.filename): \(problems.joined(separator: "; "))")
         }
     }
+
+    @Test("only the authoritative fixture JSON value algebra receives the recursive exception")
+    func recursiveFixtureJSONValueExceptionIsLocationBound() throws {
+        var schema = try #require(try loadIfPresent("fixture.schema.json"))
+        let authoritativeProblems = contractProblems(in: schema, root: schema, path: "#")
+        #expect(authoritativeProblems.isEmpty)
+
+        var definitions = try #require(schema["$defs"] as? [String: Any])
+        definitions["rogue_json_value"] = definitions["fixture_json_value"]
+        schema["$defs"] = definitions
+
+        let rogueProblems = contractProblems(in: schema, root: schema, path: "#")
+        #expect(rogueProblems.contains { $0.contains("#/$defs/rogue_json_value") })
+    }
 }
 
 let strictStandaloneSchemas = [
@@ -32,6 +46,14 @@ func contractProblems(
     root: [String: Any],
     path: String
 ) -> [String] {
+    if root["$id"] as? String == "urn:ifl:standards:schema:fixture:v1",
+       path == "#/$defs/fixture_json_value"
+    {
+        return isExactFixtureJSONValueAlgebra(schema)
+            ? []
+            : ["\(path) must remain the exact closed recursive fixture JSON value algebra"]
+    }
+
     var problems: [String] = []
 
     if schema["nullable"] != nil {
@@ -127,6 +149,62 @@ func contractProblems(
     }
 
     return problems
+}
+
+private func isExactFixtureJSONValueAlgebra(_ schema: [String: Any]) -> Bool {
+    guard Set(schema.keys) == ["oneOf"],
+          let branches = schema["oneOf"] as? [[String: Any]],
+          branches.count == 6
+    else { return false }
+
+    var branchesByType: [String: [String: Any]] = [:]
+    for branch in branches {
+        guard let type = branch["type"] as? String,
+              branchesByType.updateValue(branch, forKey: type) == nil
+        else { return false }
+    }
+    guard Set(branchesByType.keys) == [
+        "null",
+        "boolean",
+        "string",
+        "integer",
+        "array",
+        "object",
+    ] else { return false }
+
+    guard exactSchemaKeys(branchesByType["null"], ["type"]),
+          exactSchemaKeys(branchesByType["boolean"], ["type"]),
+          exactSchemaKeys(branchesByType["string"], ["type"]),
+          exactSchemaKeys(branchesByType["integer"], ["type", "minimum", "maximum"]),
+          exactSchemaKeys(branchesByType["array"], ["type", "items"]),
+          exactSchemaKeys(branchesByType["object"], ["type", "additionalProperties"]),
+          let integer = branchesByType["integer"],
+          exactInteger(integer["minimum"], equals: Int64.min),
+          exactInteger(integer["maximum"], equals: Int64.max),
+          let array = branchesByType["array"],
+          exactRecursiveFixtureValueReference(array["items"]),
+          let object = branchesByType["object"],
+          exactRecursiveFixtureValueReference(object["additionalProperties"])
+    else { return false }
+
+    return true
+}
+
+private func exactSchemaKeys(
+    _ schema: [String: Any]?,
+    _ expected: Set<String>
+) -> Bool {
+    schema.map { Set($0.keys) == expected } ?? false
+}
+
+private func exactInteger(_ value: Any?, equals expected: Int64) -> Bool {
+    (value as? NSNumber)?.stringValue == String(expected)
+}
+
+private func exactRecursiveFixtureValueReference(_ value: Any?) -> Bool {
+    guard let reference = value as? [String: Any] else { return false }
+    return Set(reference.keys) == ["$ref"]
+        && reference["$ref"] as? String == "#/$defs/fixture_json_value"
 }
 
 func resolves(reference: String, in root: [String: Any]) -> Bool {
