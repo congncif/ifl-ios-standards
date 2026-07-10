@@ -8,7 +8,11 @@ public enum ADRSemanticDigest {
         metadata: ADRMetadata,
         markdown: String
     ) throws -> HashDigest {
-        CanonicalTreeDigest.sha256(try preimage(metadata: metadata, markdown: markdown))
+        try CanonicalTreeDigest.sha256(preimage(metadata: metadata, markdown: markdown))
+    }
+
+    static func decision(in markdown: String) throws -> String {
+        try ADRDecisionSection.parse(markdown)
     }
 
     static func preimage(
