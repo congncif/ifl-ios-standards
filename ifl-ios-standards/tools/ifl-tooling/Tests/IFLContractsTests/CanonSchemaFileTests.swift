@@ -210,6 +210,18 @@ struct CanonSchemaFileTests {
         #expect(missingErrorCodes.isEmpty, "Task 2 negatives lack error codes \(missingErrorCodes)")
     }
 
+    @Test("fixture base locator names the exact positive minimal root")
+    func fixtureBaseLocatorIsExactAndCausal() throws {
+        let schema = try #require(try loadIfPresent("fixture.schema.json"))
+        let properties = try #require(schema["properties"] as? [String: Any])
+        let baseFixture = try #require(properties["base_fixture"] as? [String: Any])
+
+        #expect(schemaAccepts("positive/minimal", against: baseFixture, root: schema))
+        #expect(!schemaAccepts("positive", against: baseFixture, root: schema))
+        #expect(!schemaAccepts("minimal", against: baseFixture, root: schema))
+        #expect(Set(baseFixture["enum"] as? [String] ?? []) == ["positive/minimal"])
+    }
+
     @Test("derived artifact identifiers mirror Swift validators and artifact kinds are closed")
     func derivedArtifactIdentifiersAndKindsAreClosed() throws {
         let schema = try #require(try loadIfPresent("derived-artifact.schema.json"))
