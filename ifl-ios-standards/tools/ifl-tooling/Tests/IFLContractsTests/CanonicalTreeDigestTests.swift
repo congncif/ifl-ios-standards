@@ -105,6 +105,35 @@ struct CanonicalTreeDigestTests {
         }
     }
 
+    @Test("borrowed-root scanning preserves the caller directory offset")
+    func borrowedRootScanPreservesCallerOffset() throws {
+        try withTemporaryDirectory { root in
+            try makePortableTree(at: root)
+            let descriptor = root.path.withCString {
+                open($0, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
+            }
+            guard descriptor >= 0 else {
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+            }
+            defer { close(descriptor) }
+
+            let offsetBefore = lseek(descriptor, 0, SEEK_CUR)
+            guard offsetBefore >= 0 else {
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+            }
+            let inventory = try CanonicalTreeScanner().scan(
+                borrowingRootDirectoryDescriptor: descriptor,
+                policy: CanonicalTreePolicy(excludedRoots: [])
+            )
+            let offsetAfter = lseek(descriptor, 0, SEEK_CUR)
+
+            #expect(offsetAfter == offsetBefore)
+            #expect(inventory.entries.map(\.relativePath) == [
+                "hello.txt", "nested", "nested/value.txt",
+            ])
+        }
+    }
+
     @Test("scanner rejects symlinks, hardlinks, FIFOs, and security mode bits")
     func rejectsUnsupportedObjects() throws {
         try withTemporaryDirectory { root in

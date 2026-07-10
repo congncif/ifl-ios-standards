@@ -63,6 +63,90 @@ public struct CanonicalTreeScanner {
         guard openedRoot.sameObjectAndMetadata(as: rootLinkSnapshot) else {
             throw CanonicalTreeError.objectChanged(path: rootPath)
         }
+
+        return try scanOpenedRoot(
+            rootFD: rootFD,
+            rootPath: rootPath,
+            openedRoot: openedRoot,
+            policy: policy,
+            terminalRootSnapshot: {
+                var rootLinkAfterStat = stat()
+                guard rootPath.withCString({ lstat($0, &rootLinkAfterStat) }) == 0 else {
+                    throw CanonicalTreeError.syscall(
+                        operation: "lstat",
+                        path: rootPath,
+                        errno: errno
+                    )
+                }
+                return FileSnapshot(rootLinkAfterStat)
+            }
+        )
+    }
+
+    /// Scans the exact directory referenced by a borrowed descriptor.
+    ///
+    /// The scanner opens `.` relative to the descriptor so traversal owns an independent open
+    /// file description. It neither closes the borrowed descriptor nor advances its directory
+    /// offset.
+    public func scan(
+        borrowingRootDirectoryDescriptor borrowedRootFD: Int32,
+        policy: CanonicalTreePolicy
+    ) throws -> CanonicalTreeInventory {
+        let rootPath = "<borrowed-root-directory>"
+        let borrowedRoot = try descriptorSnapshot(
+            borrowedRootFD,
+            operation: "fstat",
+            path: rootPath
+        )
+        guard borrowedRoot.kind == mode_t(S_IFDIR) else {
+            throw CanonicalTreeError.unsupportedObject(path: rootPath)
+        }
+        try hook(.beforeRootOpen)
+
+        let rawRootFD = Darwin.openat(
+            borrowedRootFD,
+            ".",
+            O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW
+        )
+        guard rawRootFD >= 0 else {
+            throw CanonicalTreeError.syscall(
+                operation: "openat",
+                path: rootPath,
+                errno: errno
+            )
+        }
+        let rootFD = OwnedFileDescriptor(rawRootFD)
+        let openedRoot = try descriptorSnapshot(
+            rootFD.rawValue,
+            operation: "fstat",
+            path: rootPath
+        )
+        guard openedRoot.sameObjectAndMetadata(as: borrowedRoot) else {
+            throw CanonicalTreeError.objectChanged(path: rootPath)
+        }
+
+        return try scanOpenedRoot(
+            rootFD: rootFD,
+            rootPath: rootPath,
+            openedRoot: openedRoot,
+            policy: policy,
+            terminalRootSnapshot: {
+                try descriptorSnapshot(
+                    borrowedRootFD,
+                    operation: "fstat",
+                    path: rootPath
+                )
+            }
+        )
+    }
+
+    private func scanOpenedRoot(
+        rootFD: OwnedFileDescriptor,
+        rootPath: String,
+        openedRoot: FileSnapshot,
+        policy: CanonicalTreePolicy,
+        terminalRootSnapshot: () throws -> FileSnapshot
+    ) throws -> CanonicalTreeInventory {
         try validateOpenedObject(
             openedRoot,
             rootDevice: openedRoot.device,
@@ -239,11 +323,7 @@ public struct CanonicalTreeScanner {
 
         try hook(.beforeRootTerminalRevalidation)
         let rootAfter = try descriptorSnapshot(rootFD.rawValue, operation: "fstat", path: rootPath)
-        var rootLinkAfterStat = stat()
-        guard rootPath.withCString({ lstat($0, &rootLinkAfterStat) }) == 0 else {
-            throw CanonicalTreeError.syscall(operation: "lstat", path: rootPath, errno: errno)
-        }
-        let rootLinkAfter = FileSnapshot(rootLinkAfterStat)
+        let rootLinkAfter = try terminalRootSnapshot()
         guard rootAfter.sameObjectAndMetadata(as: openedRoot),
               rootAfter.sameObjectAndMetadata(as: rootLinkAfter)
         else {
