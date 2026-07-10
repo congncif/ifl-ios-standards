@@ -88,6 +88,50 @@ struct CanonicalRelativePathParityTests {
             }
         }
     }
+
+    @Test("specialized schema paths match their production contract entry points")
+    func specializedSchemaAndSwiftContractParity() throws {
+        let contracts = try specializedPathContracts()
+
+        for contract in contracts {
+            #expect(
+                contract.definition.format == "ifl-canonical-relative-path-v1",
+                "\(contract.definition.filename) does not bind the canonical relative-path format"
+            )
+            #expect(
+                contract.definition.assertsFormat,
+                "\(contract.definition.filename) does not require canonical relative-path format assertion"
+            )
+
+            for path in contract.validPaths {
+                let schemaResult = try schemaAccepts(path, definition: contract.definition)
+                let swiftResult = swiftAccepts(path, contract: contract.contract)
+                #expect(
+                    schemaResult,
+                    "\(contract.definition.filename) rejected specialized valid path: \(path)"
+                )
+                #expect(
+                    swiftResult,
+                    "\(contract.contract) rejected specialized valid path: \(path)"
+                )
+                #expect(schemaResult == swiftResult)
+            }
+
+            for path in contract.invalidPaths {
+                let schemaResult = try schemaAccepts(path, definition: contract.definition)
+                let swiftResult = swiftAccepts(path, contract: contract.contract)
+                #expect(
+                    !schemaResult,
+                    "\(contract.definition.filename) accepted specialized invalid path: \(path)"
+                )
+                #expect(
+                    !swiftResult,
+                    "\(contract.contract) accepted specialized invalid path: \(path)"
+                )
+                #expect(schemaResult == swiftResult)
+            }
+        }
+    }
 }
 
 private extension CanonicalRelativePathParityTests {
@@ -96,6 +140,30 @@ private extension CanonicalRelativePathParityTests {
         let pattern: String
         let format: String?
         let assertsFormat: Bool
+    }
+
+    enum SpecializedSwiftContract: CustomStringConvertible {
+        case adrReferenceArtifact
+        case activationApprovalSidecar
+        case activationSnapshot
+
+        var description: String {
+            switch self {
+            case .adrReferenceArtifact:
+                "ADRMetadata.init(referenceArtifactIDs:)"
+            case .activationApprovalSidecar:
+                "CanonActivationReceipt.init(approvalSidecarRelativePath:)"
+            case .activationSnapshot:
+                "ActivationDigestTransition.init(relativePath:)"
+            }
+        }
+    }
+
+    struct SpecializedPathContract {
+        let definition: SchemaDefinition
+        let contract: SpecializedSwiftContract
+        let validPaths: [String]
+        let invalidPaths: [String]
     }
 
     var pluginRoot: URL {
@@ -117,20 +185,86 @@ private extension CanonicalRelativePathParityTests {
             (filename: "fixture.schema.json", definition: "exact_relative_path"),
         ]
 
-        return try schemas.map { schema in
-            let url = pluginRoot.appendingPathComponent("standards/canon/schemas/v1/\(schema.filename)")
-            let root = try #require(
-                JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
-            )
-            let definitions = try #require(root["$defs"] as? [String: Any])
-            let relativePath = try #require(definitions[schema.definition] as? [String: Any])
-            return try SchemaDefinition(
-                filename: schema.filename,
-                pattern: #require(relativePath["pattern"] as? String),
-                format: relativePath["format"] as? String,
-                assertsFormat: relativePath["x-ifl-format-assertion-required"] as? Bool ?? false
-            )
+        return try schemas.map {
+            try schemaDefinition(filename: $0.filename, definition: $0.definition)
         }
+    }
+
+    func specializedPathContracts() throws -> [SpecializedPathContract] {
+        try [
+            SpecializedPathContract(
+                definition: schemaDefinition(
+                    filename: "adr-metadata.schema.json",
+                    definition: "canonical_relative_path"
+                ),
+                contract: .adrReferenceArtifact,
+                validPaths: [
+                    "standards/canon/VERSION",
+                    "references/é.json",
+                ],
+                invalidPaths: [
+                    "references/bracket].json",
+                    "references/brace{.json",
+                    "references/brace}.json",
+                    "references/bracket]\u{301}.json",
+                    "references/brace{\u{301}.json",
+                    "references/brace}\u{301}.json",
+                ]
+            ),
+            SpecializedPathContract(
+                definition: schemaDefinition(
+                    filename: "activation-receipt.schema.json",
+                    definition: "approval_sidecar_path"
+                ),
+                contract: .activationApprovalSidecar,
+                validPaths: [
+                    "activations/overlay-001.approval.json",
+                    "activations/nested/bracket].approval.json",
+                    "activations/nested/braces{}.approval.json",
+                ],
+                invalidPaths: [
+                    "overlay-001.approval.json",
+                    "activations/overlay-001.json",
+                    "activations/overlay-001.approval.json/child",
+                    "activations/../overlay-001.approval.json",
+                    "activations/a[bc].approval.json",
+                ]
+            ),
+            SpecializedPathContract(
+                definition: schemaDefinition(
+                    filename: "activation-receipt.schema.json",
+                    definition: "snapshot_relative_path"
+                ),
+                contract: .activationSnapshot,
+                validPaths: [
+                    "rules/test.rules.json",
+                    "rules/bracket].json",
+                    "rules/braces{}.json",
+                ],
+                invalidPaths: [
+                    "activations/test.json",
+                    "rules/test.approval.json",
+                    "rules/test.receipt.json",
+                    "rules/a[bc].json",
+                    "/rules/test.rules.json",
+                ]
+            ),
+        ]
+    }
+
+    func schemaDefinition(filename: String, definition: String) throws -> SchemaDefinition {
+        let url = pluginRoot.appendingPathComponent("standards/canon/schemas/v1/\(filename)")
+        let root = try #require(
+            JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+        )
+        let definitions = try #require(root["$defs"] as? [String: Any])
+        let relativePath = try #require(definitions[definition] as? [String: Any])
+        return try SchemaDefinition(
+            filename: "\(filename)#/$defs/\(definition)",
+            pattern: #require(relativePath["pattern"] as? String),
+            format: relativePath["format"] as? String,
+            assertsFormat: relativePath["x-ifl-format-assertion-required"] as? Bool ?? false
+        )
     }
 
     func schemaAccepts(_ value: String, definition: SchemaDefinition) throws -> Bool {
@@ -146,5 +280,98 @@ private extension CanonicalRelativePathParityTests {
             return true
         }
         return value.utf8.elementsEqual(value.precomposedStringWithCanonicalMapping.utf8)
+    }
+
+    func swiftAccepts(_ path: String, contract: SpecializedSwiftContract) -> Bool {
+        do {
+            switch contract {
+            case .adrReferenceArtifact:
+                _ = try adrMetadata(referenceArtifactPath: path)
+            case .activationApprovalSidecar:
+                _ = try activationReceipt(approvalSidecarPath: path)
+            case .activationSnapshot:
+                _ = try ActivationDigestTransition(
+                    componentKind: "rule",
+                    componentID: "TEST-CANON-001",
+                    relativePath: path,
+                    beforeFullDigest: nil,
+                    afterFullDigest: digest("4")
+                )
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    func adrMetadata(referenceArtifactPath: String) throws -> ADRMetadata {
+        try ADRMetadata(
+            schemaVersion: 1,
+            id: ADRIdentifier(validating: "ADR-9999"),
+            title: "Path parity",
+            status: .draft,
+            ownerRoleID: "Canon Maintainer",
+            decisionDate: "2026-07-11",
+            markdownDigest: digest("a"),
+            context: "Context",
+            decision: "Decision",
+            alternatives: [],
+            consequences: [],
+            migration: [],
+            affectedRuleIDs: [],
+            affectedProfileIDs: [],
+            verificationImpact: [],
+            checkIDs: [],
+            fixtureIDs: [],
+            referenceArtifactIDs: [referenceArtifactPath],
+            migrationIDs: [],
+            supersedesADRIDs: [],
+            supersededBy: nil,
+            acceptedAt: nil
+        )
+    }
+
+    func activationReceipt(approvalSidecarPath: String) throws -> CanonActivationReceipt {
+        let overlayDigest = try digest("5")
+        let approval = try ReviewApprovalReference(
+            schemaVersion: 1,
+            approvalID: "integration-approval",
+            principalID: "principal-integration",
+            actorID: "actor-integration",
+            roleID: "Integration Reviewer",
+            reviewedComponentID: "overlay-001",
+            reviewedComponentDigest: overlayDigest,
+            attestationID: "attestation-integration",
+            attestationDigest: digest("f")
+        )
+        let transition = try ActivationDigestTransition(
+            componentKind: "rule",
+            componentID: "TEST-CANON-001",
+            relativePath: "rules/test.rules.json",
+            beforeFullDigest: digest("3"),
+            afterFullDigest: digest("4")
+        )
+        return try CanonActivationReceipt(
+            schemaVersion: 1,
+            activationID: "activation-001",
+            transactionID: "transaction-001",
+            targetCanonVersion: 1,
+            targetProductVersion: "1.0.0-rc.1",
+            overlayID: "overlay-001",
+            overlayDigest: overlayDigest,
+            integrationApproval: approval,
+            approvalSourceArtifactID: "integration-review-report",
+            approvalSourceArtifactDigest: digest("6"),
+            approvalSidecarRelativePath: approvalSidecarPath,
+            approvalSidecarDigest: digest("7"),
+            approvalTimestamp: Date(timeIntervalSince1970: 1_783_315_200),
+            baseSnapshotContentDigest: digest("8"),
+            publishedSnapshotContentDigest: digest("9"),
+            digestTransitions: [transition]
+        )
+    }
+
+    func digest(_ character: Character) throws -> HashDigest {
+        try HashDigest(validating: String(repeating: character, count: 64))
     }
 }

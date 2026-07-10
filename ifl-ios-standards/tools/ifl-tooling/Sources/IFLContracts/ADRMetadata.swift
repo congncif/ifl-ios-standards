@@ -420,7 +420,14 @@ private enum ADRMetadataValidation {
 
     static func validateCanonicalRelativePaths(_ values: [String]) throws {
         for value in values {
-            guard !value.contains(where: { "*?[]{}".contains($0) }) else {
+            guard !value.unicodeScalars.contains(where: { scalar in
+                switch scalar.value {
+                case 0x2A, 0x3F, 0x5B, 0x5D, 0x7B, 0x7D:
+                    true
+                default:
+                    false
+                }
+            }) else {
                 throw ContractError.invalidContract(
                     kind: "adr_metadata",
                     reason: "reference_artifact_ids contains glob path \(value)"
