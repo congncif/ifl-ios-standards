@@ -1,3 +1,20 @@
+public enum DerivedArtifactKind: String, Codable, CaseIterable, Hashable, Sendable {
+    case constitution
+    case rulebook
+    case specification
+    case compactReference = "compact_reference"
+    case checklist
+    case guide
+    case skill
+    case agent
+    case template
+    case scaffold
+    case wrapper
+    case processContract = "process_contract"
+    case example
+    case migrationGuide = "migration_guide"
+}
+
 public struct SourceSemanticBinding: Codable, Hashable, Sendable {
     public let sourceKind: String
     public let sourceID: String
@@ -54,7 +71,7 @@ public struct SourceSemanticBinding: Codable, Hashable, Sendable {
 public struct DerivedRegistrationEntry: Codable, Hashable, Sendable {
     public let indexKey: String
     public let targetPath: String
-    public let artifactKind: String
+    public let artifactKind: DerivedArtifactKind
     public let fileDigest: HashDigest
     public let citedRuleIDs: [RuleID]
     public let citedADRIDs: [ADRIdentifier]
@@ -63,7 +80,7 @@ public struct DerivedRegistrationEntry: Codable, Hashable, Sendable {
     public init(
         indexKey: String,
         targetPath: String,
-        artifactKind: String,
+        artifactKind: DerivedArtifactKind,
         fileDigest: HashDigest,
         citedRuleIDs: [RuleID],
         citedADRIDs: [ADRIdentifier],
@@ -72,7 +89,7 @@ public struct DerivedRegistrationEntry: Codable, Hashable, Sendable {
         let kind = "derived_registration_entry"
         self.indexKey = try IFLCanonContractSupport.nonBlank(indexKey, kind: kind, field: "index_key")
         self.targetPath = try IFLCanonContractSupport.exactRelativePath(targetPath, kind: kind, field: "target_path")
-        self.artifactKind = try IFLCanonContractSupport.nonBlank(artifactKind, kind: kind, field: "artifact_kind")
+        self.artifactKind = artifactKind
         self.fileDigest = try IFLCanonContractSupport.digest(fileDigest)
 
         let rules = try citedRuleIDs.map(IFLCanonContractSupport.ruleID)
@@ -124,6 +141,32 @@ public struct DerivedRegistrationEntry: Codable, Hashable, Sendable {
             )
         }
         self.sourceSemanticBindings = sortedSources
+    }
+
+    public init(
+        indexKey: String,
+        targetPath: String,
+        artifactKind: String,
+        fileDigest: HashDigest,
+        citedRuleIDs: [RuleID],
+        citedADRIDs: [ADRIdentifier],
+        sourceSemanticBindings: [SourceSemanticBinding]
+    ) throws {
+        guard let validatedArtifactKind = DerivedArtifactKind(rawValue: artifactKind) else {
+            throw ContractError.invalidContract(
+                kind: "derived_registration_entry",
+                reason: "artifact_kind must be a registered derived artifact kind"
+            )
+        }
+        try self.init(
+            indexKey: indexKey,
+            targetPath: targetPath,
+            artifactKind: validatedArtifactKind,
+            fileDigest: fileDigest,
+            citedRuleIDs: citedRuleIDs,
+            citedADRIDs: citedADRIDs,
+            sourceSemanticBindings: sourceSemanticBindings
+        )
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
