@@ -6,6 +6,45 @@ public enum ContractError: Error, Equatable, Sendable {
     case invalidCandidateGeneration(UInt64)
     case candidateGenerationOverflow
     case invalidSHA256(String)
+    case unsupportedSchemaVersion(kind: String, value: Int)
+    case invalidCanonVersion(String)
+    case duplicateIdentifier(kind: String, id: String)
+    case reusedIdentifier(kind: String, id: String)
+    case unresolvedReference(kind: String, id: String)
+    case invalidContract(kind: String, reason: String)
+    case digestMismatch(kind: String, expected: String, actual: String)
+    case unexpectedKeys(kind: String, keys: [String])
+
+    public var code: String {
+        switch self {
+        case .invalidIdentifier:
+            "invalid_identifier"
+        case .invalidRunIDFilesystemComponent:
+            "invalid_run_id_filesystem_component"
+        case .invalidCandidateGeneration:
+            "invalid_candidate_generation"
+        case .candidateGenerationOverflow:
+            "candidate_generation_overflow"
+        case .invalidSHA256:
+            "invalid_sha256"
+        case .unsupportedSchemaVersion:
+            "unsupported_schema_version"
+        case .invalidCanonVersion:
+            "invalid_canon_version"
+        case .duplicateIdentifier:
+            "duplicate_identifier"
+        case .reusedIdentifier:
+            "reused_identifier"
+        case .unresolvedReference:
+            "unresolved_reference"
+        case .invalidContract:
+            "invalid_contract"
+        case .digestMismatch:
+            "digest_mismatch"
+        case .unexpectedKeys:
+            "unexpected_keys"
+        }
+    }
 }
 
 extension ContractError: CustomStringConvertible {
@@ -21,6 +60,22 @@ extension ContractError: CustomStringConvertible {
             "Candidate generation cannot advance beyond UInt64.max"
         case let .invalidSHA256(value):
             "Invalid lowercase SHA-256 digest: \(value)"
+        case let .unsupportedSchemaVersion(kind, value):
+            "Unsupported \(kind) schema version: \(value)"
+        case let .invalidCanonVersion(value):
+            "Invalid Canon version: \(value)"
+        case let .duplicateIdentifier(kind, id):
+            "Duplicate \(kind) identifier: \(id)"
+        case let .reusedIdentifier(kind, id):
+            "Reused \(kind) identifier: \(id)"
+        case let .unresolvedReference(kind, id):
+            "Unresolved \(kind) reference: \(id)"
+        case let .invalidContract(kind, reason):
+            "Invalid \(kind) contract: \(reason)"
+        case let .digestMismatch(kind, expected, actual):
+            "\(kind) digest mismatch: expected \(expected), actual \(actual)"
+        case let .unexpectedKeys(kind, keys):
+            "Unexpected \(kind) keys: \(keys.sorted().joined(separator: ", "))"
         }
     }
 }
@@ -44,13 +99,25 @@ public struct RequirementID: RawRepresentable, Codable, Hashable, Sendable {
     }
 
     public func encode(to encoder: any Encoder) throws {
+        let validated = try Self(validating: rawValue)
         var container = encoder.singleValueContainer()
-        try container.encode(rawValue)
+        try container.encode(validated.rawValue)
     }
 
     private static func isValid(_ value: String) -> Bool {
-        guard value.hasPrefix("REQ-") else { return false }
-        return ASCIIIdentifier.isUppercaseHyphenated(String(value.dropFirst(4)))
+        if value.hasPrefix("REQ-") || value.hasPrefix("ENT-") {
+            return ASCIIIdentifier.isUppercaseHyphenated(String(value.dropFirst(4)))
+        }
+
+        let components = value.split(separator: "-", omittingEmptySubsequences: false)
+        guard components.count == 2,
+              ["P0", "P1", "P2", "P3"].contains(components[0]),
+              let firstOrdinalByte = components[1].utf8.first,
+              firstOrdinalByte >= 49,
+              firstOrdinalByte <= 57
+        else { return false }
+
+        return components[1].utf8.allSatisfy { $0 >= 48 && $0 <= 57 }
     }
 }
 
@@ -78,8 +145,9 @@ public struct RuleID: RawRepresentable, Codable, Hashable, Sendable {
     }
 
     public func encode(to encoder: any Encoder) throws {
+        let validated = try Self(validating: rawValue)
         var container = encoder.singleValueContainer()
-        try container.encode(rawValue)
+        try container.encode(validated.rawValue)
     }
 }
 
@@ -102,8 +170,9 @@ public struct ProfileID: RawRepresentable, Codable, Hashable, Sendable {
     }
 
     public func encode(to encoder: any Encoder) throws {
+        let validated = try Self(validating: rawValue)
         var container = encoder.singleValueContainer()
-        try container.encode(rawValue)
+        try container.encode(validated.rawValue)
     }
 }
 
@@ -130,8 +199,9 @@ public struct ADRIdentifier: RawRepresentable, Codable, Hashable, Sendable {
     }
 
     public func encode(to encoder: any Encoder) throws {
+        let validated = try Self(validating: rawValue)
         var container = encoder.singleValueContainer()
-        try container.encode(rawValue)
+        try container.encode(validated.rawValue)
     }
 }
 
