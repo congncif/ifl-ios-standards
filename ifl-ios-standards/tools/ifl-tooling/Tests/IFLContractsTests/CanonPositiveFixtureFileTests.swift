@@ -114,7 +114,17 @@ struct CanonPositiveFixtureFileTests {
         #expect(canonTraceability.fixtureMappings.count == 1)
         #expect(fixtureMapping.checkID == "CHK-CAN-MINIMAL-001")
         #expect(fixtureMapping.positiveFixtureIDs == [Self.positiveFixtureID])
-        #expect(fixtureMapping.negativeFixtureIDs == [Self.negativeFixtureID])
+        #expect(fixtureMapping.negativeFixtureIDs == Self.negativeFixtureIDs)
+
+        let convergenceTraceability = try #require(
+            requirements.traceability.first {
+                $0.requirementID.rawValue == "REQ-CONVERGENCE"
+            }
+        )
+        let convergenceNegativeFixtureIDs = convergenceTraceability.fixtureMappings
+            .flatMap(\.negativeFixtureIDs)
+        #expect(convergenceNegativeFixtureIDs.contains(Self.convergenceNegativeFixtureID))
+        #expect(!fixtureMapping.negativeFixtureIDs.contains(Self.convergenceNegativeFixtureID))
 
         let ruleData = try fixtureData("rules/core/minimal.rules.json")
         let profileData = try fixtureData("profiles/minimal.profile.json")
@@ -144,7 +154,7 @@ struct CanonPositiveFixtureFileTests {
 
         let allFixtureIDs = fixtureMapping.positiveFixtureIDs + fixtureMapping.negativeFixtureIDs
         #expect(
-            Set(allFixtureIDs) == Set([Self.positiveFixtureID, Self.negativeFixtureID])
+            allFixtureIDs == [Self.positiveFixtureID] + Self.negativeFixtureIDs
         )
         for fixtureID in allFixtureIDs {
             #expect(fixtureIdentifier(fixtureID, belongsToRuleID: rule.id.rawValue))
@@ -191,7 +201,7 @@ struct CanonPositiveFixtureFileTests {
         let fixtureMapping = try #require(canonTraceability.fixtureMappings.first)
         let migrationID = try #require(adr.migrationIDs.first)
 
-        let projections = [
+        let recordProjections = [
             NamespaceProjection(
                 identityKind: "rule",
                 id: rule.id.rawValue,
@@ -223,24 +233,23 @@ struct CanonPositiveFixtureFileTests {
                 expectedStewardRoleID: "Verification Owner"
             ),
             NamespaceProjection(
-                identityKind: "fixture",
-                id: try #require(fixtureMapping.positiveFixtureIDs.first),
-                expectedPattern: "FIX-*",
-                expectedStewardRoleID: "Verification Owner"
-            ),
-            NamespaceProjection(
-                identityKind: "fixture",
-                id: try #require(fixtureMapping.negativeFixtureIDs.first),
-                expectedPattern: "FIX-*",
-                expectedStewardRoleID: "Verification Owner"
-            ),
-            NamespaceProjection(
                 identityKind: "migration",
                 id: migrationID,
                 expectedPattern: "MIG-*",
                 expectedStewardRoleID: "Release Steward"
             ),
         ]
+        let decodedFixtureIDs = fixtureMapping.positiveFixtureIDs
+            + fixtureMapping.negativeFixtureIDs
+        let fixtureProjections = decodedFixtureIDs.map {
+            NamespaceProjection(
+                identityKind: "fixture",
+                id: $0,
+                expectedPattern: "FIX-*",
+                expectedStewardRoleID: "Verification Owner"
+            )
+        }
+        let projections = recordProjections + fixtureProjections
 
         for projection in projections {
             let allocations = registry.mostSpecificAllocations(for: projection)
@@ -251,9 +260,17 @@ struct CanonPositiveFixtureFileTests {
     }
 
     private static let positiveFixtureID = "FIX-CAN-MINIMAL-001-PASS"
-    private static let negativeFixtureID = "FIX-CAN-MINIMAL-001-FAIL-001"
+    private static let negativeFixtureIDs = [
+        "FIX-CAN-MINIMAL-001-FAIL-001",
+        "FIX-CAN-MINIMAL-001-FAIL-002",
+        "FIX-CAN-MINIMAL-001-FAIL-003",
+        "FIX-CAN-MINIMAL-001-FAIL-004",
+        "FIX-CAN-MINIMAL-001-FAIL-005",
+    ]
+    private static let convergenceNegativeFixtureID =
+        "FIX-WF-CONV-INVENTORY-001-FAIL-001"
     private static let pinnedTreeDigest =
-        "791bf0ed19ad6dfda90c0865880fdba60d0a4007f0f713c4b85ffc25d1aa6800"
+        "a6811088c1859e048d75982df086b9b05aea7a4d2a8f1e012090dd9452865553"
 
     private static let indexDescriptors = [
         FixtureIndexDescriptor(
@@ -263,7 +280,7 @@ struct CanonPositiveFixtureFileTests {
                 FixtureIndexedRecordExpectation(
                     id: "ADR-9999",
                     relativePath: "adrs/ADR-9999-minimal-test.json",
-                    recordDigest: "1f92f5bbab48575f3d06696421ae2933073c227ca99324c3b4b75658a90e26a7"
+                    recordDigest: "60ef1231ab1f7ff50bf6c3d3c2edf1d174a6a50ba7eb1abf798e78cf35cac829"
                 ),
             ]
         ),
@@ -303,7 +320,7 @@ struct CanonPositiveFixtureFileTests {
             directory("adrs"),
             file(
                 "adrs/ADR-9999-minimal-test.json",
-                sha256: "1f92f5bbab48575f3d06696421ae2933073c227ca99324c3b4b75658a90e26a7"
+                sha256: "60ef1231ab1f7ff50bf6c3d3c2edf1d174a6a50ba7eb1abf798e78cf35cac829"
             ),
             file(
                 "adrs/ADR-9999-minimal-test.md",
@@ -317,7 +334,7 @@ struct CanonPositiveFixtureFileTests {
             directory("registry"),
             file(
                 "registry/adrs.index.json",
-                sha256: "b780f3da1117a951f71b7792be2a7073621fa40cbf4ecafd8ce7e2ae68831787"
+                sha256: "5793d7dd451b58ade5727fc4ee8a0e0a4269bc6cf8571510a3373838ef1452ed"
             ),
             file(
                 "registry/chapters.index.json",
@@ -337,7 +354,7 @@ struct CanonPositiveFixtureFileTests {
             ),
             file(
                 "registry/requirements.v1.json",
-                sha256: "e0eff0d6c5b6389fb59a34533e90b13d0c640700d065b934966e3fdde3a3d59e"
+                sha256: "ef2e346a91e5bb3586643d336670b192bac8d27bc49aeb5e4fc64faca3a1e647"
             ),
             file(
                 "registry/rules.index.json",
