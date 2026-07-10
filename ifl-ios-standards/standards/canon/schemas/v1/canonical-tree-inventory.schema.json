@@ -43,9 +43,11 @@
       "maximum": 511
     },
     "relative_path": {
-      "type": "string",
+      "format": "ifl-canonical-relative-path-v1",
       "minLength": 1,
-      "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*\\\\)(?!.*\\u0000).+$"
+      "pattern": "^(?!/)(?!\\.{1,2}(?:/|$))[^/\\\\*?\\[\\u0000-\\u001F\\u007F-\\u009F\\u2028\\u2029]+(?:/(?!\\.{1,2}(?:/|$))[^/\\\\*?\\[\\u0000-\\u001F\\u007F-\\u009F\\u2028\\u2029]+)*(?![\\s\\S])",
+      "type": "string",
+      "x-ifl-format-assertion-required": true
     },
     "sha256": {
       "type": "string",

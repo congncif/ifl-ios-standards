@@ -32,8 +32,19 @@ public struct CanonicalRelativePath: RawRepresentable, Codable, Hashable, Sendab
     public init(validating rawValue: String) throws {
         guard !rawValue.isEmpty,
               !rawValue.hasPrefix("/"),
-              !rawValue.contains("\\"),
-              !rawValue.utf8.contains(0)
+              !rawValue.unicodeScalars.contains(where: { scalar in
+                  switch scalar.value {
+                  case 0x00 ... 0x1F,
+                       0x2A,
+                       0x3F,
+                       0x5B ... 0x5C,
+                       0x7F ... 0x9F,
+                       0x2028 ... 0x2029:
+                      true
+                  default:
+                      false
+                  }
+              })
         else {
             throw CanonicalTreeError.invalidRelativePath(rawValue)
         }
