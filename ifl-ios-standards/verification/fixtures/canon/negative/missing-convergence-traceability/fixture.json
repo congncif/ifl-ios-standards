@@ -1,0 +1,1 @@
+{"base_fixture":"positive/minimal","expected":{"contract_error_code":"unresolved_reference","kind":"contract_error"},"fixture_id":"FIX-WF-CONV-INVENTORY-001-FAIL-001","mutations":[{"json_pointer":"/traceability/1/internal_check_ids/0","operation":"json_remove","relative_path":"registry/requirements.v1.json"}],"schema_version":1}

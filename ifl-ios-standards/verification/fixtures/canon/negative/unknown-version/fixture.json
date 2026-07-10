@@ -1,0 +1,1 @@
+{"base_fixture":"positive/minimal","expected":{"contract_error_code":"unsupported_schema_version","kind":"contract_error"},"fixture_id":"FIX-CAN-MINIMAL-001-FAIL-002","mutations":[{"json_pointer":"/schema_version","operation":"json_replace","relative_path":"rules/core/minimal.rules.json","value":2}],"schema_version":1}

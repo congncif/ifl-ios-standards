@@ -1,0 +1,1 @@
+{"base_fixture":"positive/minimal","expected":{"contract_error_code":"unresolved_reference","kind":"contract_error"},"fixture_id":"FIX-CAN-MINIMAL-001-FAIL-004","mutations":[{"json_pointer":"/traceability/0/requirement_id","operation":"json_replace","relative_path":"registry/requirements.v1.json","value":"REQ-ABSENT"}],"schema_version":1}

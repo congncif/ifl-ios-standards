@@ -136,8 +136,38 @@ extension CanonSchemaFileTests {
         #expect(Set(baseFixture["enum"] as? [String] ?? []) == ["positive/minimal"])
     }
 
+    @Test("checked-in negative manifests satisfy the exact fixture schema")
+    func checkedInNegativeManifestsSatisfySchema() throws {
+        let schema = try #require(try loadIfPresent("fixture.schema.json"))
+        let directories = [
+            "accepted-adr-incomplete",
+            "duplicate-id",
+            "missing-convergence-traceability",
+            "orphan-requirement",
+            "reused-id",
+            "unknown-version",
+        ]
+
+        for directory in directories {
+            let url = negativeFixtureRoot
+                .appendingPathComponent(directory)
+                .appendingPathComponent("fixture.json")
+            let manifest = try #require(
+                JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+            )
+            #expect(
+                schemaAccepts(manifest, against: schema, root: schema),
+                "\(directory)/fixture.json must satisfy fixture.schema.json"
+            )
+        }
+    }
+
     private var positiveFixtureRoot: URL {
         pluginRoot.appendingPathComponent("verification/fixtures/canon/positive/minimal")
+    }
+
+    private var negativeFixtureRoot: URL {
+        pluginRoot.appendingPathComponent("verification/fixtures/canon/negative")
     }
 }
 

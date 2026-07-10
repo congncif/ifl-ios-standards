@@ -1,0 +1,1 @@
+{"base_fixture":"positive/minimal","expected":{"contract_error_code":"reused_identifier","kind":"contract_error"},"fixture_id":"FIX-CAN-MINIMAL-001-FAIL-003","mutations":[{"json_pointer":"/inherits_profile_ids","operation":"json_replace","relative_path":"profiles/minimal.profile.json","value":["core"]}],"schema_version":1}

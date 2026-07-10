@@ -1,0 +1,1 @@
+{"base_fixture":"positive/minimal","expected":{"contract_error_code":"invalid_contract","kind":"contract_error"},"fixture_id":"FIX-CAN-MINIMAL-001-FAIL-005","mutations":[{"json_pointer":"/migration_ids/0","operation":"json_remove","relative_path":"adrs/ADR-9999-minimal-test.json"}],"schema_version":1}
