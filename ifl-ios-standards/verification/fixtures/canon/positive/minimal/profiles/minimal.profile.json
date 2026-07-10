@@ -1,0 +1,1 @@
+{"applicability":["contract-fixture"],"description":"Minimal profile for deterministic Canon contract tests.","display_name":"Minimal Canon","id":"core","inherits_profile_ids":[],"owner_role_id":"Canon Maintainer","rule_ids":["CAN-MINIMAL-001"],"schema_version":1}

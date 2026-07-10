@@ -281,6 +281,13 @@ func schemaAccepts(_ instance: Any, against schema: [String: Any], root: [String
         return false
     }
 
+    if schema["x-ifl-format-assertion-required"] as? Bool == true {
+        guard let string = instance as? String,
+              let format = schema["format"] as? String,
+              requiredCustomFormatAccepts(string, format: format)
+        else { return false }
+    }
+
     if let string = instance as? String {
         if let minimum = integerValue(schema["minLength"]), string.count < minimum { return false }
         if let maximum = integerValue(schema["maxLength"]), string.count > maximum { return false }
@@ -387,4 +394,98 @@ func declaredSchemaIDs(in value: Any) -> [String] {
         return array.flatMap(declaredSchemaIDs(in:))
     }
     return []
+}
+
+private func requiredCustomFormatAccepts(_ value: String, format: String) -> Bool {
+    switch format {
+    case "ifl-canonical-relative-path-v1":
+        isCanonicalRelativePathFormatValue(value)
+    case "ifl-canonical-date-v1":
+        isCanonicalDateFormatValue(value)
+    case "ifl-canonical-timestamp-v1":
+        isCanonicalTimestampFormatValue(value)
+    default:
+        false
+    }
+}
+
+private func isCanonicalRelativePathFormatValue(_ value: String) -> Bool {
+    guard !value.isEmpty,
+          !value.hasPrefix("/"),
+          value.utf8.elementsEqual(value.precomposedStringWithCanonicalMapping.utf8),
+          !value.unicodeScalars.contains(where: { scalar in
+              switch scalar.value {
+              case 0x00 ... 0x1F,
+                   0x2A,
+                   0x3F,
+                   0x5B ... 0x5C,
+                   0x7F ... 0x9F,
+                   0x2028 ... 0x2029:
+                  true
+              default:
+                  false
+              }
+          })
+    else { return false }
+
+    return value.split(separator: "/", omittingEmptySubsequences: false).allSatisfy {
+        !$0.isEmpty && $0 != "." && $0 != ".."
+    }
+}
+
+private func isCanonicalDateFormatValue(_ value: String) -> Bool {
+    let bytes = Array(value.utf8)
+    guard bytes.count == 10,
+          bytes[4] == 0x2D,
+          bytes[7] == 0x2D,
+          let year = asciiDecimal(bytes, in: 0 ..< 4),
+          let month = asciiDecimal(bytes, in: 5 ..< 7),
+          let day = asciiDecimal(bytes, in: 8 ..< 10),
+          year > 0,
+          (1 ... 12).contains(month),
+          day > 0
+    else { return false }
+
+    let daysInMonth: Int
+    switch month {
+    case 2:
+        let isLeapYear = year.isMultiple(of: 400)
+            || (year.isMultiple(of: 4) && !year.isMultiple(of: 100))
+        daysInMonth = isLeapYear ? 29 : 28
+    case 4, 6, 9, 11:
+        daysInMonth = 30
+    default:
+        daysInMonth = 31
+    }
+    return day <= daysInMonth
+}
+
+private func isCanonicalTimestampFormatValue(_ value: String) -> Bool {
+    let bytes = Array(value.utf8)
+    guard bytes.count == 24,
+          bytes[10] == 0x54,
+          bytes[13] == 0x3A,
+          bytes[16] == 0x3A,
+          bytes[19] == 0x2E,
+          bytes[23] == 0x5A,
+          isCanonicalDateFormatValue(String(decoding: bytes[0 ..< 10], as: UTF8.self)),
+          let hour = asciiDecimal(bytes, in: 11 ..< 13),
+          let minute = asciiDecimal(bytes, in: 14 ..< 16),
+          let second = asciiDecimal(bytes, in: 17 ..< 19),
+          asciiDecimal(bytes, in: 20 ..< 23) != nil
+    else { return false }
+
+    return hour < 24 && minute < 60 && second < 60
+}
+
+private func asciiDecimal(_ bytes: [UInt8], in range: Range<Int>) -> Int? {
+    var result = 0
+    for index in range {
+        let byte = bytes[index]
+        guard (0x30 ... 0x39).contains(byte) else {
+            return nil
+        }
+        result = result * 10 + Int(byte - 0x30)
+    }
+    return result
 }

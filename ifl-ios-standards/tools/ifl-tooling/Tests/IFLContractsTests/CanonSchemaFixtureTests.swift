@@ -2,6 +2,73 @@ import Foundation
 import Testing
 
 extension CanonSchemaFileTests {
+    @Test("checked-in positive minimal records satisfy their exact v1 schemas")
+    func checkedInPositiveFixtureSatisfiesExactSchemas() throws {
+        let records = [
+            (
+                schema: "rule.schema.json",
+                fixture: "rules/core/minimal.rules.json"
+            ),
+            (
+                schema: "profile.schema.json",
+                fixture: "profiles/minimal.profile.json"
+            ),
+            (
+                schema: "adr-metadata.schema.json",
+                fixture: "adrs/ADR-9999-minimal-test.json"
+            ),
+            (
+                schema: "traceability.schema.json",
+                fixture: "registry/requirements.v1.json"
+            ),
+        ]
+
+        for record in records {
+            let schema = try #require(try loadIfPresent(record.schema))
+            let fixture = try decodeObject(
+                at: positiveFixtureRoot.appendingPathComponent(record.fixture)
+            )
+            #expect(
+                schemaAccepts(fixture, against: schema, root: schema),
+                "\(record.fixture) must satisfy \(record.schema)"
+            )
+        }
+    }
+
+    @Test("required custom formats reject noncanonical paths and impossible calendar values")
+    func requiredCustomFormatsAreFailClosed() throws {
+        let schema = try #require(try loadIfPresent("adr-metadata.schema.json"))
+        let definitions = try #require(schema["$defs"] as? [String: Any])
+        let properties = try #require(schema["properties"] as? [String: Any])
+        let path = try #require(definitions["canonical_relative_path"] as? [String: Any])
+        let date = try #require(properties["decision_date"] as? [String: Any])
+        let timestamp = try #require(properties["accepted_at"] as? [String: Any])
+
+        #expect(schemaAccepts("references/é.json", against: path, root: schema))
+        #expect(!schemaAccepts("references/e\u{301}.json", against: path, root: schema))
+        #expect(!schemaAccepts("references//value.json", against: path, root: schema))
+
+        #expect(schemaAccepts("2024-02-29", against: date, root: schema))
+        #expect(!schemaAccepts("2026-02-29", against: date, root: schema))
+        #expect(!schemaAccepts("2026-04-31", against: date, root: schema))
+
+        #expect(schemaAccepts("2024-02-29T23:59:58.123Z", against: timestamp, root: schema))
+        #expect(!schemaAccepts("2026-02-29T23:59:58.123Z", against: timestamp, root: schema))
+        #expect(!schemaAccepts("2026-04-31T23:59:58.123Z", against: timestamp, root: schema))
+
+        let unavailable: [String: Any] = [
+            "type": "string",
+            "format": "ifl-unavailable-format-v1",
+            "x-ifl-format-assertion-required": true,
+        ]
+        let missing: [String: Any] = [
+            "type": "string",
+            "x-ifl-format-assertion-required": true,
+        ]
+        #expect(!schemaAccepts("value", against: unavailable, root: unavailable))
+        #expect(!schemaAccepts("value", against: missing, root: missing))
+    }
+
     @Test("fixture schema can express every Task 2 negative with exact operation and error vocabularies")
     func fixtureVocabularyIsCompleteAndCausal() throws {
         let schema = try #require(try loadIfPresent("fixture.schema.json"))
@@ -67,6 +134,10 @@ extension CanonSchemaFileTests {
         #expect(!schemaAccepts("positive", against: baseFixture, root: schema))
         #expect(!schemaAccepts("minimal", against: baseFixture, root: schema))
         #expect(Set(baseFixture["enum"] as? [String] ?? []) == ["positive/minimal"])
+    }
+
+    private var positiveFixtureRoot: URL {
+        pluginRoot.appendingPathComponent("verification/fixtures/canon/positive/minimal")
     }
 }
 
