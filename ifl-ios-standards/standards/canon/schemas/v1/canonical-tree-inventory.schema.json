@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ifl:standards:schema:canonical-tree-inventory:v1",
+  "title": "IFL Canonical Tree Inventory v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy", "root_mode", "entries"],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "excluded_roots"],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "excluded_roots": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/relative_path"
+          }
+        }
+      }
+    },
+    "root_mode": {
+      "$ref": "#/$defs/portable_mode"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "portable_mode": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 511
+    },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*\\\\)(?!.*\\u0000).+$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relative_path", "kind", "mode"],
+      "properties": {
+        "relative_path": {
+          "$ref": "#/$defs/relative_path"
+        },
+        "kind": {
+          "enum": ["directory", "regular_file"]
+        },
+        "content_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mode": {
+          "$ref": "#/$defs/portable_mode"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "const": "directory"
+            }
+          },
+          "not": {
+            "required": ["content_sha256"]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "regular_file"
+            }
+          },
+          "required": ["content_sha256"]
+        }
+      ]
+    }
+  }
+}

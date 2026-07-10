@@ -1,0 +1,1 @@
+{"kind":"special_file","materialization":"runtime","variants":["fifo","socket","character_device","block_device"]}
