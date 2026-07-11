@@ -132,6 +132,27 @@ struct CanonicalRelativePathParityTests {
             }
         }
     }
+
+    @Test("ADR publication paths use an ASCII ID-plus-slug basename paired across metadata and Markdown")
+    func adrPublicationPathGrammar() throws {
+        _ = try adrOverlay(
+            id: "ADR-9999",
+            metadataPath: "adrs/ADR-9999-test.json",
+            markdownPath: "adrs/ADR-9999-test.md"
+        )
+
+        let invalidPairs = [
+            ("ADR-9999", "adrs/ADR-9999-.json", "adrs/ADR-9999-.md"),
+            ("ADR-9999", "adrs/ADR-\u{FF11}\u{FF12}\u{FF13}\u{FF14}-test.json", "adrs/ADR-\u{FF11}\u{FF12}\u{FF13}\u{FF14}-test.md"),
+            ("ADR-9999", "adrs/ADR-9999-tést.json", "adrs/ADR-9999-tést.md"),
+            ("ADR-9999", "adrs/ADR-0001-test.json", "adrs/ADR-0001-test.md"),
+        ]
+        for (id, metadata, markdown) in invalidPairs {
+            #expect(throws: ContractError.self) {
+                try adrOverlay(id: id, metadataPath: metadata, markdownPath: markdown)
+            }
+        }
+    }
 }
 
 private extension CanonicalRelativePathParityTests {
@@ -146,6 +167,7 @@ private extension CanonicalRelativePathParityTests {
         case adrReferenceArtifact
         case activationApprovalSidecar
         case activationSnapshot
+        case canonTarget
 
         var description: String {
             switch self {
@@ -155,6 +177,8 @@ private extension CanonicalRelativePathParityTests {
                 "CanonActivationReceipt.init(approvalSidecarRelativePath:)"
             case .activationSnapshot:
                 "ActivationDigestTransition.init(relativePath:)"
+            case .canonTarget:
+                "CanonTargetPath.init(validating:)"
             }
         }
     }
@@ -177,6 +201,7 @@ private extension CanonicalRelativePathParityTests {
 
     func schemaDefinitions() throws -> [SchemaDefinition] {
         let schemas = [
+            (filename: "candidate-component-bundle.schema.json", definition: "exact_relative_path"),
             (filename: "candidate-overlay.schema.json", definition: "exact_relative_path"),
             (filename: "canonical-tree-inventory.schema.json", definition: "relative_path"),
             (filename: "derived-artifact.schema.json", definition: "exact_relative_path"),
@@ -192,6 +217,29 @@ private extension CanonicalRelativePathParityTests {
 
     func specializedPathContracts() throws -> [SpecializedPathContract] {
         try [
+            SpecializedPathContract(
+                definition: schemaDefinition(
+                    filename: "candidate-component-bundle.schema.json",
+                    definition: "canon_target_path"
+                ),
+                contract: .canonTarget,
+                validPaths: [
+                    "rules",
+                    "rules/core/test.rules.json",
+                    "profiles/minimal.profile.json",
+                    "adrs/ADR-9999-test.md",
+                    "chapters/core/test.chapter.json",
+                    "registry/derived-artifacts.index.json",
+                    "registry/requirements.v1.json",
+                ],
+                invalidPaths: [
+                    "VERSION",
+                    "schemas/v1/rule.schema.json",
+                    "registry/namespaces.v1.json",
+                    "activations/overlay.receipt.json",
+                    "tools/ifl-tooling/Package.swift",
+                ]
+            ),
             SpecializedPathContract(
                 definition: schemaDefinition(
                     filename: "adr-metadata.schema.json",
@@ -291,12 +339,24 @@ private extension CanonicalRelativePathParityTests {
                 _ = try activationReceipt(approvalSidecarPath: path)
             case .activationSnapshot:
                 _ = try ActivationDigestTransition(
-                    componentKind: "rule",
-                    componentID: "TEST-CANON-001",
-                    relativePath: path,
-                    beforeFullDigest: nil,
-                    afterFullDigest: digest("4")
+                    targetNamespace: .canon,
+                    targetRelativePath: path,
+                    affectedComponents: [
+                        ActivationAffectedComponentReference(
+                            componentKind: "standards-core",
+                            componentID: "component-core"
+                        ),
+                    ],
+                    beforeEntry: nil,
+                    afterEntry: CanonicalTreeEntry(
+                        relativePath: path,
+                        kind: .regularFile,
+                        contentSHA256: digest("4"),
+                        mode: 420
+                    )
                 )
+            case .canonTarget:
+                _ = try CanonTargetPath(validating: path)
             }
             return true
         } catch {
@@ -331,6 +391,27 @@ private extension CanonicalRelativePathParityTests {
         )
     }
 
+    func adrOverlay(
+        id: String,
+        metadataPath: String,
+        markdownPath: String
+    ) throws -> ADROverlayBinding {
+        try ADROverlayBinding(
+            id: ADRIdentifier(validating: id),
+            reviewedComponentID: "core-authority-v1",
+            metadataBundleArtifactID: "adr-metadata",
+            metadataBundlePublicationID: "publish-adr-metadata",
+            metadataTargetRelativePath: metadataPath,
+            markdownBundleArtifactID: "adr-markdown",
+            markdownBundlePublicationID: "publish-adr-markdown",
+            markdownTargetRelativePath: markdownPath,
+            semanticDigest: digest("a"),
+            beforeMetadataFullDigest: nil,
+            candidateMetadataFullDigest: digest("b"),
+            candidateMarkdownFullDigest: digest("c")
+        )
+    }
+
     func activationReceipt(approvalSidecarPath: String) throws -> CanonActivationReceipt {
         let overlayDigest = try digest("5")
         let approval = try ReviewApprovalReference(
@@ -345,11 +426,26 @@ private extension CanonicalRelativePathParityTests {
             attestationDigest: digest("f")
         )
         let transition = try ActivationDigestTransition(
-            componentKind: "rule",
-            componentID: "TEST-CANON-001",
-            relativePath: "rules/test.rules.json",
-            beforeFullDigest: digest("3"),
-            afterFullDigest: digest("4")
+            targetNamespace: .canon,
+            targetRelativePath: "rules/test.rules.json",
+            affectedComponents: [
+                ActivationAffectedComponentReference(
+                    componentKind: "standards-core",
+                    componentID: "component-core"
+                ),
+            ],
+            beforeEntry: CanonicalTreeEntry(
+                relativePath: "rules/test.rules.json",
+                kind: .regularFile,
+                contentSHA256: digest("3"),
+                mode: 420
+            ),
+            afterEntry: CanonicalTreeEntry(
+                relativePath: "rules/test.rules.json",
+                kind: .regularFile,
+                contentSHA256: digest("4"),
+                mode: 420
+            )
         )
         return try CanonActivationReceipt(
             schemaVersion: 1,
@@ -365,7 +461,12 @@ private extension CanonicalRelativePathParityTests {
             approvalSidecarRelativePath: approvalSidecarPath,
             approvalSidecarDigest: digest("7"),
             approvalTimestamp: Date(timeIntervalSince1970: 1_783_315_200),
+            activationTransformIdentity: CandidateOverlayTransformDescriptor.v1.identity,
+            activationTransformDigest: CandidateOverlayTransformDescriptor.v1.digest,
+            resolvedActivationDigest: digest("a"),
             baseSnapshotContentDigest: digest("8"),
+            basePluginInventoryDigest: digest("b"),
+            resolvedPluginInventoryDigest: digest("c"),
             publishedSnapshotContentDigest: digest("9"),
             digestTransitions: [transition]
         )

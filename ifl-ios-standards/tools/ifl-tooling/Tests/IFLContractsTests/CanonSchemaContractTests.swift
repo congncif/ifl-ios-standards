@@ -36,6 +36,7 @@ extension CanonSchemaFileTests {
 }
 
 let strictStandaloneSchemas = [
+    "candidate-component-bundle.schema.json",
     "fixture.schema.json",
     "derived-artifact.schema.json",
     "compatibility-matrix.schema.json",

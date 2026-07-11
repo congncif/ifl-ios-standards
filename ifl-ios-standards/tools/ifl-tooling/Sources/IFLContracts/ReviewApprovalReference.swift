@@ -396,21 +396,63 @@ public struct ReviewApprovalReference: Codable, Hashable, Sendable {
 public struct ReviewedComponentApproval: Codable, Hashable, Sendable {
     public let componentID: String
     public let componentKind: String
+    public let bundleRelativePath: String
+    public let bundleSchemaIdentity: ComponentBundleSchemaIdentity
+    public let bundleSchemaDigest: HashDigest
     public let componentDigest: HashDigest
+    public let accountableOwnerRoleID: String
     public let accountableOwnerApproval: ReviewApprovalReference
     public let independentReviewerApproval: ReviewApprovalReference
 
     public init(
         componentID: String,
         componentKind: String,
+        bundleRelativePath: String,
+        bundleSchemaIdentity: ComponentBundleSchemaIdentity,
+        bundleSchemaDigest: HashDigest,
         componentDigest: HashDigest,
+        accountableOwnerRoleID: String,
         accountableOwnerApproval: ReviewApprovalReference,
         independentReviewerApproval: ReviewApprovalReference
     ) throws {
         let kind = "reviewed_component_approval"
-        let validatedID = try IFLCanonContractSupport.nonBlank(componentID, kind: kind, field: "component_id")
-        let validatedKind = try IFLCanonContractSupport.nonBlank(componentKind, kind: kind, field: "component_kind")
+        let validatedID = try IFLCanonContractSupport.canonicalSlug(
+            componentID,
+            kind: kind,
+            field: "component_id"
+        )
+        let validatedKind = try IFLCanonContractSupport.canonicalSlug(
+            componentKind,
+            kind: kind,
+            field: "component_kind"
+        )
+        let validatedBundlePath = try IFLCanonContractSupport.exactRelativePath(
+            bundleRelativePath,
+            kind: kind,
+            field: "bundle_relative_path"
+        )
+        guard validatedBundlePath == "components/\(validatedID).bundle.json" else {
+            throw ContractError.invalidContract(
+                kind: kind,
+                reason: "bundle_relative_path must exactly embed component_id"
+            )
+        }
+        let validatedBundleSchemaDigest = try IFLCanonContractSupport.digest(bundleSchemaDigest)
+        guard bundleSchemaIdentity == .v1,
+              validatedBundleSchemaDigest == bundleSchemaIdentity.schemaDigest
+        else {
+            throw ContractError.digestMismatch(
+                kind: "reviewed_component_bundle_schema",
+                expected: bundleSchemaIdentity.schemaDigest.rawValue,
+                actual: validatedBundleSchemaDigest.rawValue
+            )
+        }
         let validatedDigest = try IFLCanonContractSupport.digest(componentDigest)
+        let validatedOwnerRole = try IFLCanonContractSupport.nonBlank(
+            accountableOwnerRoleID,
+            kind: kind,
+            field: "accountable_owner_role_id"
+        )
 
         guard accountableOwnerApproval.reviewedComponentID == validatedID,
               independentReviewerApproval.reviewedComponentID == validatedID
@@ -445,10 +487,20 @@ public struct ReviewedComponentApproval: Codable, Hashable, Sendable {
         guard accountableOwnerApproval.attestationID != independentReviewerApproval.attestationID else {
             throw ContractError.reusedIdentifier(kind: "attestation", id: accountableOwnerApproval.attestationID)
         }
+        guard accountableOwnerApproval.roleID == validatedOwnerRole else {
+            throw ContractError.unresolvedReference(
+                kind: "accountable_owner_role",
+                id: validatedOwnerRole
+            )
+        }
 
         self.componentID = validatedID
         self.componentKind = validatedKind
+        self.bundleRelativePath = validatedBundlePath
+        self.bundleSchemaIdentity = bundleSchemaIdentity
+        self.bundleSchemaDigest = validatedBundleSchemaDigest
         self.componentDigest = validatedDigest
+        self.accountableOwnerRoleID = validatedOwnerRole
         self.accountableOwnerApproval = accountableOwnerApproval
         self.independentReviewerApproval = independentReviewerApproval
     }
@@ -456,7 +508,11 @@ public struct ReviewedComponentApproval: Codable, Hashable, Sendable {
     private enum CodingKeys: String, CodingKey, CaseIterable {
         case componentID = "component_id"
         case componentKind = "component_kind"
+        case bundleRelativePath = "bundle_relative_path"
+        case bundleSchemaIdentity = "bundle_schema_identity"
+        case bundleSchemaDigest = "bundle_schema_digest"
         case componentDigest = "component_digest"
+        case accountableOwnerRoleID = "accountable_owner_role_id"
         case accountableOwnerApproval = "accountable_owner_approval"
         case independentReviewerApproval = "independent_reviewer_approval"
     }
@@ -472,7 +528,14 @@ public struct ReviewedComponentApproval: Codable, Hashable, Sendable {
         try self.init(
             componentID: container.decode(String.self, forKey: .componentID),
             componentKind: container.decode(String.self, forKey: .componentKind),
+            bundleRelativePath: container.decode(String.self, forKey: .bundleRelativePath),
+            bundleSchemaIdentity: container.decode(
+                ComponentBundleSchemaIdentity.self,
+                forKey: .bundleSchemaIdentity
+            ),
+            bundleSchemaDigest: container.decode(HashDigest.self, forKey: .bundleSchemaDigest),
             componentDigest: container.decode(HashDigest.self, forKey: .componentDigest),
+            accountableOwnerRoleID: container.decode(String.self, forKey: .accountableOwnerRoleID),
             accountableOwnerApproval: container.decode(ReviewApprovalReference.self, forKey: .accountableOwnerApproval),
             independentReviewerApproval: container.decode(ReviewApprovalReference.self, forKey: .independentReviewerApproval)
         )

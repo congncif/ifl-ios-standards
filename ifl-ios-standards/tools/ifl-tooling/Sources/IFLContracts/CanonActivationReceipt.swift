@@ -1,70 +1,125 @@
 import Foundation
 
-public struct ActivationDigestTransition: Codable, Hashable, Sendable {
+public struct ActivationAffectedComponentReference: Codable, Hashable, Sendable {
     public let componentKind: String
     public let componentID: String
-    public let relativePath: String
-    public let beforeFullDigest: HashDigest?
-    public let afterFullDigest: HashDigest
 
-    public init(
-        componentKind: String,
-        componentID: String,
-        relativePath: String,
-        beforeFullDigest: HashDigest?,
-        afterFullDigest: HashDigest
-    ) throws {
-        let kind = "activation_digest_transition"
-        let validatedKind = try IFLCanonContractSupport.nonBlank(
+    public init(componentKind: String, componentID: String) throws {
+        let kind = "activation_affected_component_reference"
+        self.componentKind = try IFLCanonContractSupport.canonicalSlug(
             componentKind,
             kind: kind,
             field: "component_kind"
         )
-        let validatedID = try Self.validateComponentID(
+        self.componentID = try IFLCanonContractSupport.canonicalSlug(
             componentID,
-            for: validatedKind,
-            contractKind: kind
-        )
-        let path = try IFLCanonContractSupport.exactRelativePath(
-            relativePath,
             kind: kind,
-            field: "relative_path"
+            field: "component_id"
         )
-        let basename = path.split(
-            separator: "/",
-            omittingEmptySubsequences: false
-        ).last.map(String.init) ?? path
-        guard !path.hasPrefix("activations/"),
-              !basename.hasSuffix(".approval.json"),
-              !basename.hasSuffix(".receipt.json")
-        else {
-            throw ContractError.invalidContract(
-                kind: kind,
-                reason: "activation receipts and approval sidecars are excluded from snapshot transitions"
-            )
-        }
-        let before = try beforeFullDigest.map(IFLCanonContractSupport.digest)
-        let after = try IFLCanonContractSupport.digest(afterFullDigest)
-        if let before, before == after {
-            throw ContractError.invalidContract(
-                kind: kind,
-                reason: "before and after digests must differ"
-            )
-        }
-
-        self.componentKind = validatedKind
-        self.componentID = validatedID
-        self.relativePath = path
-        self.beforeFullDigest = before
-        self.afterFullDigest = after
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
         case componentKind = "component_kind"
         case componentID = "component_id"
-        case relativePath = "relative_path"
-        case beforeFullDigest = "before_full_digest"
-        case afterFullDigest = "after_full_digest"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let kind = "activation_affected_component_reference"
+        try IFLCanonContractSupport.rejectUnknownKeys(
+            from: decoder,
+            allowedKeys: Set(CodingKeys.allCases.map(\.rawValue)),
+            kind: kind
+        )
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            componentKind: container.decode(String.self, forKey: .componentKind),
+            componentID: container.decode(String.self, forKey: .componentID)
+        )
+    }
+}
+
+public struct ActivationDigestTransition: Codable, Hashable, Sendable {
+    public let targetNamespace: CandidateTargetNamespace
+    public let targetRelativePath: String
+    public let affectedComponents: [ActivationAffectedComponentReference]
+    public let beforeEntry: CanonicalTreeEntry?
+    public let afterEntry: CanonicalTreeEntry
+
+    public init(
+        targetNamespace: CandidateTargetNamespace,
+        targetRelativePath: String,
+        affectedComponents: [ActivationAffectedComponentReference],
+        beforeEntry: CanonicalTreeEntry?,
+        afterEntry: CanonicalTreeEntry
+    ) throws {
+        let kind = "activation_digest_transition"
+        let target = try CandidateTargetPath.validating(
+            namespace: targetNamespace,
+            rawValue: targetRelativePath
+        )
+        let basename = target.rawValue.split(separator: "/").last.map(String.init) ?? target.rawValue
+        guard !target.rawValue.hasPrefix("activations/"),
+              !basename.hasSuffix(".approval.json"),
+              !basename.hasSuffix(".receipt.json")
+        else {
+            throw ContractError.invalidContract(
+                kind: kind,
+                reason: "approval and activation artifacts are excluded from resolved transitions"
+            )
+        }
+        try IFLCanonContractSupport.requireNonEmpty(
+            affectedComponents,
+            kind: kind,
+            field: "affected_components"
+        )
+        try IFLCanonContractSupport.requireUnique(
+            affectedComponents,
+            kind: "activation_affected_component",
+            id: { $0.componentKind + "\0" + $0.componentID }
+        )
+        guard afterEntry.relativePath == target.rawValue,
+              beforeEntry?.relativePath == nil || beforeEntry?.relativePath == target.rawValue
+        else {
+            throw ContractError.invalidContract(
+                kind: kind,
+                reason: "before and after entries must use the transition target path"
+            )
+        }
+        guard beforeEntry != afterEntry else {
+            throw ContractError.invalidContract(kind: kind, reason: "before and after entries must differ")
+        }
+        try Self.validatePortableEntry(afterEntry, kind: kind)
+        if let beforeEntry {
+            try Self.validatePortableEntry(beforeEntry, kind: kind)
+            guard beforeEntry.kind == .regularFile,
+                  afterEntry.kind == .regularFile,
+                  beforeEntry.mode == afterEntry.mode
+            else {
+                throw ContractError.invalidContract(
+                    kind: kind,
+                    reason: "an existing transition must retain a regular file and its exact mode"
+                )
+            }
+        }
+
+        self.targetNamespace = targetNamespace
+        self.targetRelativePath = target.rawValue
+        self.affectedComponents = affectedComponents.sorted {
+            IFLCanonContractSupport.canonicalLess(
+                $0.componentKind + "\0" + $0.componentID,
+                $1.componentKind + "\0" + $1.componentID
+            )
+        }
+        self.beforeEntry = beforeEntry
+        self.afterEntry = afterEntry
+    }
+
+    private enum CodingKeys: String, CodingKey, CaseIterable {
+        case targetNamespace = "target_namespace"
+        case targetRelativePath = "target_relative_path"
+        case affectedComponents = "affected_components"
+        case beforeEntry = "before_entry"
+        case afterEntry = "after_entry"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -75,67 +130,42 @@ public struct ActivationDigestTransition: Codable, Hashable, Sendable {
             kind: kind
         )
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        try self.init(
-            componentKind: container.decode(String.self, forKey: .componentKind),
-            componentID: container.decode(String.self, forKey: .componentID),
-            relativePath: container.decode(String.self, forKey: .relativePath),
-            beforeFullDigest: IFLCanonContractSupport.decodeOptionalRejectingNull(
-                HashDigest.self,
-                from: container,
-                forKey: .beforeFullDigest,
-                kind: kind,
-                field: "before_full_digest"
-            ),
-            afterFullDigest: container.decode(HashDigest.self, forKey: .afterFullDigest)
+        let rawComponents = try container.decode(
+            [ActivationAffectedComponentReference].self,
+            forKey: .affectedComponents
         )
+        try self.init(
+            targetNamespace: container.decode(CandidateTargetNamespace.self, forKey: .targetNamespace),
+            targetRelativePath: container.decode(String.self, forKey: .targetRelativePath),
+            affectedComponents: rawComponents,
+            beforeEntry: IFLCanonContractSupport.decodeOptionalRejectingNull(
+                CanonicalTreeEntry.self,
+                from: container,
+                forKey: .beforeEntry,
+                kind: kind,
+                field: "before_entry"
+            ),
+            afterEntry: container.decode(CanonicalTreeEntry.self, forKey: .afterEntry)
+        )
+        guard rawComponents == affectedComponents else {
+            throw ContractError.invalidContract(
+                kind: kind,
+                reason: "affected_components must use canonical order"
+            )
+        }
     }
 
-    private static func validateComponentID(
-        _ componentID: String,
-        for componentKind: String,
-        contractKind: String
-    ) throws -> String {
-        switch componentKind {
-        case "rule":
-            return try RuleID(validating: componentID).rawValue
-        case "profile":
-            return try ProfileID(validating: componentID).rawValue
-        case "adr":
-            return try ADRIdentifier(validating: componentID).rawValue
-        case "requirement", "traceability", "requirement_traceability":
-            return try RequirementID(validating: componentID).rawValue
-        case "check":
-            return try IFLCanonContractSupport.canonicalUppercaseIdentifier(
-                componentID,
-                prefix: "CHK-",
-                kind: contractKind,
-                field: "component_id"
-            )
-        case "fixture":
-            return try IFLCanonContractSupport.canonicalUppercaseIdentifier(
-                componentID,
-                prefix: "FIX-",
-                kind: contractKind,
-                field: "component_id"
-            )
-        case "migration":
-            return try IFLCanonContractSupport.canonicalUppercaseIdentifier(
-                componentID,
-                prefix: "MIG-",
-                kind: contractKind,
-                field: "component_id"
-            )
-        case "chapter", "index", "derived_registration":
-            return try IFLCanonContractSupport.canonicalSlug(
-                componentID,
-                kind: contractKind,
-                field: "component_id"
-            )
-        default:
-            throw ContractError.invalidContract(
-                kind: contractKind,
-                reason: "component_kind is not a supported snapshot component kind"
-            )
+    private static func validatePortableEntry(
+        _ entry: CanonicalTreeEntry,
+        kind: String
+    ) throws {
+        guard entry.mode == CandidatePortableMode.file.rawValue
+            || entry.mode == CandidatePortableMode.executable.rawValue
+        else {
+            throw ContractError.invalidContract(kind: kind, reason: "entry mode must be portable 420 or 493")
+        }
+        if entry.kind == .directory, entry.mode != CandidatePortableMode.executable.rawValue {
+            throw ContractError.invalidContract(kind: kind, reason: "directory entries must use mode 493")
         }
     }
 }
@@ -154,7 +184,12 @@ public struct CanonActivationReceipt: Codable, Hashable, Sendable {
     public let approvalSidecarRelativePath: String
     public let approvalSidecarDigest: HashDigest
     public let approvalTimestamp: Date
+    public let activationTransformIdentity: String
+    public let activationTransformDigest: HashDigest
+    public let resolvedActivationDigest: HashDigest
     public let baseSnapshotContentDigest: HashDigest
+    public let basePluginInventoryDigest: HashDigest
+    public let resolvedPluginInventoryDigest: HashDigest
     public let publishedSnapshotContentDigest: HashDigest
     public let digestTransitions: [ActivationDigestTransition]
 
@@ -172,7 +207,12 @@ public struct CanonActivationReceipt: Codable, Hashable, Sendable {
         approvalSidecarRelativePath: String,
         approvalSidecarDigest: HashDigest,
         approvalTimestamp: Date,
+        activationTransformIdentity: String,
+        activationTransformDigest: HashDigest,
+        resolvedActivationDigest: HashDigest,
         baseSnapshotContentDigest: HashDigest,
+        basePluginInventoryDigest: HashDigest,
+        resolvedPluginInventoryDigest: HashDigest,
         publishedSnapshotContentDigest: HashDigest,
         digestTransitions: [ActivationDigestTransition]
     ) throws {
@@ -186,12 +226,57 @@ public struct CanonActivationReceipt: Codable, Hashable, Sendable {
             kind: kind,
             field: "approval_sidecar_relative_path"
         )
-        guard sidecarPath.hasPrefix("activations/"),
-              sidecarPath.hasSuffix(".approval.json")
-        else {
+        guard sidecarPath.hasPrefix("activations/"), sidecarPath.hasSuffix(".approval.json") else {
             throw ContractError.invalidContract(
                 kind: kind,
                 reason: "approval_sidecar_relative_path must identify an activation approval sidecar"
+            )
+        }
+        let descriptor = CandidateOverlayTransformDescriptor.v1
+        guard activationTransformIdentity == descriptor.identity else {
+            throw ContractError.invalidContract(
+                kind: kind,
+                reason: "activation_transform_identity does not select the compiled v1 descriptor"
+            )
+        }
+        let transformDigest = try IFLCanonContractSupport.digest(activationTransformDigest)
+        guard transformDigest == descriptor.digest else {
+            throw ContractError.digestMismatch(
+                kind: "activation_transform",
+                expected: descriptor.digest.rawValue,
+                actual: transformDigest.rawValue
+            )
+        }
+        let validatedOverlayID = try IFLCanonContractSupport.canonicalSlug(
+            overlayID,
+            kind: kind,
+            field: "overlay_id"
+        )
+        let validatedOverlayDigest = try IFLCanonContractSupport.digest(overlayDigest)
+        guard integrationApproval.reviewedComponentID == validatedOverlayID else {
+            throw ContractError.unresolvedReference(kind: "integration_approval_overlay", id: validatedOverlayID)
+        }
+        guard integrationApproval.reviewedComponentDigest == validatedOverlayDigest else {
+            throw ContractError.digestMismatch(
+                kind: "integration_approval_overlay",
+                expected: validatedOverlayDigest.rawValue,
+                actual: integrationApproval.reviewedComponentDigest.rawValue
+            )
+        }
+        let baseSnapshot = try IFLCanonContractSupport.digest(baseSnapshotContentDigest)
+        let published = try IFLCanonContractSupport.digest(publishedSnapshotContentDigest)
+        guard baseSnapshot != published else {
+            throw ContractError.invalidContract(
+                kind: kind,
+                reason: "base and published snapshot content digests must differ"
+            )
+        }
+        let basePlugin = try IFLCanonContractSupport.digest(basePluginInventoryDigest)
+        let resolvedPlugin = try IFLCanonContractSupport.digest(resolvedPluginInventoryDigest)
+        guard basePlugin != resolvedPlugin else {
+            throw ContractError.invalidContract(
+                kind: kind,
+                reason: "base and resolved plugin inventory digests must differ"
             )
         }
         try IFLCanonContractSupport.requireNonEmpty(
@@ -201,65 +286,13 @@ public struct CanonActivationReceipt: Codable, Hashable, Sendable {
         )
         try IFLCanonContractSupport.requireUnique(
             digestTransitions,
-            kind: "activation_transition_component",
-            id: { $0.componentKind + "\u{0}" + $0.componentID }
-        )
-        try IFLCanonContractSupport.requireUnique(
-            digestTransitions,
             kind: "activation_transition_path",
-            id: { $0.relativePath }
+            id: { $0.targetNamespace.rawValue + "\0" + $0.targetRelativePath }
         )
-
-        let validatedIntegrationApproval = try ReviewApprovalReference(
-            schemaVersion: integrationApproval.schemaVersion,
-            approvalID: integrationApproval.approvalID,
-            principalID: integrationApproval.principalID,
-            actorID: integrationApproval.actorID,
-            roleID: integrationApproval.roleID,
-            reviewedComponentID: integrationApproval.reviewedComponentID,
-            reviewedComponentDigest: integrationApproval.reviewedComponentDigest,
-            attestationID: integrationApproval.attestationID,
-            attestationDigest: integrationApproval.attestationDigest
-        )
-        let validatedOverlayID = try IFLCanonContractSupport.nonBlank(
-            overlayID,
-            kind: kind,
-            field: "overlay_id"
-        )
-        let validatedOverlayDigest = try IFLCanonContractSupport.digest(overlayDigest)
-        guard validatedIntegrationApproval.reviewedComponentID == validatedOverlayID else {
-            throw ContractError.unresolvedReference(
-                kind: "integration_approval_overlay",
-                id: validatedOverlayID
-            )
-        }
-        guard validatedIntegrationApproval.reviewedComponentDigest == validatedOverlayDigest else {
-            throw ContractError.digestMismatch(
-                kind: "integration_approval_overlay",
-                expected: validatedOverlayDigest.rawValue,
-                actual: validatedIntegrationApproval.reviewedComponentDigest.rawValue
-            )
-        }
-        let baseDigest = try IFLCanonContractSupport.digest(baseSnapshotContentDigest)
-        let publishedDigest = try IFLCanonContractSupport.digest(publishedSnapshotContentDigest)
-        guard baseDigest != publishedDigest else {
-            throw ContractError.invalidContract(
-                kind: kind,
-                reason: "base and published snapshot content digests must differ"
-            )
-        }
 
         self.schemaVersion = schemaVersion
-        self.activationID = try IFLCanonContractSupport.nonBlank(
-            activationID,
-            kind: kind,
-            field: "activation_id"
-        )
-        self.transactionID = try IFLCanonContractSupport.nonBlank(
-            transactionID,
-            kind: kind,
-            field: "transaction_id"
-        )
+        self.activationID = try IFLCanonContractSupport.nonBlank(activationID, kind: kind, field: "activation_id")
+        self.transactionID = try IFLCanonContractSupport.nonBlank(transactionID, kind: kind, field: "transaction_id")
         self.targetCanonVersion = targetCanonVersion
         self.targetProductVersion = try IFLCanonContractSupport.semanticVersion(
             targetProductVersion,
@@ -268,15 +301,13 @@ public struct CanonActivationReceipt: Codable, Hashable, Sendable {
         )
         self.overlayID = validatedOverlayID
         self.overlayDigest = validatedOverlayDigest
-        self.integrationApproval = validatedIntegrationApproval
+        self.integrationApproval = integrationApproval
         self.approvalSourceArtifactID = try IFLCanonContractSupport.nonBlank(
             approvalSourceArtifactID,
             kind: kind,
             field: "approval_source_artifact_id"
         )
-        self.approvalSourceArtifactDigest = try IFLCanonContractSupport.digest(
-            approvalSourceArtifactDigest
-        )
+        self.approvalSourceArtifactDigest = try IFLCanonContractSupport.digest(approvalSourceArtifactDigest)
         self.approvalSidecarRelativePath = sidecarPath
         self.approvalSidecarDigest = try IFLCanonContractSupport.digest(approvalSidecarDigest)
         self.approvalTimestamp = try IFLCanonContractSupport.canonicalDate(
@@ -284,12 +315,17 @@ public struct CanonActivationReceipt: Codable, Hashable, Sendable {
             kind: kind,
             field: "approval_timestamp"
         )
-        self.baseSnapshotContentDigest = baseDigest
-        self.publishedSnapshotContentDigest = publishedDigest
+        self.activationTransformIdentity = activationTransformIdentity
+        self.activationTransformDigest = transformDigest
+        self.resolvedActivationDigest = try IFLCanonContractSupport.digest(resolvedActivationDigest)
+        self.baseSnapshotContentDigest = baseSnapshot
+        self.basePluginInventoryDigest = basePlugin
+        self.resolvedPluginInventoryDigest = resolvedPlugin
+        self.publishedSnapshotContentDigest = published
         self.digestTransitions = digestTransitions.sorted {
             IFLCanonContractSupport.canonicalLess(
-                $0.relativePath + "\u{0}" + $0.componentKind + "\u{0}" + $0.componentID,
-                $1.relativePath + "\u{0}" + $1.componentKind + "\u{0}" + $1.componentID
+                $0.targetNamespace.rawValue + "\0" + $0.targetRelativePath,
+                $1.targetNamespace.rawValue + "\0" + $1.targetRelativePath
             )
         }
     }
@@ -308,7 +344,12 @@ public struct CanonActivationReceipt: Codable, Hashable, Sendable {
         case approvalSidecarRelativePath = "approval_sidecar_relative_path"
         case approvalSidecarDigest = "approval_sidecar_digest"
         case approvalTimestamp = "approval_timestamp"
+        case activationTransformIdentity = "activation_transform_identity"
+        case activationTransformDigest = "activation_transform_digest"
+        case resolvedActivationDigest = "resolved_activation_digest"
         case baseSnapshotContentDigest = "base_snapshot_content_digest"
+        case basePluginInventoryDigest = "base_plugin_inventory_digest"
+        case resolvedPluginInventoryDigest = "resolved_plugin_inventory_digest"
         case publishedSnapshotContentDigest = "published_snapshot_content_digest"
         case digestTransitions = "digest_transitions"
     }
@@ -320,54 +361,38 @@ public struct CanonActivationReceipt: Codable, Hashable, Sendable {
             allowedKeys: Set(CodingKeys.allCases.map(\.rawValue)),
             kind: kind
         )
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let rawTransitions = try container.decode(
-            [ActivationDigestTransition].self,
-            forKey: .digestTransitions
-        )
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let transitions = try c.decode([ActivationDigestTransition].self, forKey: .digestTransitions)
         try self.init(
-            schemaVersion: container.decode(Int.self, forKey: .schemaVersion),
-            activationID: container.decode(String.self, forKey: .activationID),
-            transactionID: container.decode(String.self, forKey: .transactionID),
-            targetCanonVersion: container.decode(Int.self, forKey: .targetCanonVersion),
-            targetProductVersion: container.decode(String.self, forKey: .targetProductVersion),
-            overlayID: container.decode(String.self, forKey: .overlayID),
-            overlayDigest: container.decode(HashDigest.self, forKey: .overlayDigest),
-            integrationApproval: container.decode(
-                ReviewApprovalReference.self,
-                forKey: .integrationApproval
-            ),
-            approvalSourceArtifactID: container.decode(String.self, forKey: .approvalSourceArtifactID),
-            approvalSourceArtifactDigest: container.decode(
-                HashDigest.self,
-                forKey: .approvalSourceArtifactDigest
-            ),
-            approvalSidecarRelativePath: container.decode(
-                String.self,
-                forKey: .approvalSidecarRelativePath
-            ),
-            approvalSidecarDigest: container.decode(HashDigest.self, forKey: .approvalSidecarDigest),
+            schemaVersion: c.decode(Int.self, forKey: .schemaVersion),
+            activationID: c.decode(String.self, forKey: .activationID),
+            transactionID: c.decode(String.self, forKey: .transactionID),
+            targetCanonVersion: c.decode(Int.self, forKey: .targetCanonVersion),
+            targetProductVersion: c.decode(String.self, forKey: .targetProductVersion),
+            overlayID: c.decode(String.self, forKey: .overlayID),
+            overlayDigest: c.decode(HashDigest.self, forKey: .overlayDigest),
+            integrationApproval: c.decode(ReviewApprovalReference.self, forKey: .integrationApproval),
+            approvalSourceArtifactID: c.decode(String.self, forKey: .approvalSourceArtifactID),
+            approvalSourceArtifactDigest: c.decode(HashDigest.self, forKey: .approvalSourceArtifactDigest),
+            approvalSidecarRelativePath: c.decode(String.self, forKey: .approvalSidecarRelativePath),
+            approvalSidecarDigest: c.decode(HashDigest.self, forKey: .approvalSidecarDigest),
             approvalTimestamp: IFLCanonContractSupport.decodeCanonicalDate(
-                from: container,
+                from: c,
                 forKey: .approvalTimestamp,
                 kind: kind,
                 field: "approval_timestamp"
             ),
-            baseSnapshotContentDigest: container.decode(
-                HashDigest.self,
-                forKey: .baseSnapshotContentDigest
-            ),
-            publishedSnapshotContentDigest: container.decode(
-                HashDigest.self,
-                forKey: .publishedSnapshotContentDigest
-            ),
-            digestTransitions: rawTransitions
+            activationTransformIdentity: c.decode(String.self, forKey: .activationTransformIdentity),
+            activationTransformDigest: c.decode(HashDigest.self, forKey: .activationTransformDigest),
+            resolvedActivationDigest: c.decode(HashDigest.self, forKey: .resolvedActivationDigest),
+            baseSnapshotContentDigest: c.decode(HashDigest.self, forKey: .baseSnapshotContentDigest),
+            basePluginInventoryDigest: c.decode(HashDigest.self, forKey: .basePluginInventoryDigest),
+            resolvedPluginInventoryDigest: c.decode(HashDigest.self, forKey: .resolvedPluginInventoryDigest),
+            publishedSnapshotContentDigest: c.decode(HashDigest.self, forKey: .publishedSnapshotContentDigest),
+            digestTransitions: transitions
         )
-        guard rawTransitions == digestTransitions else {
-            throw ContractError.invalidContract(
-                kind: kind,
-                reason: "digest_transitions must use canonical order"
-            )
+        guard transitions == digestTransitions else {
+            throw ContractError.invalidContract(kind: kind, reason: "digest_transitions must use canonical order")
         }
     }
 }

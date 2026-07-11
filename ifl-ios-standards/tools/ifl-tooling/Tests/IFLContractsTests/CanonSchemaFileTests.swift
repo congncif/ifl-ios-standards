@@ -3,7 +3,7 @@ import Testing
 
 @Suite("CanonSchemaFileTests")
 struct CanonSchemaFileTests {
-    @Test("the twelve required v1 schemas have exact filenames and stable identities")
+    @Test("the thirteen required v1 schemas have exact filenames and stable identities")
     func requiredFilesAndStableIdentities() throws {
         var topLevelIDs: [String] = []
         var everyDeclaredID: [String] = []
@@ -42,7 +42,7 @@ struct CanonSchemaFileTests {
         }
     }
 
-    @Test("all twelve schemas use canonical sorted compact JSON with one trailing LF")
+    @Test("all thirteen schemas use canonical sorted compact JSON with one trailing LF")
     func canonicalSchemaBytes() throws {
         for expectation in schemaExpectations {
             let url = schemaURL(for: expectation.filename)
@@ -120,6 +120,7 @@ let schemaExpectations: [SchemaExpectation] = [
     .init(filename: "adr-metadata.schema.json", id: "urn:ifl:standards:schema:adr-metadata:v1"),
     .init(filename: "chapter.schema.json", id: "urn:ifl:standards:schema:chapter:v1"),
     .init(filename: "candidate-overlay.schema.json", id: "urn:ifl:standards:schema:candidate-overlay:v1"),
+    .init(filename: "candidate-component-bundle.schema.json", id: "urn:ifl:standards:schema:candidate-component-bundle:v1"),
     .init(filename: "activation-receipt.schema.json", id: "urn:ifl:standards:schema:activation-receipt:v1"),
     .init(filename: "exception.schema.json", id: "urn:ifl:standards:schema:exception:v1"),
     .init(filename: "fixture.schema.json", id: "urn:ifl:standards:schema:fixture:v1"),
@@ -130,6 +131,14 @@ let schemaExpectations: [SchemaExpectation] = [
 ]
 
 let standaloneShapes: [StandaloneShape] = [
+    .init(
+        filename: "candidate-component-bundle.schema.json",
+        fields: [
+            "schema_version", "schema_identity", "schema_digest", "component_id", "component_kind",
+            "accountable_owner_role_id", "bundle_relative_path", "artifacts", "publications",
+            "target_directories",
+        ]
+    ),
     .init(
         filename: "fixture.schema.json",
         fields: ["schema_version", "fixture_id", "base_fixture", "mutations", "expected"]

@@ -127,6 +127,15 @@ let invalidCanonicalDates = [
 
 let recordShapes: [RecordShape] = [
     .init(
+        filename: "candidate-component-bundle.schema.json",
+        required: [
+            "schema_version", "schema_identity", "schema_digest", "component_id", "component_kind",
+            "accountable_owner_role_id", "bundle_relative_path", "artifacts", "publications",
+            "target_directories",
+        ],
+        optional: []
+    ),
+    .init(
         filename: "rule.schema.json",
         required: [
             "schema_version", "id", "level", "statement", "scope", "profile_ids", "severity",
@@ -173,9 +182,10 @@ let recordShapes: [RecordShape] = [
         filename: "candidate-overlay.schema.json",
         required: [
             "schema_version", "overlay_id", "target_canon_version", "target_product_version",
-            "base_snapshot_content_digest", "reviewed_components", "rules", "profiles", "adrs", "chapters",
-            "requirement_traceability", "checks", "fixtures", "migrations", "indexes",
-            "derived_registration_deltas", "activation_fields", "expected_published_snapshot_content_digest",
+            "base_snapshot_content_digest", "activation_transform_identity", "activation_transform_digest",
+            "reviewed_components", "rules", "profiles", "adrs", "chapters", "requirement_registry",
+            "checks", "fixtures", "migrations", "indexes", "derived_registration_deltas",
+            "activation_transform_set",
         ],
         optional: []
     ),
@@ -185,8 +195,9 @@ let recordShapes: [RecordShape] = [
             "schema_version", "activation_id", "transaction_id", "target_canon_version", "target_product_version",
             "overlay_id", "overlay_digest", "integration_approval", "approval_source_artifact_id",
             "approval_source_artifact_digest", "approval_sidecar_relative_path", "approval_sidecar_digest",
-            "approval_timestamp", "base_snapshot_content_digest", "published_snapshot_content_digest",
-            "digest_transitions",
+            "approval_timestamp", "activation_transform_identity", "activation_transform_digest",
+            "resolved_activation_digest", "base_snapshot_content_digest", "base_plugin_inventory_digest",
+            "resolved_plugin_inventory_digest", "published_snapshot_content_digest", "digest_transitions",
         ],
         optional: []
     ),
