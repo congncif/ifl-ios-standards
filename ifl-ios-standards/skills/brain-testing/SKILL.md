@@ -27,11 +27,17 @@ When unsure which tier applies, ask once.
 
 - During a work slice, run only its causal/static/schema signal. A missing tool, stale cache, sandbox
   failure, helper compile error, or invalid fixture is not a Tier-1 behavioral RED.
-- Before freezing a semantic checkpoint, run one accumulated focused seam/module proof after its last
-  planned slice; do not rerun unrelated targeted tests after every slice.
+- Before freezing a semantic checkpoint, run its declared review-readiness proof: the cheapest
+  sufficient causal/static/schema closure that makes the candidate meaningful to review. Do not
+  require the accumulated focused signal or checkpoint owner here under `POST_JOIN_DEFAULT`.
 - Treat the accumulated focused signal and checkpoint owning gate as separate plan fields. Execute one
   receipt only when the plan declares them `EQUAL` and their command, obligations, and candidate
-  fingerprint still match; otherwise the checkpoint owner remains pending.
+  fingerprint still match; otherwise the checkpoint owner remains pending. Schedule the equal receipt
+  after the complete review join and final remediation mutation by default.
+- Treat `EQUAL` as plan metadata, never as proof of execution. After candidate freeze,
+  `POST_JOIN_DEFAULT` leaves the owner pending; `PRE_REVIEW_REQUIRED` must complete GREEN before review
+  dispatch. Never run the checkpoint owner in parallel with collect-all review. Any relevant mutation
+  invalidates a pre-review receipt.
 - Run full suite/build/integration at the one declared wave/release owner after the final relevant
   mutation. Project bindings provide canonical commands and targets.
 - A higher gate may replace a lower one only when every gate-subsumption condition in
@@ -51,8 +57,9 @@ When unsure which tier applies, ask once.
 - Treat semantic checkpoints—not task/file/phase counts—as verification boundaries.
 - Do not add review, commit, or full build/test cycles after every work slice.
 - Map verification signals back to the approved Definition of Done checklist.
-- Run the accumulated checkpoint proof once after its last planned slice and each expensive gate once
-  per current fingerprint at its declared owner, unless a real failure or invalidation requires rerun.
+- Run the accumulated checkpoint proof at its declared owner and each expensive gate once per current
+  fingerprint. Under `POST_JOIN_DEFAULT`, that is after the complete review join and final mutation;
+  a real failure or evidence invalidation is the only reason to rerun.
 - Zero review findings never closes a distinct pending checkpoint owner. Before commit/completion, the
   staged candidate manifest must match the fingerprint referenced by current owning-gate and final
   review/confirmation evidence.

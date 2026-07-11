@@ -72,9 +72,10 @@ reuse the original assignment.
 2. **Plan Gate.** Assign `ios-planner` to produce one unique plan-draft artifact, then validate and
    aggregate it into `{work-item-root}/plan.md`. The plan must separate
    semantic boundaries, atomic cascades, causal work slices, review coverage, accumulated proof,
-   checkpoint/wave/final gate owners, subsumption, failure policy, fingerprint identity, commit scope,
-   and every authority boundary. Proceed only after the configured co-working or auto Plan Gate records
-   approval; that approval authorizes routine execution only.
+   review-readiness proof, checkpoint/wave/final gate owners, owning-gate timing, subsumption, failure
+   policy, fingerprint identity, commit scope, and every authority boundary. Proceed only after the
+   configured co-working or auto Plan Gate records approval; that approval authorizes routine
+   execution only.
 3. **Workspace.** Create/switch a branch only when a separate recorded authority names that action and
    object. Never infer pull, branch, commit, push, PR, merge, release, or publication authority.
 4. **Execute each approved semantic checkpoint.**
@@ -89,12 +90,18 @@ reuse the original assignment.
      `lean-verification.md` subsumption conditions against the scheduled owning gate. Record a valid
      `SUBSUMED_BY:<gate-id>` receipt or run the lower canonical signal; never run it first and reason
      about duplication afterward.
-   - **Freeze candidate.** After the final planned mutation, run any non-subsumed accumulated proof,
-     compute candidate fingerprint `v1`, and write immutable versioned manifest/diff artifacts. The
+   - **Freeze candidate.** After the final planned mutation, run the declared review-readiness proof,
+     compute candidate fingerprint `v1`, and write immutable versioned manifest/diff artifacts. Under
+     `POST_JOIN_DEFAULT`, do not require a green checkpoint owner before collect-all review. The
      fingerprint includes the declared product/source/test/config tree and execution identity; it
      excludes the mutable work-item audit ledger (`handoffs`, assignments, reviews, reports,
      authorities) by default. Include an audit artifact only when the plan declares it a product
      deliverable.
+   - **Apply the timing branch.** For `POST_JOIN_DEFAULT`, record the focused/owner obligation as
+     `PENDING` and dispatch review. For `PRE_REVIEW_REQUIRED`, run the owner on the frozen fingerprint
+     and require a current GREEN receipt before review dispatch. Do not run the checkpoint owner in
+     parallel with review. Any relevant review mutation invalidates a pre-review receipt and requires
+     fresh final-fingerprint owning evidence.
    - **Collect-all review.** Dispatch every non-overlapping lane concurrently on the same fingerprint,
      manifest, and diff. Give each lane a stable lane ID and unique review artifact. Wait for all
      `REVIEW_LANE_COMPLETE` receipts, then normalize declared key grammar/aliases and deduplicate by
@@ -105,10 +112,14 @@ reuse the original assignment.
      Requirement/Design/Architecture/Plan before product mutation. No lane starts its own fix pass.
    - **Converge once.** After the complete roster join, freeze the authoritative initial-register path
      decision. If it contains `ACCEPTED_CURRENT_SCOPE` findings, issue one joined remediation batch
-     covering all of them. After its final mutation, rerun affected causal/accumulated proof and the
-     declared checkpoint owner, recompute the candidate fingerprint, then create `v2` (or next monotonic version) manifest
-     and diff **before** bounded confirmation. Reuse unaffected receipts only when their evidence
-     identity remains valid.
+     covering all of them. After its final mutation—or immediately on the direct path—evaluate any
+     planned subsumption, run affected causal/accumulated proof and the still-pending checkpoint owner
+     once on the final fingerprint, recompute that fingerprint, then create `v2` (or the next monotonic
+     version) manifest and diff **before** bounded confirmation. Reuse unaffected receipts only when
+     their evidence identity remains valid.
+   - **Pre-review owner is exceptional.** Approve `PRE_REVIEW_REQUIRED` only when the map records why
+     meaningful review or a prior human/effect boundary requires it and why review-readiness proof is
+     insufficient. Never make two owner runs the default cadence.
    - **Confirm, do not rediscover.** Original lanes confirm assigned dispositions and changed surfaces
      using unique artifacts. Any new material confirmation issue, whether inside or outside the prior
      surface, yields `PLAN_REOPEN_REQUIRED`. It never starts an ad-hoc second remediation loop.

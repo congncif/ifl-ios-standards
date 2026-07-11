@@ -30,10 +30,12 @@ review, commit, user approval, full build, or full-suite cycle merely because a 
 
 ## Semantic checkpoint boundary
 
-1. After the last planned slice, prospectively subsume or run the accumulated focused proof, then
-   freeze one candidate fingerprint.
-2. Hand that immutable baseline to the declared collect-all reviewers. Do not mutate while findings
-   are still being gathered.
+1. After the last planned slice, run the declared review-readiness proof, then freeze one candidate
+   fingerprint.
+2. Execute the owning-gate timing branch. Under `POST_JOIN_DEFAULT`, record the focused/owner proof as
+   pending and hand the immutable baseline to collect-all reviewers. Under `PRE_REVIEW_REQUIRED`, run
+   the owner to GREEN on that fingerprint before dispatch. Never run the checkpoint owner in parallel
+   with review; relevant mutation invalidates a pre-review receipt.
 3. Join findings through the aggregator: retain stable lane/finding IDs, root-cause key, severity,
    obligation, evidence, and symptoms; use canonical remediation IDs and dispositions.
 4. Before mutation, classify each intake-`ACCEPTED` finding's materiality. Scope/contract divergence
@@ -56,7 +58,8 @@ review, commit, user approval, full build, or full-suite cycle merely because a 
 If the authoritative post-join initial-register decision is
 `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`, skip remediation and confirmation only; do not infer
 that path before the join or after accepted findings become `resolved`. Do not skip a pending checkpoint
-owning gate unless it equals the accumulated focused proof or was prospectively subsumed.
+owning gate merely because it equals the accumulated focused proof. `EQUAL` is plan metadata; require
+a current final-fingerprint receipt binding both labels or valid prospective subsumption.
 Apply the complete normative evidence contract in `lean-verification.md` §7: a candidate fingerprint
 identifies evaluated content/context, while each attempt/disposition gets a distinct append-only audit
 identity. Any relevant mutation to the declared closure invalidates affected evidence and requires a

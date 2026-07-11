@@ -131,8 +131,12 @@ separate fields:
 - internal work slices and TDD tiers;
 - validity and rollback boundary;
 - impact/reviewer coverage matrix, review budget, and split-minimality proof when required;
+- review-readiness proof: ID, command/selector, and the minimum causal/static/schema obligations that
+  make the candidate meaningful to review without claiming checkpoint readiness;
 - accumulated focused signal: ID, command/selector, obligations, and schedule;
 - checkpoint owning gate: ID, command/selector, and complete obligation set;
+- owning-gate timing: `POST_JOIN_DEFAULT` or `PRE_REVIEW_REQUIRED`; the latter requires an observable
+  rationale showing that meaningful review or a prior human/effect boundary needs the green gate;
 - whether the accumulated focused signal and checkpoint owning gate are exactly equal in command,
   obligations, and candidate fingerprint (`EQUAL` or `DISTINCT`);
 - higher wave/release owner: ID, schedule, and complete obligation set;
@@ -156,8 +160,9 @@ Use the cheapest causal signal at the earliest useful point and the expensive si
 | Signal | Purpose | Cadence |
 |---|---|---|
 | Causal/static/schema | Prove one changed behavior or mechanical invariant | During a work slice; Tier 1 observes RED → GREEN |
-| Accumulated focused signal | Prove the affected seam and accumulated checkpoint behavior | After related slices or before freezing the checkpoint |
-| Checkpoint owning gate | Prove every checkpoint-owned obligation for commit/readiness | Once after the checkpoint's last mutation, unless equal to the accumulated signal or subsumed |
+| Review-readiness proof | Show that the candidate is complete enough for meaningful frozen review | Once before freeze, using the cheapest sufficient causal/static/schema closure |
+| Accumulated focused signal | Prove the affected seam and accumulated checkpoint behavior | At its declared owner; normally after the review join when it equals or feeds the checkpoint owner |
+| Checkpoint owning gate | Prove every checkpoint-owned obligation for commit/readiness | Once on the final post-join/post-remediation fingerprint, unless prospectively subsumed |
 | Wave/release canonical gate | Full build, suite, integration, or release qualification | At the declared higher owner after the last relevant mutation |
 
 Commands come from the consuming project's bindings/canonical scripts. Do not hard-code a Go, Kotlin,
@@ -172,6 +177,23 @@ The accumulated focused proof may itself be the checkpoint owning gate. If the P
 `EQUAL` and their obligations, command, and candidate fingerprint still match, execute once and bind
 both labels to one receipt. If declared or observed `DISTINCT`, both obligations remain pending unless
 valid §6 subsumption applies.
+
+`EQUAL` describes obligation/command identity; it is never evidence that the command ran. It discharges
+neither label until a current green receipt exists for the required final fingerprint. A
+review-readiness receipt cannot discharge the focused/owning obligation merely because it used the
+same executable or selector.
+
+`POST_JOIN_DEFAULT` is the default schedule. A green checkpoint owning gate is not a prerequisite to
+freeze a review candidate. When review may mutate and the accumulated focused signal equals the
+owning gate, complete the declared review-readiness proof, freeze and join collect-all review, apply
+at most one in-scope remediation batch, then run the equal signal once on the final fingerprint.
+This is scheduling deferral, not gate subsumption: it never replaces Tier-1 RED and never permits
+readiness, commit, promotion, or completion without current green owning evidence.
+
+Use `PRE_REVIEW_REQUIRED` only when the Plan Gate records the observable prerequisite and why a
+cheaper review-readiness proof cannot satisfy it. If review then changes a relevant candidate input,
+the pre-review receipt is invalidated and the owning gate runs again after the final mutation; that
+rerun is evidence invalidation, not a routine two-pass cadence.
 
 ### Capability preflight
 
@@ -269,9 +291,9 @@ At the Plan Gate, map:
 - Run the affected focused proof and the still-pending checkpoint owning gate only after the batch's
   final mutation. Only after the complete roster join and materiality classification may the immutable
   initial-register decision select `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`. That decision skips
-  remediation and confirmation only; it does not skip the checkpoint owning gate unless that gate
-  already equals the accumulated proof or was prospectively subsumed under §6. Never recompute this
-  branch from later `resolved` dispositions.
+  remediation and confirmation only; it does not skip the checkpoint owning gate. Run an equal
+  focused/owning command when no current final-fingerprint receipt exists, unless the owner was
+  prospectively subsumed under §6. Never recompute this branch from later `resolved` dispositions.
 - After remediation's final mutation and owning proof, recompute the candidate fingerprint and create
   immutable versioned manifest/diff evidence before issuing bounded confirmation.
 - Confirmation checks dispositions and changed surfaces only. It MUST NOT become another discovery
@@ -280,9 +302,10 @@ At the Plan Gate, map:
   matrix, regardless of whether it lies inside the changed or assigned surface. Reopen Requirement,
   Design, Architecture, or Plan as appropriate instead of starting an ad-hoc execute → review loop.
 
-Prefer collect-all review before an expensive owning gate when review is likely to trigger mutation.
-Review and a gate may run in parallel only against the same immutable fingerprint and only when the
-saved latency justifies the risk of discarded gate evidence.
+Collect-all review precedes the checkpoint owning gate under `POST_JOIN_DEFAULT`. A plan may choose
+`PRE_REVIEW_REQUIRED` only under §5's recorded prerequisite rule; that owner must complete GREEN before
+review dispatch. Do not run a checkpoint owning gate in parallel with collect-all review. A relevant
+mutation invalidates any pre-review receipt and requires fresh final-fingerprint owning evidence.
 
 ## 9. Co-working and auto parity
 

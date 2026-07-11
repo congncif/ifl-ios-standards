@@ -148,8 +148,10 @@ Review coverage:
 - Root-cause vocabulary: {checkpoint-local cause classes and owning-surface aliases used by the canonical key grammar}
 
 Verification and failure return:
+- Review-readiness proof: {signal ID, command/binding, selector, minimum causal/static/schema obligations, and success predicate}
 - Accumulated focused signal: {signal ID, canonical command/binding, selector, obligations, and success predicate}
 - Checkpoint owning gate: {gate ID/version, command/binding, obligations, and success predicate}
+- Owning-gate timing: {POST_JOIN_DEFAULT|PRE_REVIEW_REQUIRED — observable prerequisite and why review-readiness proof is insufficient}
 - Focused signal and checkpoint gate identical: {yes — one receipt binds both labels|no — explain distinct obligations}
 - Higher wave/release owning gate: {gate ID/version, schedule, command/binding, and exact obligations|none}
 - Lower-gate decision before execution: {RUN:<gate-id>|<gate-id> SUBSUMED_BY:<higher-gate-id>} — {lean-verification.md §6 seven-condition record}
@@ -184,10 +186,13 @@ Commit authority (a distinct object-scoped grant, not implied by this plan or by
 - Deferred non-blocking work: {list or none}
 ```
 
-The accumulated focused signal, checkpoint owning gate, and higher wave/release owner are three
-separate plan fields even when two resolve to one command. “Identical” is valid only when obligations,
-command/configuration, signal predicate, and required fingerprint are identical; bind both labels to
-one receipt rather than running twice.
+The review-readiness proof, accumulated focused signal, checkpoint owning gate, and higher wave/release
+owner are separate plan fields even when two resolve to one command. “Identical” is valid only when
+obligations, command/configuration, signal predicate, and required fingerprint are identical; bind
+both labels to one current green receipt rather than running twice. Equality is plan metadata, not
+proof that a receipt exists, and review-readiness evidence cannot discharge the owner by equality.
+Default the owning gate to `POST_JOIN_DEFAULT`; `PRE_REVIEW_REQUIRED` needs the observable prerequisite
+required by `lean-verification.md` and must complete GREEN before review dispatch.
 
 Before issuing any lower-gate assignment, the orchestrator MUST evaluate all seven subsumption
 conditions from `lean-verification.md` §6 and append either `RUN:<lower-gate-id>` or
@@ -234,8 +239,10 @@ to it. Specialists never edit the briefing.
 
 Before collect-all review, append a **current checkpoint handoff** containing the checkpoint ID,
 approved plan-map reference, frozen base/candidate fingerprint, changed-file manifest, immutable diff
-artifact, accumulated-focused receipt, checkpoint/higher-gate ownership and subsumption decision,
-reviewer coverage lanes, and review collection status. All reviewers consume that same fingerprint.
+artifact, review-readiness receipt, accumulated/checkpoint/higher-gate ownership and timing/subsumption
+decision, reviewer coverage lanes, and review collection status. All reviewers consume that same
+fingerprint. Under `POST_JOIN_DEFAULT`, the accumulated/checkpoint receipt remains explicitly pending
+until the complete join and final mutation.
 
 ## Candidate identity versus audit-ledger identity
 

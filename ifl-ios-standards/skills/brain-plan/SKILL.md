@@ -29,13 +29,15 @@ Pattern-neutral planning stage of the brain rulebook. Consumes the output of
 - Map every checkpoint to approved Definition of Done obligations; uncovered obligations are blockers
   or explicit deferrals.
 - For every checkpoint, declare: semantic outcome; atomic cascade/exact scope; work slices and TDD
-  tiers; validity/rollback boundary; impact/reviewer coverage and review budget; accumulated focused
-  signal (ID, command/selector, obligations); checkpoint owning gate (ID, command/selector, complete
-  obligations); whether those two are exactly `EQUAL` or `DISTINCT`; higher wave/release owner
-  (ID, schedule, complete obligations); intended prospective subsumption; the complete normative
-  evidence record from `lean-verification.md` §7; Product RED return policy; capability/preflight
-  failure policy; post-commit wave/release failure-set policy; and commit boundary plus separate scoped
-  Git-authority reference or `NONE`.
+  tiers; validity/rollback boundary; impact/reviewer coverage and review budget; review-readiness proof
+  (ID, command/selector, minimum causal/static/schema obligations); accumulated focused signal (ID,
+  command/selector, obligations); checkpoint owning gate (ID, command/selector, complete obligations);
+  owning-gate timing `POST_JOIN_DEFAULT` or justified `PRE_REVIEW_REQUIRED`; whether the focused signal
+  and owner are exactly `EQUAL` or `DISTINCT`; higher wave/release owner (ID, schedule, complete
+  obligations); intended prospective subsumption; the complete normative evidence record from
+  `lean-verification.md` §7; Product RED return policy; capability/preflight failure policy;
+  post-commit wave/release failure-set policy; and commit boundary plus separate scoped Git-authority
+  reference or `NONE`.
 - Choose boundaries by semantic completeness → validity → rollback → coherent impact/ownership, using
   cognitive size only as a tie-breaker. Independent semantic outcomes MUST split when each can produce
   a complete valid/rollbackable state, even if they share a gate, reviewer, tool, or digest. Never split
@@ -51,6 +53,10 @@ Pattern-neutral planning stage of the brain rulebook. Consumes the output of
 - Declare one owner for each expensive full-suite/build/integration obligation. A scheduled higher gate
   may subsume a lower gate only under `lean-verification.md`; evaluate it before the lower gate would
   run, otherwise both remain explicit.
+- Default to `POST_JOIN_DEFAULT`: freeze after review-readiness proof, join collect-all review, apply at
+  most one remediation batch, then run an equal focused/owning command once on the final fingerprint.
+  Use `PRE_REVIEW_REQUIRED` only when an observable meaningful-review or prior human/effect prerequisite
+  is recorded; reviewer preference for a green candidate is not sufficient.
 - Get plan approval before execution:
   - co-working mode → human/user approval;
   - auto mode → AI gate approval through configured reviewers/subagents;

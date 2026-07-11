@@ -17,6 +17,10 @@
 - **Own each verification obligation once**: work-slice causal signal → accumulated checkpoint proof →
   checkpoint owning gate → declared wave/release owner. The plan records each signal/obligation set,
   their equality, and intended subsumption separately; evaluate subsumption before a lower run.
+- **Default the checkpoint owner to post-join**: freeze after the cheapest sufficient review-readiness
+  proof, collect all findings, apply at most one remediation batch, then run an equal focused/owning
+  gate once on the final fingerprint. `PRE_REVIEW_REQUIRED` needs a recorded meaningful-review or
+  prior human/effect prerequisite; it is never the default two-pass cadence.
 - **Review once per frozen fingerprint**: non-overlapping collect-all reviewers → deduplicate → one
   remediation batch → pending owning gate after final mutation → bounded confirmation. Findings carry
   stable lane/root-cause/obligation/evidence identity; the aggregator assigns canonical remediation

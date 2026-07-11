@@ -165,8 +165,8 @@ Each bound pattern should define:
 | 3. Architect | `/ifl-ios-standards:brain-architect` | Stop only for missing bindings or material architecture tradeoff not settled by standards. | `LAYERING.md`, `CROSS_MODULE_DI.md` via router |
 | 4. Plan Gate | `/ifl-ios-standards:brain-plan` | Approve a checkpoint map: semantic outcomes, atomic cascades, work slices, owning gates, reviewer coverage, evidence fingerprints, and commits. Co-working: user approves. Auto: AI plan gate approves. | Sequence work along IO → Sources → Plugins seams without turning every seam into a checkpoint |
 | 5. Execute work slices | `/ifl-ios-standards:brain-execute` | Execute only the approved map. Each slice gets its causal signal; no automatic review, commit, or full gate per slice. | `:boardy-new-module` `:boardy-new-board` `:boardy-io-interface` `:boardy-communication` `:boardy-service-layer` `:boardy-plugin-composition` per change type |
-| 6. Freeze + collect-all review | `/ifl-ios-standards:brain-testing` + `/ifl-ios-standards:brain-review` | Prospectively subsume or run the accumulated focused proof, freeze one candidate fingerprint, then collect all assigned review lanes before the aggregator canonicalizes root causes and dispositions. | `:boardy-testing` + `:boardy-review` |
-| 7. Remediate + owning gate + authorized commit | `/ifl-ios-standards:brain-execute` + `/ifl-ios-standards:brain-testing` | Classify materiality before mutation; apply one in-scope batch, run affected proof/pending owner, refreeze versioned candidate evidence, then bounded confirmation. Commit only under separate scoped Git authority. | Matching Boardy execution skill + `:boardy-testing` |
+| 6. Freeze + collect-all review | `/ifl-ios-standards:brain-testing` + `/ifl-ios-standards:brain-review` | Run the declared review-readiness proof, freeze one candidate fingerprint, then collect all assigned review lanes before the aggregator canonicalizes root causes and dispositions. Do not require a green owning gate here under `POST_JOIN_DEFAULT`. | `:boardy-testing` + `:boardy-review` |
+| 7. Remediate + owning gate + authorized commit | `/ifl-ios-standards:brain-execute` + `/ifl-ios-standards:brain-testing` | Classify materiality before mutation; apply at most one in-scope batch, then prospectively subsume or run affected proof/pending owner once on the final fingerprint before bounded confirmation. Commit only under separate scoped Git authority. | Matching Boardy execution skill + `:boardy-testing` |
 | 8. Wave/Final Gate + Report | Run only the declared higher owner on the current candidate fingerprint, then report facts | A higher gate may subsume a lower gate only under `lean-verification.md`; write `reports/final-report.md` with changed files, evidence receipts, DoD status, results, and remaining work. | — |
 
 ## Stage 4 — Plan Gate
@@ -181,8 +181,11 @@ checkpoint map**, not task/file counts. Each checkpoint must declare:
 - why the boundary is independently valid and rollbackable;
 - exact impact scope, reviewer coverage matrix, review budget, and split-minimality proof when an
   indivisible cascade exceeds that budget;
+- review-readiness proof with its minimum causal/static/schema obligations;
 - accumulated focused signal with its ID, command/selector, obligations, and schedule;
 - checkpoint owning gate with its ID, command/selector, and complete obligations;
+- owning-gate timing as `POST_JOIN_DEFAULT` or `PRE_REVIEW_REQUIRED`, with the observable prerequisite
+  for any pre-review choice;
 - an explicit `EQUAL`/`DISTINCT` decision between those two signals;
 - higher wave/release owner with its ID, schedule, complete obligations, and any intended subsumption
   evaluated before the lower gate would run;
@@ -213,11 +216,22 @@ subsumption algorithm.
 
 For each approved semantic checkpoint, run this sequence:
 
-`work-slice causal signals → prospective subsumption decision → focused/owner receipt → freeze candidate → collect-all review →`
-`classify materiality → {direct convergence | one remediation batch → owning gate → bounded confirmation} → ready-for-commit route`
+`work-slice causal signals → review-readiness proof → freeze candidate → timing branch`
+`{POST_JOIN_DEFAULT: owner pending | PRE_REVIEW_REQUIRED: owner GREEN} → collect-all review → classify materiality →`
+`{direct convergence | one remediation batch} → prospective subsumption/final focused-owner proof →`
+`{close direct path | bounded confirmation} → ready-for-commit route`
 
 - A work slice is not a checkpoint, review, commit, approval, or full-gate boundary. Do not ask the
   user to approve routine slices in co-working mode.
+- Default owning-gate timing to `POST_JOIN_DEFAULT`. A green owner is never a prerequisite to freeze;
+  `PRE_REVIEW_REQUIRED` means GREEN after freeze but before review dispatch. When the focused signal
+  equals the owner and review may mutate, run only review-readiness proof before freeze and execute the
+  equal gate once on the final fingerprint. This defers evidence; it neither subsumes the owner nor
+  replaces Tier-1 RED.
+- After freezing, execute the declared timing branch. `POST_JOIN_DEFAULT` records the owner as pending
+  and dispatches review. `PRE_REVIEW_REQUIRED` must produce a current GREEN owner receipt on that
+  fingerprint before review dispatch; relevant review mutation invalidates it and requires a final
+  rerun. Never run the checkpoint owner in parallel with collect-all review.
 - Under commit-by-task governance, the approved semantic checkpoint is the traceable task/commit;
   internal subtasks and work slices do not create extra commits. A commit still requires separate,
   explicit, object-scoped Git authority; Plan or AUTO approval never supplies it.
@@ -232,8 +246,8 @@ For each approved semantic checkpoint, run this sequence:
 - Only after the complete frozen-roster join and materiality classification may the authoritative
   initial register return `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`. Consume that recorded
   decision—not a transient empty set or later `resolved` state—to skip remediation and confirmation
-  only. Run any pending checkpoint owning gate unless it equals the accumulated proof or was
-  prospectively subsumed.
+  only. `EQUAL` is plan metadata, not proof: run any pending equal focused/owning gate unless a current
+  final-fingerprint receipt already binds both labels or the owner was prospectively subsumed.
 - Reviewers inspect the same immutable fingerprint, cover assigned non-overlapping risks, and return
   all findings before mutation. Each finding carries stable lane/finding IDs, root-cause key, severity,
   obligation, evidence, and symptoms; the aggregator assigns canonical remediation IDs/dispositions.

@@ -39,8 +39,11 @@ The plan contains these sections:
    - atomic cascade and exact product/source/test/spec paths (no `etc.`);
    - work-slice IDs, owning role, TDD tier, expected behavioral predicate, and causal signal;
    - independent validity, rollback unit, and cross-checkpoint dependencies;
+   - review-readiness proof and its minimum causal/static/schema obligations;
    - accumulated focused proof;
    - checkpoint owning gate;
+   - owning-gate timing `POST_JOIN_DEFAULT` or `PRE_REVIEW_REQUIRED`, including the observable
+     prerequisite and why review-readiness proof is insufficient for any pre-review choice;
    - wave/final owning gate and timing;
    - proposed lower-gate subsumption and required evidence;
    - candidate-fingerprint constituents, execution identity, and exclusions (audit ledger excluded by
