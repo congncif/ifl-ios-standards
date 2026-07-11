@@ -30,6 +30,9 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
             return TransitionDecision(proposedState: state, reasonCode: "idempotent_replay")
         }
         guard !state.isTerminal else { throw WorkflowError.terminalState }
+        guard context.reviewExceptionProof == nil || event.kind == .reviewExceptionOpened else {
+            throw WorkflowError.invalidExceptionProof
+        }
 
         if event.kind.isGlobalControlEvent {
             return try decideGlobalControl(state: state, event: event, context: context)
@@ -189,7 +192,7 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
             throw WorkflowError.reviewCycleNotAllowed
         }
         guard context.satisfiedGuards.isEmpty else { throw WorkflowError.missingGuard }
-        if event.kind == .reviewExceptionOpened || event.reviewRound?.kind == .exception {
+        if event.reviewRound?.kind == .exception {
             throw WorkflowError.exceptionPolicyRequired
         }
 
@@ -325,7 +328,51 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
             cycle.phase = .invalidated
             proposed.reviewCycle = cycle
         case .reviewExceptionOpened:
-            throw WorkflowError.exceptionPolicyRequired
+            guard let proof = context.reviewExceptionProof else {
+                throw WorkflowError.exceptionPolicyRequired
+            }
+            guard var cycle = proposed.reviewCycle,
+                  let frozenBudget = context.verifiedFrozenBudget,
+                  proof.hasValidDigest,
+                  proof.runID == state.runID,
+                  proof.cycleID == cycle.id,
+                  proof.gate == cycle.gate,
+                  proof.precedingRoundID == cycle.currentRoundID,
+                  proof.precedingBaselineDigest == cycle.predecessorBaselineDigest,
+                  proof.precedingBaselineDigest == context.currentReviewBaselineDigest,
+                  proof.roundAnchorEventHead == context.currentEventHead,
+                  frozenBudget.runID == state.runID,
+                  frozenBudget.cycleID == cycle.id,
+                  frozenBudget.policyVersion == proof.policyVersion,
+                  frozenBudget.policyDigest == proof.budgetDigest,
+                  frozenBudget.boundEventHead == context.currentEventHead,
+                  proof.nextSemanticOrdinal == (try incrementChecked(cycle.currentSemanticOrdinal)),
+                  proof.nextSemanticOrdinal >= 2,
+                  proof.remainingExceptionRounds >= 0,
+                  proof.policyVersion == 1,
+                  !proof.qualifyingFingerprints.isEmpty,
+                  Set(proof.qualifyingFingerprints).count == proof.qualifyingFingerprints.count,
+                  cycle.didRecordRemediation,
+                  cycle.didRecordConfirmation,
+                  cycle.phase == .collectingNormalConfirmation ||
+                    cycle.phase == .collectingException,
+                  proof.nextRoundID == (try ReviewRoundID.derive(
+                    runID: state.runID,
+                    gate: cycle.gate,
+                    cycleID: cycle.id,
+                    kind: .exception,
+                    semanticOrdinal: proof.nextSemanticOrdinal,
+                    roundAnchorEventHead: proof.roundAnchorEventHead,
+                    predecessorBaselineDigest: proof.precedingBaselineDigest
+                  ))
+            else { throw WorkflowError.invalidExceptionProof }
+            cycle.phase = .collectingException
+            cycle.currentRoundID = proof.nextRoundID
+            cycle.currentRoundKind = .exception
+            cycle.currentSemanticOrdinal = proof.nextSemanticOrdinal
+            cycle.currentRoundAnchorEventHead = proof.roundAnchorEventHead
+            cycle.predecessorBaselineDigest = proof.precedingBaselineDigest
+            proposed.reviewCycle = cycle
         default:
             throw WorkflowError.illegalTransition
         }

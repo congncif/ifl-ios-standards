@@ -338,7 +338,12 @@ public struct ReviewCycleState: Codable, Hashable, Sendable {
                 guard didRecordConfirmation else { throw WorkflowError.invalidState }
             }
         case .exception:
-            throw WorkflowError.invalidState
+            guard currentSemanticOrdinal >= 2,
+                  predecessorBaselineDigest != nil,
+                  didRecordRemediation,
+                  didRecordConfirmation,
+                  [.collectingException, .converged, .invalidated].contains(phase)
+            else { throw WorkflowError.invalidState }
         }
     }
 

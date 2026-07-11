@@ -119,6 +119,28 @@ public enum WorkflowGuard: String, Codable, CaseIterable, Hashable, Sendable {
     case candidateInputInvalidated = "candidate_input_invalidated"
 }
 
+struct VerifiedFrozenBudgetFact: Hashable, Sendable {
+    let runID: RunID
+    let cycleID: ReviewCycleID
+    let policyVersion: Int
+    let policyDigest: HashDigest
+    let boundEventHead: HashDigest
+
+    init(
+        runID: RunID,
+        cycleID: ReviewCycleID,
+        policyVersion: Int,
+        policyDigest: HashDigest,
+        boundEventHead: HashDigest
+    ) {
+        self.runID = runID
+        self.cycleID = cycleID
+        self.policyVersion = policyVersion
+        self.policyDigest = policyDigest
+        self.boundEventHead = boundEventHead
+    }
+}
+
 public struct TransitionContext: Sendable {
     public let actorID: ActorID
     public let principalID: PrincipalID
@@ -127,6 +149,8 @@ public struct TransitionContext: Sendable {
     public let hasRemainingExecutionPhases: Bool
     public let satisfiedGuards: Set<WorkflowGuard>
     public let canonSnapshot: CanonSnapshot?
+    public let reviewExceptionProof: ReviewExceptionEligibility?
+    let verifiedFrozenBudget: VerifiedFrozenBudgetFact?
 
     public init(
         actorID: ActorID,
@@ -135,7 +159,8 @@ public struct TransitionContext: Sendable {
         currentReviewBaselineDigest: HashDigest? = nil,
         hasRemainingExecutionPhases: Bool = false,
         satisfiedGuards: Set<WorkflowGuard>,
-        canonSnapshot: CanonSnapshot? = nil
+        canonSnapshot: CanonSnapshot? = nil,
+        reviewExceptionProof: ReviewExceptionEligibility? = nil
     ) throws {
         self.actorID = actorID
         self.principalID = principalID
@@ -144,6 +169,30 @@ public struct TransitionContext: Sendable {
         self.hasRemainingExecutionPhases = hasRemainingExecutionPhases
         self.satisfiedGuards = satisfiedGuards
         self.canonSnapshot = canonSnapshot
+        self.reviewExceptionProof = reviewExceptionProof
+        verifiedFrozenBudget = nil
+    }
+
+    init(
+        actorID: ActorID,
+        principalID: PrincipalID,
+        currentEventHead: HashDigest,
+        currentReviewBaselineDigest: HashDigest? = nil,
+        hasRemainingExecutionPhases: Bool = false,
+        satisfiedGuards: Set<WorkflowGuard>,
+        canonSnapshot: CanonSnapshot? = nil,
+        reviewExceptionProof: ReviewExceptionEligibility? = nil,
+        verifiedFrozenBudget: VerifiedFrozenBudgetFact?
+    ) throws {
+        self.actorID = actorID
+        self.principalID = principalID
+        self.currentEventHead = currentEventHead
+        self.currentReviewBaselineDigest = currentReviewBaselineDigest
+        self.hasRemainingExecutionPhases = hasRemainingExecutionPhases
+        self.satisfiedGuards = satisfiedGuards
+        self.canonSnapshot = canonSnapshot
+        self.reviewExceptionProof = reviewExceptionProof
+        self.verifiedFrozenBudget = verifiedFrozenBudget
     }
 }
 
@@ -412,6 +461,7 @@ public enum WorkflowError: Error, Equatable, Sendable {
     case invalidReviewRound
     case missingRemediation
     case exceptionPolicyRequired
+    case invalidExceptionProof
     case staleCandidateGeneration
     case unknownField
     case ordinalOverflow
