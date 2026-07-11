@@ -36,9 +36,10 @@ review, commit, user approval, full build, or full-suite cycle merely because a 
    are still being gathered.
 3. Join findings through the aggregator: retain stable lane/finding IDs, root-cause key, severity,
    obligation, evidence, and symptoms; use canonical remediation IDs and dispositions.
-4. Before mutation, classify each accepted finding's materiality. Scope/contract divergence reopens
-   Requirement, Design, or Architecture as appropriate; owner/boundary/obligation/gate divergence
-   reopens Plan. After reapproval, batch only accepted findings within the checkpoint.
+4. Before mutation, classify each intake-`ACCEPTED` finding's materiality. Scope/contract divergence
+   reopens Requirement, Design, or Architecture as appropriate; owner/boundary/obligation/gate
+   divergence reopens Plan. Only findings classified `ACCEPTED_CURRENT_SCOPE` on the current approved
+   baseline enter its batch.
 5. Add causal regression tests only for behavioral defects at their applicable tier. For mechanical,
    generated, schema, lint, or docs findings, use static/lint/schema/digest proof or Tier 3 as applicable.
 6. After the final mutation, run the affected focused proof and the pending checkpoint owning gate.
@@ -52,8 +53,10 @@ review, commit, user approval, full build, or full-suite cycle merely because a 
    Plan/AUTO approval never supplies Git authority. A byte-identical commit does not require another
    gate run.
 
-If there are no accepted findings, skip remediation and confirmation only; do not skip a pending
-checkpoint owning gate unless it equals the accumulated focused proof or was prospectively subsumed.
+If the authoritative post-join initial-register decision is
+`DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`, skip remediation and confirmation only; do not infer
+that path before the join or after accepted findings become `resolved`. Do not skip a pending checkpoint
+owning gate unless it equals the accumulated focused proof or was prospectively subsumed.
 Apply the complete normative evidence contract in `lean-verification.md` §7: a candidate fingerprint
 identifies evaluated content/context, while each attempt/disposition gets a distinct append-only audit
 identity. Any relevant mutation to the declared closure invalidates affected evidence and requires a

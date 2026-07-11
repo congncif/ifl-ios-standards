@@ -403,8 +403,8 @@ Every accepted result causes one immutable transition record:
 |-----------------------|----------------------------------|
 | `COMPLETED` with matching predicate | Accept evidence, mark that activity complete, and issue only the next assignment declared by the approved checkpoint map. A completed lookup triggers the lookup-resume rule below. |
 | `REVIEW_LANE_COMPLETE` | Record the lane; wait until every expected discovery lane for the same candidate fingerprint is present, then join/deduplicate once. Do not start lane-local remediation. |
-| all discovery lanes joined, no accepted remediation | Ensure current owning-gate receipt exists; then emit joined `REVIEW_APPROVED`. If the gate is pending, issue it first. |
-| all discovery lanes joined, accepted remediation exists | Issue one joined remediation assignment covering all accepted canonical remediation IDs; after its last mutation freeze a new candidate, run its owning gate, then issue bounded confirmation assignments. |
+| completed initial register records `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE` | Ensure the current owning-gate receipt exists; then emit joined `REVIEW_APPROVED`. If the gate is pending, issue it first. Never infer this decision from an incomplete or later-resolved set. |
+| completed initial register contains `ACCEPTED_CURRENT_SCOPE` remediation | Issue one joined remediation assignment covering exactly those canonical remediation IDs; after its last mutation freeze a new candidate, run its owning gate, then issue bounded confirmation assignments. |
 | `CONFIRMED` | Mark only the assigned remediation IDs/surfaces confirmed. When every required confirmation and current owning-gate receipt is present, emit joined `REVIEW_APPROVED`. |
 | material discovery during confirmation | Reject `CONFIRMED`; transition the checkpoint to `PLAN_REOPEN_REQUIRED` and return to Requirement Intake/Design/Architecture/Plan according to the violated intent or boundary. Never begin an ad-hoc discovery/remediation loop. |
 | `LOOKUP_REQUIRED` | Keep the original activity unresolved; issue one `LOOKUP` assignment with a unique lookup artifact, then follow the lookup-resume protocol. |
@@ -415,7 +415,7 @@ Every accepted result causes one immutable transition record:
 | `INFO_REQUIRED` | Suspend the affected checkpoint and ask the user only for the exact missing decision; resume through a superseding assignment. |
 | `BRIEFING_REQUIRED` | Orchestrator appends the missing/corrected control record, then issues a superseding assignment; the specialist does not repair the ledger. |
 | `BLOCKED` | Stop the affected checkpoint and escalate with evidence; do not infer a bypass. |
-| joined `REVIEW_APPROVED` | Verify final staged-manifest match and a current object-scoped Commit authority before commit. PR/push/merge/tag/publish/release remain separately authorized. |
+| joined `REVIEW_APPROVED` | Verify the current object-scoped Commit authority, then expose/consume `ready_for_commit` only through the bound `commit-checkpoint` route; its derived staged manifest must match the reviewed candidate. Generic effect authorization and caller path inputs are forbidden. PR/push/merge/tag/publish/release remain separately authorized. |
 
 Status precedence for one result is deterministic: `BLOCKED` > `INFO_REQUIRED` >
 `PLAN_REOPEN_REQUIRED` > `BRIEFING_REQUIRED` > `CAPABILITY_BLOCKED` > `PRODUCT_RED` >
@@ -506,7 +506,7 @@ symptoms. After every expected lane reports `REVIEW_LANE_COMPLETE`, the orchestr
 - Joined lane finding IDs: {sorted IDs}
 - Canonical severity: {highest member severity}
 - Obligation: {canonical obligation IDs}
-- Disposition: {ACCEPTED|DEFERRED|REJECTED}
+- Disposition: {ACCEPTED|ACCEPTED_CURRENT_SCOPE|DEFERRED|REJECTED|DUPLICATE_OF:<remediation-id>|REOPEN_REQUIRED:<gate>}
 - Disposition rationale / authority: {reason and approver/policy}
 - Remediation assignment: {A-NNNNNN|none}
 - Confirmation assignments: {IDs|none}
@@ -514,16 +514,19 @@ symptoms. After every expected lane reports `REVIEW_LANE_COMPLETE`, the orchestr
 ```
 
 Corrections keep the canonical remediation ID and append the next record revision with `Supersedes`;
-never edit the prior record or renumber IDs. `ACCEPTED` findings form one remediation batch. Confirmation is bounded
+never edit the prior record or renumber IDs. After the complete join and materiality classification,
+only `ACCEPTED_CURRENT_SCOPE` findings form one remediation batch. Confirmation is bounded
 to the canonical remediation IDs and changed surfaces; it is not a second discovery pass. If a
 confirmation lane discovers a new **material** root cause, it returns `PLAN_REOPEN_REQUIRED`, and the
 orchestrator reopens Requirement Intake/Design/Architecture/Plan as appropriate instead of scheduling
 another execute → review loop.
 
 The orchestrator emits joined `REVIEW_APPROVED` only when all expected lanes are present, every
-canonical remediation has a terminal disposition, every accepted item is remediated and confirmed (or
-no confirmation was required), and the owning-gate receipt binds the final candidate. This joined
-state is mandatory before commit or PR consideration but does not itself authorize either action.
+canonical remediation has a terminal disposition, the owning-gate receipt binds the final candidate,
+and exactly one of these paths is proven: every initial `ACCEPTED_CURRENT_SCOPE` item is remediated and
+confirmed once, or the immutable initial-register decision is
+`DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`. This joined state is mandatory before commit or PR
+consideration but does not itself authorize either action.
 
 ## Artifact ownership
 

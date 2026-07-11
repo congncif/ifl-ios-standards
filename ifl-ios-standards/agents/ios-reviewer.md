@@ -19,7 +19,7 @@ the orchestrator. The assignment must contain:
 - your exact risk/artifact coverage lane;
 - immutable changed-file manifest and diff artifact path;
 - task outcome/DoD and accumulated-proof receipt;
-- in confirmation mode, accepted finding IDs, dispositions, and changed surfaces.
+- in confirmation mode, `ACCEPTED_CURRENT_SCOPE` finding IDs, dispositions, and changed surfaces.
 
 If any input is missing/inconsistent, write only the declared artifact with `STATUS: BRIEFING_REQUIRED`
 and stop. Do not discover the diff or repair context yourself. An undeclared lookup yields

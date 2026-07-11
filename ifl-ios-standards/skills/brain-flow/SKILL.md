@@ -214,20 +214,32 @@ subsumption algorithm.
 For each approved semantic checkpoint, run this sequence:
 
 `work-slice causal signals → prospective subsumption decision → focused/owner receipt → freeze candidate → collect-all review →`
-`classify materiality → one remediation batch → owning gate → bounded confirmation → authorized commit`
+`classify materiality → {direct convergence | one remediation batch → owning gate → bounded confirmation} → ready-for-commit route`
 
 - A work slice is not a checkpoint, review, commit, approval, or full-gate boundary. Do not ask the
   user to approve routine slices in co-working mode.
 - Under commit-by-task governance, the approved semantic checkpoint is the traceable task/commit;
   internal subtasks and work slices do not create extra commits. A commit still requires separate,
   explicit, object-scoped Git authority; Plan or AUTO approval never supplies it.
-- If review has no accepted findings, skip remediation and confirmation only. Run any pending
-  checkpoint owning gate unless it equals the accumulated proof or was prospectively subsumed.
+- In a Kernel-bound flow, consume `ready_for_commit` only through the bound launcher:
+  `ifl-workflow commit-checkpoint --run-receipt <receipt> --checkpoint-id <id> --message <message>`.
+  The command derives the exact reviewed path/tree set from authenticated checkpoint state; callers
+  supply no paths, directories, globs, or pathspecs. Never route `vcs.git-commit` through generic
+  `authorize-effect`. Without matching authority, retain `ready_for_commit` as a resumable wait. After
+  the typed commit receipt is recorded, call `resume`/`next`; do not manufacture a new workflow stage.
+  A Plan-declared bootstrap adapter may stand in only before this command exists and must enforce the
+  same object scope and receipt contract.
+- Only after the complete frozen-roster join and materiality classification may the authoritative
+  initial register return `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`. Consume that recorded
+  decision—not a transient empty set or later `resolved` state—to skip remediation and confirmation
+  only. Run any pending checkpoint owning gate unless it equals the accumulated proof or was
+  prospectively subsumed.
 - Reviewers inspect the same immutable fingerprint, cover assigned non-overlapping risks, and return
   all findings before mutation. Each finding carries stable lane/finding IDs, root-cause key, severity,
   obligation, evidence, and symptoms; the aggregator assigns canonical remediation IDs/dispositions.
-- Classify accepted-finding materiality before mutation. Contract/scope divergence reopens the relevant
-  Requirement/Design/Architecture gate; owner/boundary/obligation/gate divergence reopens Plan.
+- Classify every intake-`ACCEPTED` finding before mutation. Contract/scope divergence becomes an
+  upstream reopen; owner/boundary/obligation/gate divergence reopens Plan. Only findings classified
+  `ACCEPTED_CURRENT_SCOPE` enter the current checkpoint's remediation batch.
   Behavioral defects get causal regression tests; mechanical defects use static/lint/schema/Tier-3
   proof as applicable.
 - Confirmation checks accepted dispositions and changed surfaces only; it is not a new discovery pass.

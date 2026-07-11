@@ -47,7 +47,7 @@ The plan contains these sections:
      default unless it is a declared product deliverable);
    - stable review lane IDs and a non-overlapping obligation/impact coverage matrix;
    - root-cause key grammar, checkpoint cause-class vocabulary, and path/symbol/surface aliases;
-   - zero-finding path, accepted-finding remediation path, and material plan-reopen path;
+   - post-join `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE` path, current-scope remediation path, and material plan-reopen path;
    - Product RED return policy distinct from capability/preflight failure recovery;
    - post-wave failure-set owner, clustering rule, single corrective batch, and one-rerun limit;
    - semantic commit boundary and exact candidate object scope;

@@ -35,9 +35,9 @@ corrective checkpoints, or material scope/contract/boundary changes require a ne
   including any triggered source/spec updates in the same checkpoint.
 - Freeze the candidate fingerprint and collect all findings from the approved, non-overlapping reviewer
   lanes before mutation.
-- Deduplicate and disposition once. Apply accepted findings in one remediation batch; then run affected
-  proof and the owning gate after the final mutation. Confirmation is bounded to dispositions and
-  changed surfaces.
+- Deduplicate and disposition once. Apply only `ACCEPTED_CURRENT_SCOPE` findings in one remediation
+  batch; then run affected proof and the owning gate after the final mutation. Confirmation is bounded
+  to dispositions and changed surfaces.
 - Ensure the to-be-staged candidate manifest byte-matches the reviewed/verified candidate fingerprint.
   The append-only work-item/audit ledger is excluded by default; if governance commits it, seal and
   bind its separate manifest in the same semantic-checkpoint commit without rerunning unrelated
@@ -53,13 +53,18 @@ corrective checkpoints, or material scope/contract/boundary changes require a ne
   the scoped approval and returns to the relevant gate.
 
 ### 4. Commit phase (ONLY after the approval check passes)
-- Show status: `git status --short`
-- Stage only reviewed, relevant files by explicit path (avoid `git add -A` / `git add .` unless the user explicitly approves broad staging)
-- Show staged status: `git status --short`
-- Confirm the staged candidate manifest matches the reviewed/verified candidate fingerprint and the Git
-  authority record. Staging and a byte-identical commit do not require another verification run.
-- Create commit with descriptive message
-- Show commit result to user
+- In a Kernel-bound flow, a `ready_for_commit` directive is consumed only by
+  `ifl-workflow commit-checkpoint --run-receipt <receipt> --checkpoint-id <id> --message <message>`.
+  The command derives the reviewed literal path set and staged tree from authenticated checkpoint
+  state. It accepts no caller path, directory, glob, or pathspec and never delegates `vcs.git-commit`
+  to generic `authorize-effect`.
+- If the product command does not exist yet, only an adapter explicitly declared by the approved Plan
+  may bootstrap the same E2 contract: show `git status --short`, stage only the recorded literal paths,
+  prove cached path/tree equality, commit, and record the typed-equivalent receipt. Never use
+  `git add -A` or `git add .` for that adapter.
+- Confirm the resulting staged/committed candidate manifest matches the reviewed/verified fingerprint
+  and Git authority record. Staging and a byte-identical commit do not require another verification
+  run. Record and show the commit result, then resume the same workflow through `resume`/`next`.
 
 ### 5. Push phase (ONLY after separate approval)
 - Ask user if they want to push

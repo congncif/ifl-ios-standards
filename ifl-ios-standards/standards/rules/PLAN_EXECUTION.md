@@ -20,8 +20,11 @@
 - **Review once per frozen fingerprint**: non-overlapping collect-all reviewers → deduplicate → one
   remediation batch → pending owning gate after final mutation → bounded confirmation. Findings carry
   stable lane/root-cause/obligation/evidence identity; the aggregator assigns canonical remediation
-  IDs/dispositions and classifies materiality before mutation. Zero findings skips remediation and
-  confirmation only, never a pending owner.
+  IDs/dispositions and classifies intake-`ACCEPTED` findings before mutation. Only
+  `ACCEPTED_CURRENT_SCOPE` (wire `accepted_current_scope`) enters remediation. Only the immutable
+  post-join initial-register decision `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE` skips remediation
+  and confirmation; it never skips a still-pending checkpoint owning gate and is never inferred from
+  incomplete inventories or later `resolved` state.
 - **Use the full evidence contract**: `lean-verification.md` §7 is normative. Candidate fingerprint and
   append-only audit-ledger identity are distinct; the final staged manifest matches the reviewed and
   verified candidate fingerprint.

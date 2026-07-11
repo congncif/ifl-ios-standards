@@ -250,21 +250,28 @@ At the Plan Gate, map:
 - Freeze one immutable checkpoint baseline and collect all findings non-fail-fast before mutation.
 - Each finding MUST carry a stable lane ID, lane-local finding ID, root-cause key, severity, mapped
   obligation, evidence, and all observed symptoms. The aggregator assigns a canonical remediation ID
-  and one disposition: `ACCEPTED`, `DEFERRED`, `REJECTED`, or `DUPLICATE_OF:<remediation-id>`.
+  and one intake disposition: `ACCEPTED`, `DEFERRED`, `REJECTED`, or
+  `DUPLICATE_OF:<remediation-id>`. Kernel-bound records map terminal forms to
+  `deferred_by_policy`, `rejected_with_evidence`, and `duplicate` respectively.
 - Plans declare a root-cause grammar/vocabulary. The aggregator normalizes declared aliases before
   grouping, records every provisional alias, and keeps uncertain equivalence separate until ownership
   and materiality are resolved; it never relies on independently worded exact strings alone.
-- Before mutation, classify every accepted finding's materiality. Scope/contract divergence reopens
-  Requirement, Design, or Architecture as appropriate; owner/boundary/obligation/gate divergence
-  reopens Plan. Mutate only after the required gate is approved again.
-- Apply one remediation batch for accepted findings that remain within the approved checkpoint.
+- Before mutation, classify every `ACCEPTED` finding's materiality. An in-scope finding becomes
+  `ACCEPTED_CURRENT_SCOPE` (Kernel wire value `accepted_current_scope`). Scope/contract divergence
+  becomes `REOPEN_REQUIRED` for Requirement, Design, or Architecture as appropriate;
+  owner/boundary/obligation/gate divergence becomes `REOPEN_REQUIRED` for Plan. A finding cannot
+  remain generically `ACCEPTED` at the mutation boundary; mutate only after any required gate is
+  approved again and a successor checkpoint/baseline owns it.
+- Apply one remediation batch only for `ACCEPTED_CURRENT_SCOPE` findings.
   Behavioral defects get causal regression tests at their applicable tier. Mechanical/generated/docs
   defects use static, lint, schema/digest proof, or Tier 3 as applicable; never create a fake behavioral
   test merely to satisfy the loop.
 - Run the affected focused proof and the still-pending checkpoint owning gate only after the batch's
-  final mutation. Zero accepted findings skips remediation and confirmation only; it does not skip the
-  checkpoint owning gate unless that gate already equals the accumulated proof or was prospectively
-  subsumed under §6.
+  final mutation. Only after the complete roster join and materiality classification may the immutable
+  initial-register decision select `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`. That decision skips
+  remediation and confirmation only; it does not skip the checkpoint owning gate unless that gate
+  already equals the accumulated proof or was prospectively subsumed under §6. Never recompute this
+  branch from later `resolved` dispositions.
 - After remediation's final mutation and owning proof, recompute the candidate fingerprint and create
   immutable versioned manifest/diff evidence before issuing bounded confirmation.
 - Confirmation checks dispositions and changed surfaces only. It MUST NOT become another discovery

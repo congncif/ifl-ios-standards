@@ -34,9 +34,10 @@ Pattern-neutral review stage of the brain rulebook.
   canonical remediation IDs, and records `ACCEPTED`, `DEFERRED`, `REJECTED`, or
   `DUPLICATE_OF:<remediation-id>`. It applies the Plan's root-cause grammar and alias vocabulary before
   grouping, records provisional aliases, and never merges uncertain equivalence by guesswork.
-- Classify accepted-finding materiality before any mutation. Scope/contract divergence reopens the
+- Treat `ACCEPTED` as an intake disposition and classify its materiality before any mutation. In-scope
+  findings become `ACCEPTED_CURRENT_SCOPE`; scope/contract divergence reopens the
   appropriate Requirement/Design/Architecture gate; owner/boundary/obligation/gate divergence reopens
-  Plan. Only accepted in-scope findings proceed to the one remediation batch.
+  Plan. Only `ACCEPTED_CURRENT_SCOPE` findings proceed to the one remediation batch.
 - Blocking rule breaks remain blocking; should-fix findings are dispositioned for the batch; nits are
   optional. This review skill is a collect-all lane and MUST NOT directly loop to Execute.
 - Confirmation verifies canonical dispositions and changed surfaces only. Any material finding

@@ -59,9 +59,10 @@ Protocol location:
 ## Work-slice boundary
 
 Do not run a per-hop test/build/full gate, review, stage, or commit merely because the work slice ended.
-The orchestrator observes Tier-1 RED and owns every canonical verification gate. If the assignment is a
-joined remediation or wave-corrective batch, resolve every accepted finding/root-cause cluster assigned
-to you in that one batch; do not start a second discovery pass.
+The orchestrator observes Tier-1 RED and owns every canonical verification gate. For a joined
+remediation assignment, resolve every assigned `ACCEPTED_CURRENT_SCOPE` finding in one batch. For a
+wave-corrective assignment, resolve every assigned root-cause cluster in one coordinated set. Neither
+path starts a second discovery pass.
 
 ## Unique assignment receipt
 
@@ -72,7 +73,8 @@ to you in that one batch; do not start a second discovery pass.
 - Checkpoint / work slice: {CP-ID / WS-ID or remediation batch ID}
 - Files created/modified: `{path}` — {role}
 - Architecture checks (✅/❌): ModernContinuableBoard, programmatic VC, show(), registerFlows in init, weak delegates, MainActor.run, protocol placement
-- Accepted finding/root-cause IDs resolved: {IDs or none}
+- `ACCEPTED_CURRENT_SCOPE` finding IDs resolved: {IDs or none}
+- Wave-corrective root-cause cluster IDs resolved: {IDs or none}
 - Obligations satisfied: {IDs}
 - Lookup required: {exact question or none}
 - DEFERRED: {authorized item or none}

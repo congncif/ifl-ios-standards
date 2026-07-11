@@ -99,12 +99,14 @@ reuse the original assignment.
      manifest, and diff. Give each lane a stable lane ID and unique review artifact. Wait for all
      `REVIEW_LANE_COMPLETE` receipts, then normalize declared key grammar/aliases and deduplicate by
      canonical root cause without guessing uncertain equivalence.
-   - **Classify before mutation.** For every finding, record `accepted`, `rejected-with-evidence`,
-     `deferred-with-object-authority`, or `material-plan-reopen`. Any material item returns to
+   - **Classify before mutation.** For every finding, record intake `ACCEPTED`,
+     `rejected-with-evidence`, `deferred-with-object-authority`, or `material-plan-reopen`; classify an
+     in-scope accepted item as `ACCEPTED_CURRENT_SCOPE`. Any material item returns to
      Requirement/Design/Architecture/Plan before product mutation. No lane starts its own fix pass.
-   - **Converge once.** If accepted findings exist, issue one joined remediation batch covering all of
-     them. After its final mutation, rerun affected causal/accumulated proof and the declared checkpoint
-     owner, recompute the candidate fingerprint, then create `v2` (or next monotonic version) manifest
+   - **Converge once.** After the complete roster join, freeze the authoritative initial-register path
+     decision. If it contains `ACCEPTED_CURRENT_SCOPE` findings, issue one joined remediation batch
+     covering all of them. After its final mutation, rerun affected causal/accumulated proof and the
+     declared checkpoint owner, recompute the candidate fingerprint, then create `v2` (or next monotonic version) manifest
      and diff **before** bounded confirmation. Reuse unaffected receipts only when their evidence
      identity remains valid.
    - **Confirm, do not rediscover.** Original lanes confirm assigned dispositions and changed surfaces
@@ -112,13 +114,18 @@ reuse the original assignment.
      surface, yields `PLAN_REOPEN_REQUIRED`. It never starts an ad-hoc second remediation loop.
    - **Close review and gate.** Join lane receipts into a report whose decision is exactly
      `REVIEW_APPROVED` only when all findings are validly disposed and required confirmations are
-     `CONFIRMED`. Zero findings skip remediation/confirmation, but **do not** skip a still-pending
-     checkpoint owning gate. Review approval and owning-gate proof are independent obligations.
+     `CONFIRMED`. Only a recorded `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE` decision from the
+     completed initial register skips remediation/confirmation; never infer it before all lanes arrive
+     or after accepted findings become `resolved`. It **does not** skip a still-pending checkpoint
+     owning gate. Review approval and owning-gate proof are independent obligations.
    - **Commit.** Commit only when candidate identity matches the approved review and gate receipts and a
      separately recorded, object-scoped authority names checkpoint ID, candidate fingerprint, exact
-     paths, and commit action. Stage only those paths and create one semantic-checkpoint commit. If
-     governance also commits a sealed audit ledger, bind its separate manifest in the same authority
-     and commit; do not manufacture an evidence-only commit.
+     paths, and commit action. In a Kernel-bound run, consume `ready_for_commit` only through
+     `ifl-workflow commit-checkpoint --run-receipt <receipt> --checkpoint-id <id> --message <message>`;
+     never route `vcs.git-commit` through generic effect authorization or pass caller path inputs. A
+     Plan-declared pre-Kernel bootstrap adapter must enforce the same object scope. If governance also
+     commits a sealed audit ledger, bind its separate manifest in the same authority and commit; do not
+     manufacture an evidence-only commit.
 5. **Wave/final owner.** Run each full-suite/build/integration obligation once, after the final relevant
    mutation, at its declared owner. A full wave failure is one failure set: collect all failures,
    cluster them by provisional root cause, classify materiality, obtain authority for one joined
