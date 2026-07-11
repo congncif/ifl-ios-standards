@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 @testable import IFLCanon
 import IFLContracts
@@ -230,6 +231,97 @@ struct CanonRepositoryTests {
         }
     }
 
+    @Test("the anchored repository matches the public URL repository")
+    func anchoredRepositoryParity() throws {
+        try CanonRepositoryFixture.withPositiveRoot { root in
+            let publicSnapshot = try FileCanonRepository(root: root).snapshot(
+                profiles: [CanonRepositoryFixture.coreProfileID()]
+            )
+            let anchoredSnapshot = try anchoredRepository(root: root).snapshot(
+                profiles: [CanonRepositoryFixture.coreProfileID()]
+            )
+
+            #expect(anchoredSnapshot.canonVersion == publicSnapshot.canonVersion)
+            #expect(anchoredSnapshot.rules.map(\.id) == publicSnapshot.rules.map(\.id))
+            #expect(anchoredSnapshot.profiles.map(\.id) == publicSnapshot.profiles.map(\.id))
+            #expect(anchoredSnapshot.selectedProfileIDs == publicSnapshot.selectedProfileIDs)
+            #expect(anchoredSnapshot.adrs.map(\.id) == publicSnapshot.adrs.map(\.id))
+            #expect(anchoredSnapshot.snapshotContentDigest == publicSnapshot.snapshotContentDigest)
+        }
+    }
+
+    @Test("an anchored repository owns the anchor beyond temporary construction")
+    func repositoryOwnsAnchorLifetime() throws {
+        try CanonRepositoryFixture.withPositiveRoot { root in
+            let repository = try anchoredRepository(root: root)
+
+            for _ in 0 ..< 3 {
+                let snapshot = try repository.snapshot(
+                    profiles: [CanonRepositoryFixture.coreProfileID()]
+                )
+                #expect(snapshot.canonVersion == 1)
+            }
+        }
+    }
+
+    @Test("concurrent anchored snapshots own independent descriptor lifetimes")
+    func concurrentAnchoredSnapshots() async throws {
+        let workspace = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ifl-concurrent-anchor-\(UUID().uuidString)")
+        let root = workspace.appendingPathComponent("canon")
+        try FileManager.default.createDirectory(at: workspace, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: workspace) }
+        try FileManager.default.copyItem(at: CanonRepositoryFixture.positiveRoot, to: root)
+
+        let expected = try anchoredRepository(root: root).snapshot(
+            profiles: [CanonRepositoryFixture.coreProfileID()]
+        ).snapshotContentDigest
+
+        let overlap = SnapshotReadOverlapBarrier(participants: 2)
+        let repository = try anchoredRepository(root: root) { event in
+            if event == .willOpenFile("VERSION") {
+                try overlap.arriveAndWait()
+            }
+        }
+        let outcomes = SnapshotOutcomeStore()
+        let group = DispatchGroup()
+        let queues = [
+            DispatchQueue(label: "CanonRepositoryTests.snapshot.first"),
+            DispatchQueue(label: "CanonRepositoryTests.snapshot.second"),
+        ]
+        for queue in queues {
+            group.enter()
+            queue.async {
+                defer { group.leave() }
+                do {
+                    try outcomes.record(digest: repository.snapshot(
+                        profiles: [CanonRepositoryFixture.coreProfileID()]
+                    ).snapshotContentDigest)
+                } catch {
+                    overlap.abort()
+                    outcomes.record(error: error)
+                }
+            }
+        }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            group.notify(queue: .global()) {
+                continuation.resume()
+            }
+        }
+
+        #expect(overlap.arrivalCount == 2)
+        #expect(overlap.wasAborted == false)
+        #expect(outcomes.errors.isEmpty)
+        #expect(outcomes.digests.count == 2)
+        #expect(outcomes.digests.allSatisfy { $0 == expected })
+
+        let reused = try repository.snapshot(
+            profiles: [CanonRepositoryFixture.coreProfileID()]
+        ).snapshotContentDigest
+        #expect(reused == expected)
+        #expect(overlap.arrivalCount == 3)
+    }
+
     private static let expectedRequirementIDs = [
         "ENT-ACCESSIBILITY", "ENT-CONCURRENCY", "ENT-DATA", "ENT-OBSERVABILITY",
         "ENT-PERFORMANCE", "ENT-PRIVACY", "ENT-SECURITY", "ENT-SUPPLY", "ENT-SWIFTUI",
@@ -249,6 +341,25 @@ struct CanonRepositoryTests {
         data.append(0x0A)
         return CanonicalTreeDigest.sha256(data).rawValue
     }
+
+    private func anchoredRepository(
+        root: URL,
+        readEventHandler: @escaping CanonRepositoryReadEventHandler = { _ in }
+    ) throws -> FileCanonRepository {
+        let descriptor = root.path.withCString {
+            Darwin.open($0, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
+        }
+        try #require(descriptor >= 0)
+        defer { Darwin.close(descriptor) }
+        let anchor = try CanonRootAnchor(
+            duplicatingRootDirectoryDescriptor: descriptor,
+            path: root.path
+        )
+        return FileCanonRepository(
+            anchor: anchor,
+            readEventHandler: readEventHandler
+        )
+    }
 }
 
 private struct DigestTamperCase {
@@ -259,4 +370,90 @@ private struct DigestTamperCase {
 
 private func assertSendable(_ value: some Sendable) {
     _ = value
+}
+
+private final class SnapshotReadOverlapBarrier: @unchecked Sendable {
+    private let condition = NSCondition()
+    private let participants: Int
+    private var arrivals = 0
+    private var aborted = false
+
+    init(participants: Int) {
+        self.participants = participants
+    }
+
+    var arrivalCount: Int {
+        condition.lock()
+        defer { condition.unlock() }
+        return arrivals
+    }
+
+    var wasAborted: Bool {
+        condition.lock()
+        defer { condition.unlock() }
+        return aborted
+    }
+
+    func arriveAndWait() throws {
+        condition.lock()
+        defer { condition.unlock() }
+        guard !aborted else {
+            throw SnapshotReadOverlapError.aborted
+        }
+        arrivals += 1
+        condition.broadcast()
+        let deadline = Date().addingTimeInterval(5)
+        while arrivals < participants, !aborted {
+            guard condition.wait(until: deadline) else {
+                aborted = true
+                condition.broadcast()
+                throw SnapshotReadOverlapError.timedOut
+            }
+        }
+        guard !aborted else {
+            throw SnapshotReadOverlapError.aborted
+        }
+    }
+
+    func abort() {
+        condition.lock()
+        aborted = true
+        condition.broadcast()
+        condition.unlock()
+    }
+}
+
+private enum SnapshotReadOverlapError: Error {
+    case aborted
+    case timedOut
+}
+
+private final class SnapshotOutcomeStore: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storedDigests: [HashDigest] = []
+    private var storedErrors: [String] = []
+
+    var digests: [HashDigest] {
+        lock.lock()
+        defer { lock.unlock() }
+        return storedDigests
+    }
+
+    var errors: [String] {
+        lock.lock()
+        defer { lock.unlock() }
+        return storedErrors
+    }
+
+    func record(digest: HashDigest) {
+        lock.lock()
+        storedDigests.append(digest)
+        lock.unlock()
+    }
+
+    func record(error: any Error) {
+        lock.lock()
+        storedErrors.append(String(describing: error))
+        lock.unlock()
+    }
 }

@@ -2,44 +2,37 @@ import Darwin
 import Foundation
 import IFLContracts
 
-enum CanonRepositoryReadEvent: Equatable {
+package enum CanonRepositoryReadEvent: Equatable {
     case willOpenDirectory(String)
     case willOpenFile(String)
     case didReadFile(String)
 }
 
-typealias CanonRepositoryReadEventHandler = @Sendable (CanonRepositoryReadEvent) throws -> Void
+package typealias CanonRepositoryReadEventHandler = @Sendable (
+    CanonRepositoryReadEvent
+) throws -> Void
 
 final class CanonDescriptorReader {
-    private let rootPath: String
-    private let rootFD: CanonOwnedFileDescriptor
-    private let rootSnapshot: CanonFileSnapshot
+    private let rootDescriptor: CanonRootDescriptor
     private let eventHandler: CanonRepositoryReadEventHandler
 
-    init(
+    convenience init(
         root: URL,
         eventHandler: @escaping CanonRepositoryReadEventHandler
     ) throws {
-        rootPath = root.path
+        try self.init(
+            rootDescriptor: CanonRootDescriptor(opening: root),
+            eventHandler: eventHandler
+        )
+    }
+
+    init(
+        rootDescriptor: CanonRootDescriptor,
+        eventHandler: @escaping CanonRepositoryReadEventHandler
+    ) throws {
+        self.rootDescriptor = rootDescriptor
         self.eventHandler = eventHandler
-
-        let linkSnapshot = try Self.rootLinkSnapshot(path: rootPath)
-        guard linkSnapshot.kind == mode_t(S_IFDIR) else {
-            throw Self.changed(path: rootPath)
-        }
-
-        let rawFD = rootPath.withCString {
-            Darwin.open($0, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
-        }
-        guard rawFD >= 0 else {
-            throw Self.changed(path: rootPath)
-        }
-        rootFD = CanonOwnedFileDescriptor(rawFD)
-        rootSnapshot = try Self.descriptorSnapshot(rawFD, path: rootPath)
-        guard rootSnapshot == linkSnapshot else {
-            throw Self.changed(path: rootPath)
-        }
-        try validate(snapshot: rootSnapshot, kind: mode_t(S_IFDIR), path: rootPath)
+        try rootDescriptor.validateBinding()
     }
 
     func read(relativePath: CanonicalRelativePath) throws -> Data {
@@ -50,7 +43,7 @@ final class CanonDescriptorReader {
             throw Self.changed(path: relativePath.rawValue)
         }
 
-        var parentFD = rootFD.rawValue
+        var parentFD = rootDescriptor.descriptor.rawValue
         var relativeDirectory = ""
         var openedDirectories: [CanonOpenedDirectory] = []
         openedDirectories.reserveCapacity(max(components.count - 1, 0))
@@ -162,25 +155,20 @@ final class CanonDescriptorReader {
     func scan(policy: CanonicalTreePolicy) throws -> CanonicalTreeInventory {
         do {
             return try CanonicalTreeScanner().scan(
-                borrowingRootDirectoryDescriptor: rootFD.rawValue,
+                borrowingRootDirectoryDescriptor: rootDescriptor.descriptor.rawValue,
                 policy: policy
             )
         } catch let error as ContractError {
             throw error
         } catch {
-            throw ContractError.invalidContract(
-                kind: "canon_repository",
-                reason: "Canon root cannot be scanned as a descriptor-confined canonical tree"
+            throw CanonDescriptorFailure.integrityViolation(
+                "Canon root cannot be scanned as a descriptor-confined canonical tree"
             )
         }
     }
 
     func validateRoot() throws {
-        let descriptor = try Self.descriptorSnapshot(rootFD.rawValue, path: rootPath)
-        let link = try Self.rootLinkSnapshot(path: rootPath)
-        guard descriptor == rootSnapshot, link == rootSnapshot else {
-            throw Self.changed(path: rootPath)
-        }
+        try rootDescriptor.validateBinding()
     }
 
     private func validate(
@@ -189,7 +177,7 @@ final class CanonDescriptorReader {
         path: String
     ) throws {
         guard snapshot.kind == kind,
-              snapshot.device == rootSnapshot.device,
+              snapshot.device == rootDescriptor.snapshot.device,
               snapshot.rawMode & mode_t(S_ISUID | S_ISGID | S_ISVTX) == 0,
               kind != mode_t(S_IFREG) || snapshot.linkCount == 1
         else {
@@ -229,24 +217,11 @@ final class CanonDescriptorReader {
         return data
     }
 
-    private static func rootLinkSnapshot(path: String) throws -> CanonFileSnapshot {
-        var value = stat()
-        let result = path.withCString { Darwin.lstat($0, &value) }
-        guard result == 0 else {
-            throw changed(path: path)
-        }
-        return CanonFileSnapshot(value)
-    }
-
     private static func descriptorSnapshot(
         _ descriptor: Int32,
         path: String
     ) throws -> CanonFileSnapshot {
-        var value = stat()
-        guard Darwin.fstat(descriptor, &value) == 0 else {
-            throw changed(path: path)
-        }
-        return CanonFileSnapshot(value)
+        try canonDescriptorSnapshot(descriptor, path: path)
     }
 
     private static func relativeSnapshot(
@@ -264,23 +239,10 @@ final class CanonDescriptorReader {
         return CanonFileSnapshot(value)
     }
 
-    private static func changed(path: String) -> ContractError {
-        ContractError.invalidContract(
-            kind: "canon_repository",
-            reason: "\(path) changed or crossed a descriptor-confined file boundary"
+    private static func changed(path: String) -> CanonDescriptorFailure {
+        CanonDescriptorFailure.integrityViolation(
+            "\(path) changed or crossed a descriptor-confined file boundary"
         )
-    }
-}
-
-private final class CanonOwnedFileDescriptor {
-    let rawValue: Int32
-
-    init(_ rawValue: Int32) {
-        self.rawValue = rawValue
-    }
-
-    deinit {
-        Darwin.close(rawValue)
     }
 }
 
@@ -290,30 +252,4 @@ private struct CanonOpenedDirectory {
     let name: String
     let relativePath: String
     let snapshot: CanonFileSnapshot
-}
-
-private struct CanonFileSnapshot: Equatable {
-    let device: UInt64
-    let inode: UInt64
-    let kind: mode_t
-    let rawMode: mode_t
-    let linkCount: UInt64
-    let size: Int64
-    let modificationSeconds: Int64
-    let modificationNanoseconds: Int64
-    let changeSeconds: Int64
-    let changeNanoseconds: Int64
-
-    init(_ value: stat) {
-        device = UInt64(value.st_dev)
-        inode = UInt64(value.st_ino)
-        kind = value.st_mode & mode_t(S_IFMT)
-        rawMode = value.st_mode
-        linkCount = UInt64(value.st_nlink)
-        size = value.st_size
-        modificationSeconds = Int64(value.st_mtimespec.tv_sec)
-        modificationNanoseconds = Int64(value.st_mtimespec.tv_nsec)
-        changeSeconds = Int64(value.st_ctimespec.tv_sec)
-        changeNanoseconds = Int64(value.st_ctimespec.tv_nsec)
-    }
 }

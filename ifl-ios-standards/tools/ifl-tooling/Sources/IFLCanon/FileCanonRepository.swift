@@ -2,11 +2,11 @@ import Foundation
 import IFLContracts
 
 public struct FileCanonRepository: CanonRepository, Sendable {
-    private let root: URL
+    private let source: CanonRepositorySource
     private let readEventHandler: CanonRepositoryReadEventHandler
 
     public init(root: URL) {
-        self.root = root
+        source = .url(root)
         readEventHandler = { _ in }
     }
 
@@ -14,17 +14,55 @@ public struct FileCanonRepository: CanonRepository, Sendable {
         root: URL,
         readEventHandler: @escaping CanonRepositoryReadEventHandler
     ) {
-        self.root = root
+        source = .url(root)
+        self.readEventHandler = readEventHandler
+    }
+
+    package init(anchor: CanonRootAnchor) {
+        source = .anchor(anchor)
+        readEventHandler = { _ in }
+    }
+
+    package init(
+        anchor: CanonRootAnchor,
+        readEventHandler: @escaping CanonRepositoryReadEventHandler
+    ) {
+        source = .anchor(anchor)
         self.readEventHandler = readEventHandler
     }
 
     public func snapshot(profiles requestedProfiles: Set<ProfileID>) throws -> CanonSnapshot {
-        let loader = try CanonFileLoader(
-            root: root,
-            readEventHandler: readEventHandler
-        )
-        return try loader.loadSnapshot(requestedProfiles: requestedProfiles)
+        do {
+            let loader: CanonFileLoader = switch source {
+            case let .url(root):
+                try CanonFileLoader(root: root, readEventHandler: readEventHandler)
+            case let .anchor(anchor):
+                try CanonFileLoader(
+                    rootDescriptor: anchor.duplicateRootDescriptor(),
+                    readEventHandler: readEventHandler
+                )
+            }
+            return try loader.loadSnapshot(requestedProfiles: requestedProfiles)
+        } catch let failure as CanonDescriptorFailure {
+            switch source {
+            case .anchor:
+                throw failure
+            case .url:
+                guard case let .integrityViolation(reason) = failure else {
+                    throw failure
+                }
+                throw ContractError.invalidContract(
+                    kind: "canon_repository",
+                    reason: reason
+                )
+            }
+        }
     }
+}
+
+private enum CanonRepositorySource {
+    case url(URL)
+    case anchor(CanonRootAnchor)
 }
 
 private struct CanonFileLoader {
@@ -39,10 +77,23 @@ private struct CanonFileLoader {
         readEventHandler: @escaping CanonRepositoryReadEventHandler
     ) throws {
         let standardizedRoot = root.standardizedFileURL
-        let descriptorReader = try CanonDescriptorReader(
+        try self.init(descriptorReader: CanonDescriptorReader(
             root: standardizedRoot,
             eventHandler: readEventHandler
-        )
+        ))
+    }
+
+    init(
+        rootDescriptor: CanonRootDescriptor,
+        readEventHandler: @escaping CanonRepositoryReadEventHandler
+    ) throws {
+        try self.init(descriptorReader: CanonDescriptorReader(
+            rootDescriptor: rootDescriptor,
+            eventHandler: readEventHandler
+        ))
+    }
+
+    private init(descriptorReader: CanonDescriptorReader) throws {
         let policy = try CanonicalTreePolicy(excludedRoots: [])
         let inventory = try descriptorReader.scan(policy: policy)
         try descriptorReader.validateRoot()
@@ -456,4 +507,54 @@ private struct CanonFileLoader {
 private struct LoadedADRs {
     let records: [ADRMetadata]
     let markdownByID: [ADRIdentifier: String]
+}
+
+package extension CanonSnapshot {
+    func selectingProfiles(_ requestedProfiles: Set<ProfileID>) throws -> CanonSnapshot {
+        guard !requestedProfiles.isEmpty else { return self }
+
+        let profilesByID = Dictionary(uniqueKeysWithValues: profiles.map { ($0.id, $0) })
+        let missing = requestedProfiles
+            .filter { profilesByID[$0] == nil }
+            .sorted { $0.rawValue.utf8.lexicographicallyPrecedes($1.rawValue.utf8) }
+        if let missingProfile = missing.first {
+            throw ContractError.unresolvedReference(
+                kind: "requested profile",
+                id: missingProfile.rawValue
+            )
+        }
+
+        var selected = requestedProfiles
+        var pending = Array(requestedProfiles)
+        while let profileID = pending.popLast() {
+            guard let profile = profilesByID[profileID] else {
+                throw ContractError.unresolvedReference(
+                    kind: "requested profile",
+                    id: profileID.rawValue
+                )
+            }
+            for inheritedID in profile.inheritsProfileIDs where selected.insert(inheritedID).inserted {
+                guard profilesByID[inheritedID] != nil else {
+                    throw ContractError.unresolvedReference(
+                        kind: "inherited profile",
+                        id: inheritedID.rawValue
+                    )
+                }
+                pending.append(inheritedID)
+            }
+        }
+
+        return CanonSnapshot(
+            canonVersion: canonVersion,
+            rules: rules,
+            profiles: profiles,
+            selectedProfileIDs: profiles.map(\.id).filter(selected.contains),
+            adrs: adrs,
+            adrMarkdownByID: adrMarkdownByID,
+            chapters: chapters,
+            requirementRegistry: requirementRegistry,
+            derivedArtifacts: derivedArtifacts,
+            snapshotContentDigest: snapshotContentDigest
+        )
+    }
 }

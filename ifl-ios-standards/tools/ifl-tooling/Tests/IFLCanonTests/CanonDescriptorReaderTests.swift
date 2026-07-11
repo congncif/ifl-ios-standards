@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 @testable import IFLCanon
 import IFLContracts
@@ -170,5 +171,55 @@ struct CanonDescriptorReaderTests {
         #expect(retainedBytes == Data("1\n".utf8))
         #expect(versionEntry.contentSHA256 == CanonicalTreeDigest.sha256(retainedBytes))
         #expect(versionEntry.contentSHA256 != CanonicalTreeDigest.sha256(pathnameBytes))
+    }
+
+    @Test("an anchored repository cannot be redirected by replacing its pathname")
+    func anchoredRepositoryCannotBeRedirected() throws {
+        let fileManager = FileManager.default
+        let workspace = fileManager.temporaryDirectory
+            .appendingPathComponent("ifl-anchor-pivot-\(UUID().uuidString)", isDirectory: true)
+        let activeRoot = workspace.appendingPathComponent("canon", isDirectory: true)
+        let retainedRoot = workspace.appendingPathComponent("retained", isDirectory: true)
+        let replacementRoot = workspace.appendingPathComponent("replacement", isDirectory: true)
+
+        try fileManager.createDirectory(at: workspace, withIntermediateDirectories: false)
+        defer { try? fileManager.removeItem(at: workspace) }
+        try fileManager.copyItem(at: CanonRepositoryFixture.positiveRoot, to: activeRoot)
+        try fileManager.copyItem(at: CanonRepositoryFixture.positiveRoot, to: replacementRoot)
+        try Data("2\n".utf8).write(
+            to: replacementRoot.appendingPathComponent("VERSION"),
+            options: .atomic
+        )
+        try CanonRepositoryFixture.setPermissions(
+            0o644,
+            at: replacementRoot.appendingPathComponent("VERSION")
+        )
+
+        let repository = try anchoredRepository(root: activeRoot)
+        try fileManager.moveItem(at: activeRoot, to: retainedRoot)
+        try fileManager.moveItem(at: replacementRoot, to: activeRoot)
+
+        let pathnameVersion = try Data(
+            contentsOf: activeRoot.appendingPathComponent("VERSION")
+        )
+        let snapshot = try repository.snapshot(
+            profiles: [CanonRepositoryFixture.coreProfileID()]
+        )
+
+        #expect(pathnameVersion == Data("2\n".utf8))
+        #expect(snapshot.canonVersion == 1)
+    }
+
+    private func anchoredRepository(root: URL) throws -> FileCanonRepository {
+        let descriptor = root.path.withCString {
+            Darwin.open($0, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
+        }
+        try #require(descriptor >= 0)
+        defer { Darwin.close(descriptor) }
+        let anchor = try CanonRootAnchor(
+            duplicatingRootDirectoryDescriptor: descriptor,
+            path: root.path
+        )
+        return FileCanonRepository(anchor: anchor)
     }
 }
