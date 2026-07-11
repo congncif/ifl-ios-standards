@@ -1,66 +1,110 @@
 # SPEC: Commit Workflow
 
-> **CRITICAL RULE**: NEVER commit or push to git without explicit user approval.
+> **CRITICAL RULE**: NEVER perform a Git mutation without current, object-scoped authority for that
+> exact operation. Requirement/Plan approval, `AUTO_APPROVED`, auto mode, review approval, and test
+> success grant no Git authority. Commit, branch, push, PR, tag, release, and history rewrite are
+> separate operations.
+
+The default trace unit is one reviewed and verified **semantic checkpoint** from the approved checkpoint
+map. Under “commit by task” governance, that semantic checkpoint is the task; an internal work slice,
+layer, file group, generated artifact, or evidence artifact is not a commit boundary.
+
+## Git authority record
+
+Before committing, record all of:
+
+- grant source: explicit user instruction or a project policy the user placed in scope;
+- operation: `commit` only, or an explicit list of additional separately authorized operations;
+- repository/worktree and approved checkpoint IDs;
+- allowed candidate-closure paths or reviewed candidate fingerprint;
+- expected base/parent, or the approved parent chain for sequential checkpoint commits;
+- cadence (`per-checkpoint` or scoped blanket), lifetime/expiry, and any message convention.
+
+An AI gate cannot grant authority to itself. Ambiguous phrases, a different parent/tree, new paths,
+corrective checkpoints, or material scope/contract/boundary changes require a new or amended record.
 
 ## Workflow Steps
 
-### 1. Implementation Phase
-- Write code
-- Fix issues
-- Run builds and tests
-- Verify everything works
+### 1. Execute work slices
+- Implement the approved slices inside the current semantic checkpoint.
+- Run each applicable causal signal, including Tier-1 behavioral RED → GREEN.
+- Do not commit, request approval, or run a full gate merely because a work slice ended.
 
-### 2. Review Phase (MANDATORY)
-- Run spec-sync audit per `${CLAUDE_PLUGIN_ROOT}/standards/rules/SPEC_SYNC.md` (Sync Detection Checklist + Pre-Completion Self-Audit); stage any triggered spec updates in the same change set
-- Show user what was changed
-- Explain the changes, including which SPEC_SYNC checklist rows fired (or "no sync triggers fired")
-- **WAIT for explicit approval from user**
-- Do NOT proceed to commit without approval
+### 2. Freeze and collect review (MANDATORY)
+- Prospectively subsume or run the accumulated focused proof and complete the spec-sync audit,
+  including any triggered source/spec updates in the same checkpoint.
+- Freeze the candidate fingerprint and collect all findings from the approved, non-overlapping reviewer
+  lanes before mutation.
+- Deduplicate and disposition once. Apply accepted findings in one remediation batch; then run affected
+  proof and the owning gate after the final mutation. Confirmation is bounded to dispositions and
+  changed surfaces.
+- Ensure the to-be-staged candidate manifest byte-matches the reviewed/verified candidate fingerprint.
+  The append-only work-item/audit ledger is excluded by default; if governance commits it, seal and
+  bind its separate manifest in the same semantic-checkpoint commit without rerunning unrelated
+  runtime proof or creating an evidence-only commit.
 
-### 3. Commit Phase (ONLY after approval)
+### 3. Approval check
+- If no current Git authority record covers this exact commit, show the checkpoint outcome, candidate
+  fingerprint, evidence, findings/dispositions, and spec-sync triggers, then wait for explicit authority.
+- In `brain-flow`, an explicit instruction such as “commit after each task/checkpoint” may be recorded
+  as scoped blanket commit authority. Plan approval alone is not enough. Do not ask again after routine
+  work slices while the recorded scope and parent chain still match.
+- Material scope, checkpoint-boundary, public-contract, authority, or risk-owner divergence invalidates
+  the scoped approval and returns to the relevant gate.
+
+### 4. Commit phase (ONLY after the approval check passes)
 - Show status: `git status --short`
 - Stage only reviewed, relevant files by explicit path (avoid `git add -A` / `git add .` unless the user explicitly approves broad staging)
 - Show staged status: `git status --short`
+- Confirm the staged candidate manifest matches the reviewed/verified candidate fingerprint and the Git
+  authority record. Staging and a byte-identical commit do not require another verification run.
 - Create commit with descriptive message
 - Show commit result to user
 
-### 4. Push Phase (ONLY after approval)
+### 5. Push phase (ONLY after separate approval)
 - Ask user if they want to push
 - **WAIT for explicit approval**
-- Push to the project's configured remote/branch (defined in the consuming repo's `CLAUDE.md`): `git push {GitRemote} {BaseBranch}`
+- Push only the separately authorized current branch to the configured remote.
 
 ## What Counts as Approval
 
-✅ **Valid approval phrases:**
-- "commit it"
-- "commit and push"
-- "push to git"
-- "looks good, commit"
-- "approve"
-- "ok to commit"
+✅ **Commit-only authority when the immediate repository/checkpoint referent is unambiguous:**
+- "commit this checkpoint"
+- "looks good, commit CP-2"
+- "commit after each approved checkpoint in this task"
+
+✅ **Push-only authority:**
+- "push the current branch" — authorizes no commit.
+
+✅ **Combined authority only when both operations and object are explicit:**
+- "commit CP-2 and push the current branch"
 
 ❌ **NOT approval:**
 - "continue" (this means continue working, NOT commit)
+- "approve" / "approved" without naming the Git operation
+- `USER_APPROVED` / `AUTO_APPROVED` Plan Gate verdicts
 - Silence
 - User asking questions
 - User reviewing code
 
 ## Red Flags - STOP and ASK
 
-If you find yourself about to commit, ask:
-1. Did the user explicitly say to commit?
-2. Did the user review the changes?
-3. Did the user approve?
+If you find yourself about to commit, check:
+1. Is there a current commit-authority record from the user/project policy, not an AI gate?
+2. Does repository, checkpoint, parent chain, operation, lifetime, and candidate closure still match?
+3. Is the joined review verdict approved and every required owning-gate receipt current?
+4. Does the staged candidate manifest byte-match the reviewed/verified fingerprint and allowed paths?
 
 If ANY answer is NO → **DO NOT COMMIT**
 
 ## Exception
 
-The ONLY exception is if the user has given blanket approval for a specific workflow, such as:
-- "commit after each phase"
-- "auto-commit when tests pass"
+The ONLY exception to per-commit approval is an object-scoped blanket grant for a specific workflow,
+for example: "commit each approved semantic checkpoint in this task on the current repository and
+parent chain, limited to its reviewed candidate manifest."
 
-Even then, confirm this approval at the start of the session.
+Confirm or record its scope at the Requirement/Plan Gate. It never authorizes push, branch, PR, release,
+history rewrite, corrective checkpoints, or unrelated files.
 
 ## Penalty for Violation
 

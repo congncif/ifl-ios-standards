@@ -10,6 +10,15 @@ This template follows [SemVer](https://semver.org/), versioned independently of 
 - **Minor (x.Y.0)** — new agent, new rule file, new setup step. Adopters confirm at next semi-annual review.
 - **Major (X.0.0)** — removed/renamed agent, breaking change to setup contract, brain major bump. Adopters re-audit + re-run setup.
 
+## [2.3.0] — 2026-07-11
+
+Added semantic-checkpoint and object-scoped Git-authority bindings for the optimized agent workflow.
+
+- Replaced obsolete checkpoint-level wording with checkpoint economics, evidence ownership, and reuse.
+- Pointed optional orchestrator artifacts at `docs/02-working-docs/work-items/`.
+- Separated Plan/auto approval from commit, branch, push, PR, tag, release, and rewrite authority.
+- Added object-scoped Git-authority fields to setup and project-configuration examples.
+
 ## [2.2.0] — 2026-06-17
 
 Added generic large-scale iOS architecture rules to the portable constitution.

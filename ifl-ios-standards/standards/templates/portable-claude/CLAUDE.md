@@ -117,7 +117,7 @@ IO/Plugins split whenever this project's standard uses it.
 {TestCommand}       # e.g. bazel test  //Features/{ModuleName}:{ModuleName}-Tests
 ```
 
-Verification cadence (TDD tiers + checkpoint levels): see
+Checkpoint economics (TDD tiers, review/gate ownership, evidence reuse): see
 `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`.
 
 ---
@@ -149,18 +149,21 @@ Verification cadence (TDD tiers + checkpoint levels): see
 
 #### 4. Goal-Driven Execution
 
-- Before starting multi-step work, write a short plan with one verification step per stage.
+- Before starting multi-step work, map independently valid semantic checkpoints, internal causal work
+  slices, reviewer coverage, and one owner for each verification obligation.
 - Convert every request into a concrete, testable success criterion before touching files.
 - For ambiguous requests, state your interpretation as a success criterion and confirm before proceeding.
 - Strong upfront criteria reduce rewrites more than any amount of careful coding.
 
 ### Project operations
-- Commit/push only after explicit user approval for the current phase. Stage by explicit reviewed paths.
+- Plan/phase approval and auto mode grant no Git authority. Record object-scoped commit authority for the
+  exact repository, semantic checkpoint, candidate closure/fingerprint, and parent chain. Branch, push,
+  PR, tag, release, and history rewrite require separate authority. Stage by explicit reviewed paths.
 - Commit message convention: `{CommitPrefix}` *(e.g. a ticket-key prefix, if your team requires one)*.
 - Project docs/plans/handoffs live in-repo under `docs/` per
   `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md` (working docs →
   `docs/02-working-docs/…`). The multi-agent pipeline workspace
-  (`docs/02-working-docs/handoffs/`) is optional — only the `ios-orchestrator` flow uses it.
+  (`docs/02-working-docs/work-items/`) is optional — only the `ios-orchestrator` flow uses it.
 - New source files carry the project's authorship-trace header convention.
 
 > **Optional separate binding files.** Instead of filling §3–§5 inline, you may keep

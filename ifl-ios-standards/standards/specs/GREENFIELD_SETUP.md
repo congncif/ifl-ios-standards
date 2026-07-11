@@ -105,7 +105,7 @@ Copy the relevant bits from `${CLAUDE_PLUGIN_ROOT}/standards/templates/portable-
 `Module root` is the most consequential — every `ifl-new-module` / `ifl-new-board` invocation reads
 it from `CLAUDE.md`. Set it once, here, before scaffolding any module.
 
-The multi-agent pipeline's handoff workspace (in-repo under `docs/02-working-docs/handoffs/` per
+The multi-agent pipeline's work-item workspace (in-repo under `docs/02-working-docs/work-items/` per
 `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`) is optional — only the
 `ios-orchestrator` flow uses it.
 
@@ -334,4 +334,4 @@ Every new feature follows the same loop:
 - `PLUGINS_INTEGRATION.md` — ModulePlugin + LauncherPlugin wiring.
 - `PACKAGE_MANAGER.md` — dependency-manager options (CocoaPods / Bazel / SPM).
 - `process/docs-organization.md` — where docs/plans/handoffs live.
-- `process/lean-verification.md` — TDD tiers + checkpoint verification cadence.
+- `process/lean-verification.md` — semantic checkpoints, TDD tiers, gate ownership, and evidence reuse.

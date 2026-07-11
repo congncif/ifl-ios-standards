@@ -105,6 +105,6 @@ This process is being followed when:
 - Ticket/work-item docs use one `docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/` folder with split files instead of one growing report/briefing file.
 
 ## See also
-- `process/lean-verification.md` — checkpoint cadence for plan execution.
+- `process/lean-verification.md` — semantic checkpoint and evidence-ownership policy for plan execution.
 - `process/long-document-writing.md` — chunk-safe writing for generated plans, specs, reports, and handoffs.
 - `process/README.md` — the process-doc index, when present.

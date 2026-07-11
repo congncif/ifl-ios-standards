@@ -96,7 +96,8 @@ Required sections (in order):
 5. **Dependency / Project-Generation Configuration** — triggers that require regeneration (e.g., new module → `pod install`).
 6. **AI Workflow Configuration** — table mapping artifact types to folders under AI workspace root.
 7. **File Trace Header Configuration** — if user opted in.
-8. **Git / Phase Workflow Configuration** — phase completion, commit approval, push approval, staging discipline.
+8. **Git Authority / Checkpoint Workflow Configuration** — semantic checkpoint cadence, object-scoped
+   commit authority, separately scoped branch/push/PR/tag/release/rewrite authority, and staging discipline.
 9. **Placeholder Resolution Map** — single table resolving every `{Placeholder}` used by generic specs.
 10. **Update Procedure** — one paragraph: when a value changes, update this file only; do not scatter values.
 

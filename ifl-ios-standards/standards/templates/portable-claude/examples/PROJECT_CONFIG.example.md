@@ -49,7 +49,7 @@
 | Specs root | `docs/02-working-docs/specs/` |
 | Research root | `docs/02-working-docs/research/` |
 | Reports root | `docs/02-working-docs/reports/` |
-| Handoffs root | `docs/02-working-docs/handoffs/` |
+| Work-items root | `docs/02-working-docs/work-items/` |
 | Archive root | `docs/99-archive/` |
 
 ---
@@ -173,7 +173,7 @@ All AI workflow artifacts live in-repo under the `docs/` tree, per
 | Specs | `docs/02-working-docs/specs/` |
 | Research / spikes | `docs/02-working-docs/research/` |
 | Reports | `docs/02-working-docs/reports/` |
-| Handoffs (briefings) | `docs/02-working-docs/handoffs/` |
+| Work-item briefings | `docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/handoffs/` |
 | Living docs (PRD, architecture, ADR) | `docs/01-living-docs/…` |
 | Superseded / archived | `docs/99-archive/<original-bucket>/` |
 
@@ -205,15 +205,16 @@ Use the model ID that creates the file. Do not edit the header on later revision
 
 ---
 
-## 8. Git / Phase Workflow Configuration
+## 8. Git Authority / Checkpoint Workflow Configuration
 
 | Rule | Binding |
 |------|---------|
-| Phase completion | After each user-approved phase, prepare reviewed changes for commit. |
-| Commit approval | Commit only after explicit user approval for the current phase. |
-| Push approval | Push only after explicit user approval for the current phase. |
+| Trace boundary | One reviewed and verified commit per independently valid semantic checkpoint by default. |
+| Plan vs Git authority | Requirement/Plan approval and auto mode authorize no Git operation. |
+| Commit authority | Record user/policy grant, repo/worktree, checkpoint IDs, candidate closure/fingerprint, parent chain, cadence, and lifetime. |
+| Other Git operations | Branch, push, PR, tag, release, and history rewrite each require separately recorded authority. |
 | Staging | Stage explicit reviewed file paths only; avoid broad staging. |
-| Target remote/branch | `{GitRemote}` / `{BaseBranch}` |
+| Target remote/base | `{GitRemote}` / `{BaseBranch}`; never infer the push branch from the base branch. |
 
 ---
 

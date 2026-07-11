@@ -5,7 +5,7 @@ description: >-
   Use when working on iOS Swift modules built with Boardy + VIP — creating modules or boards,
   wiring IO/BoardID/ServiceMap, board communication/buses, services/use-cases, plugin composition,
   testing, code review, refactoring, troubleshooting, or adopting the pattern. Routes the task to
-  the right bundled spec and to the matching `/ifl-ios-standards:boardy-<task>` skill, and states
+  the right bundled spec and to the matching `/ifl-ios-standards:boardy-{task}` skill, and states
   the 14 non-negotiable rules + naming/protocol-placement conventions.
 ---
 
@@ -24,7 +24,7 @@ inside the plugin at `${CLAUDE_PLUGIN_ROOT}/standards/…` (read it on demand �
 remote, naming prefix, ADR/decisions location) are **not** in this pack — they live in the
 consuming repo's `CLAUDE.md`. Read that for anything project-specific.
 
-The multi-agent pipeline workspace (handoff artifacts under `docs/02-working-docs/handoffs/` per
+The multi-agent pipeline workspace (work-item artifacts under `docs/02-working-docs/work-items/` per
 the docs-organization process standard) is **optional** — only the delegated orchestrator flow uses
 it. Single-agent tasks ignore it.
 
@@ -60,7 +60,7 @@ Companion canonicals (don't duplicate — read on demand):
 
 Process standards (apply to every task):
 - Where project docs/plans/handoffs live: `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`
-- Verification cadence (TDD tiers + checkpoint levels): `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`
+- Checkpoint economics (TDD tiers, review/gate ownership, evidence reuse): `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`
 
 ## 2. The 14 rules (never break)
 
@@ -87,7 +87,8 @@ skeleton (§5): `${CLAUDE_PLUGIN_ROOT}/standards/rules/QUICK_REF.md`.
 For multi-step feature delivery, delegate to the 9 bundled agents (appear in `/agents`):
 `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`,
 `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe`. Start with `ios-orchestrator`
-for anything spanning more than one board/file. Model-tier rationale per agent:
+for large/critical delivery or when multiple semantic checkpoints require coordinated specialist
+ownership. File count alone does not select a workflow or checkpoint. Model-tier rationale per agent:
 `${CLAUDE_PLUGIN_ROOT}/standards/AGENT_MODEL_TIERING.md`.
 
 ## 4. Scaffolders (on PATH when this plugin is enabled)

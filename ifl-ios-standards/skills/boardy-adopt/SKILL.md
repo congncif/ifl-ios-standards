@@ -21,7 +21,7 @@ the consuming repo's `CLAUDE.md`. A copyable starter lives at
 `${CLAUDE_PLUGIN_ROOT}/standards/templates/portable-claude/` — copy the relevant bits into your
 `CLAUDE.md`, fill in the values.
 
-The multi-agent pipeline's handoff workspace (in-repo under `docs/02-working-docs/handoffs/` per
+The multi-agent pipeline's work-item workspace (in-repo under `docs/02-working-docs/work-items/` per
 `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`) is **optional** — used only by the
 delegated `ios-orchestrator` flow.
 
