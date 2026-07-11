@@ -65,37 +65,58 @@ private enum CanonRepositorySource {
     case anchor(CanonRootAnchor)
 }
 
-private struct CanonFileLoader {
+private final class CanonFileLoader {
     private let descriptorReader: CanonDescriptorReader
     private let inventory: CanonicalTreeInventory
     private let inventoryDigest: HashDigest
     private let entriesByPath: [String: CanonicalTreeEntry]
     private let snapshotContentDigest: HashDigest
+    private let retainedPluginIdentity: RetainedPluginRootIdentity?
+    private let inventorySnapshotsByRelativePath: [String: CanonFileSnapshot]
+    private var fileBytesByRelativePath: [String: Data] = [:]
 
-    init(
+    convenience init(
         root: URL,
         readEventHandler: @escaping CanonRepositoryReadEventHandler
     ) throws {
         let standardizedRoot = root.standardizedFileURL
-        try self.init(descriptorReader: CanonDescriptorReader(
-            root: standardizedRoot,
-            eventHandler: readEventHandler
-        ))
+        try self.init(
+            descriptorReader: CanonDescriptorReader(
+                root: standardizedRoot,
+                eventHandler: readEventHandler
+            ),
+            retainedPluginIdentity: nil
+        )
     }
 
-    init(
+    convenience init(
         rootDescriptor: CanonRootDescriptor,
         readEventHandler: @escaping CanonRepositoryReadEventHandler
     ) throws {
-        try self.init(descriptorReader: CanonDescriptorReader(
-            rootDescriptor: rootDescriptor,
-            eventHandler: readEventHandler
-        ))
+        try self.init(
+            descriptorReader: CanonDescriptorReader(
+                rootDescriptor: rootDescriptor,
+                eventHandler: readEventHandler
+            ),
+            retainedPluginIdentity: rootDescriptor.retainedPluginIdentity
+        )
     }
 
-    private init(descriptorReader: CanonDescriptorReader) throws {
-        let policy = try CanonicalTreePolicy(excludedRoots: [])
-        let inventory = try descriptorReader.scan(policy: policy)
+    private init(
+        descriptorReader: CanonDescriptorReader,
+        retainedPluginIdentity: RetainedPluginRootIdentity?
+    ) throws {
+        let captured: CanonDescriptorTreeCapture
+        do {
+            captured = try descriptorReader.captureTree(emitReadEvents: false)
+        } catch let error as ContractError {
+            throw error
+        } catch {
+            throw CanonDescriptorFailure.integrityViolation(
+                "Canon root cannot be scanned as a descriptor-confined canonical tree"
+            )
+        }
+        let inventory = captured.inventory
         try descriptorReader.validateRoot()
         var entriesByPath: [String: CanonicalTreeEntry] = [:]
         entriesByPath.reserveCapacity(inventory.entries.count)
@@ -113,6 +134,8 @@ private struct CanonFileLoader {
         inventoryDigest = try CanonicalTreeDigest.digest(inventory)
         self.entriesByPath = entriesByPath
         snapshotContentDigest = try CanonSnapshotContentPolicy.digest(of: inventory)
+        self.retainedPluginIdentity = retainedPluginIdentity
+        inventorySnapshotsByRelativePath = captured.snapshotsByRelativePath
     }
 
     func loadSnapshot(requestedProfiles: Set<ProfileID>) throws -> CanonSnapshot {
@@ -163,6 +186,32 @@ private struct CanonFileLoader {
         )
         try confirmInventoryIsStable()
 
+        let evidence: CanonSnapshotEvidence?
+        if let retainedPluginIdentity {
+            let projectedInventory = try CanonSnapshotContentPolicy.project(inventory)
+            let projectedDigest = try CanonicalTreeDigest.digest(projectedInventory)
+            guard projectedDigest == snapshotContentDigest else {
+                throw ContractError.digestMismatch(
+                    kind: "canon snapshot projection",
+                    expected: snapshotContentDigest.rawValue,
+                    actual: projectedDigest.rawValue
+                )
+            }
+            evidence = CanonSnapshotEvidence(
+                fullInventory: inventory,
+                fullInventoryDigest: inventoryDigest,
+                projectedInventory: projectedInventory,
+                projectedDigest: projectedDigest,
+                fileBytesByRelativePath: fileBytesByRelativePath,
+                retainedPluginIdentity: retainedPluginIdentity,
+                canonDevice: descriptorReader.rootSnapshot.device,
+                canonInode: descriptorReader.rootSnapshot.inode,
+                snapshotsByRelativePath: inventorySnapshotsByRelativePath
+            )
+        } else {
+            evidence = nil
+        }
+
         return CanonSnapshot(
             canonVersion: canonVersion,
             rules: rules,
@@ -173,7 +222,8 @@ private struct CanonFileLoader {
             chapters: chapters,
             requirementRegistry: requirementRegistry,
             derivedArtifacts: derivedIndex.entries,
-            snapshotContentDigest: snapshotContentDigest
+            snapshotContentDigest: snapshotContentDigest,
+            candidateOverlayEvidence: evidence
         )
     }
 
@@ -388,6 +438,16 @@ private struct CanonFileLoader {
                 actual: actualDigest.rawValue
             )
         }
+        if let previous = fileBytesByRelativePath.updateValue(
+            data,
+            forKey: relativePath.rawValue
+        ), previous != data {
+            throw ContractError.digestMismatch(
+                kind: "canon retained file",
+                expected: CanonicalTreeDigest.sha256(previous).rawValue,
+                actual: actualDigest.rawValue
+            )
+        }
         return data
     }
 
@@ -489,18 +549,38 @@ private struct CanonFileLoader {
     }
 
     private func confirmInventoryIsStable() throws {
-        let finalInventory = try descriptorReader.scan(
-            policy: CanonicalTreePolicy(excludedRoots: [])
-        )
-        guard finalInventory == inventory else {
-            let finalDigest = try CanonicalTreeDigest.digest(finalInventory)
+        let finalCapture = try descriptorReader.captureTree(emitReadEvents: false)
+        guard finalCapture.inventory == inventory else {
+            let finalDigest = try CanonicalTreeDigest.digest(finalCapture.inventory)
             throw ContractError.digestMismatch(
                 kind: "canon snapshot",
                 expected: inventoryDigest.rawValue,
                 actual: finalDigest.rawValue
             )
         }
+        guard finalCapture.snapshotsByRelativePath == inventorySnapshotsByRelativePath else {
+            let changedPath = Self.firstChangedObjectPath(
+                before: inventorySnapshotsByRelativePath,
+                after: finalCapture.snapshotsByRelativePath
+            )
+            throw CanonDescriptorFailure.integrityViolation(
+                "retained Canon object metadata changed at \(changedPath)"
+            )
+        }
         try descriptorReader.validateRoot()
+    }
+
+    private static func firstChangedObjectPath(
+        before: [String: CanonFileSnapshot],
+        after: [String: CanonFileSnapshot]
+    ) -> String {
+        let paths = Set(before.keys).union(after.keys).sorted {
+            $0.utf8.lexicographicallyPrecedes($1.utf8)
+        }
+        let changed = paths.filter { before[$0] != after[$0] }
+        return changed.first {
+            before[$0]?.isRegularFile == true || after[$0]?.isRegularFile == true
+        } ?? changed.first ?? ""
     }
 }
 
@@ -554,7 +634,8 @@ package extension CanonSnapshot {
             chapters: chapters,
             requirementRegistry: requirementRegistry,
             derivedArtifacts: derivedArtifacts,
-            snapshotContentDigest: snapshotContentDigest
+            snapshotContentDigest: snapshotContentDigest,
+            candidateOverlayEvidence: candidateOverlayEvidence
         )
     }
 }

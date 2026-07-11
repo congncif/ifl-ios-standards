@@ -47,11 +47,13 @@ package typealias VerificationRootLocatorWorkspaceCandidateEventHandler = @Senda
 package final class ResolvedVerificationRoot: @unchecked Sendable {
     package let canonRoot: URL
     package let canonAnchor: CanonRootAnchor
+    package let retainedPluginRootAnchor: RetainedPluginRootAnchor?
     private let bindings: [VerificationDirectoryBinding]
 
     fileprivate init(
         canonRoot: URL,
-        bindings: [VerificationDirectoryBinding]
+        bindings: [VerificationDirectoryBinding],
+        pluginBinding: VerificationDirectoryBinding?
     ) throws {
         guard let canonBinding = bindings.last else {
             throw VerificationRootError.missingBinding(canonRoot.path)
@@ -63,6 +65,14 @@ package final class ResolvedVerificationRoot: @unchecked Sendable {
                 duplicatingRootDirectoryDescriptor: canonBinding.descriptor.rawValue,
                 path: canonRoot.path
             )
+            if let pluginBinding {
+                retainedPluginRootAnchor = try RetainedPluginRootAnchor(
+                    duplicatingPluginRootDirectoryDescriptor: pluginBinding.descriptor.rawValue,
+                    path: pluginBinding.path
+                )
+            } else {
+                retainedPluginRootAnchor = nil
+            }
         } catch {
             throw VerificationRootError.symlinkBoundary(canonRoot.path)
         }
@@ -109,7 +119,8 @@ public struct VerificationRootLocator: Sendable {
             try validateRequiredFiles(in: selected)
             return try ResolvedVerificationRoot(
                 canonRoot: selectedURL,
-                bindings: [selected]
+                bindings: [selected],
+                pluginBinding: nil
             )
         }
 
@@ -214,7 +225,8 @@ public struct VerificationRootLocator: Sendable {
                 candidate.plugin,
                 candidate.standards,
                 candidate.canon,
-            ]
+            ],
+            pluginBinding: candidate.plugin
         )
     }
 
@@ -238,7 +250,8 @@ public struct VerificationRootLocator: Sendable {
         try validateRequiredFiles(in: canon)
         return try ResolvedVerificationRoot(
             canonRoot: canonURL,
-            bindings: prefixBindings + [standards, canon]
+            bindings: prefixBindings + [standards, canon],
+            pluginBinding: pluginBinding
         )
     }
 

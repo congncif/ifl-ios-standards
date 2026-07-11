@@ -17,11 +17,17 @@ extension CanonDescriptorFailure: CustomStringConvertible {
 package final class CanonRootAnchor: @unchecked Sendable {
     private let descriptor: CanonOwnedFileDescriptor
     private let snapshot: CanonFileSnapshot
+    let retainedPluginIdentity: RetainedPluginRootIdentity?
     package let path: String
+
+    var objectIdentity: CanonObjectIdentity {
+        snapshot.objectIdentity
+    }
 
     package init(
         duplicatingRootDirectoryDescriptor sourceDescriptor: Int32,
-        path: String
+        path: String,
+        retainedPluginIdentity: RetainedPluginRootIdentity? = nil
     ) throws {
         let duplicated = try canonDuplicateDescriptor(sourceDescriptor, path: path)
         let ownedDescriptor = CanonOwnedFileDescriptor(duplicated)
@@ -30,6 +36,7 @@ package final class CanonRootAnchor: @unchecked Sendable {
 
         descriptor = ownedDescriptor
         self.snapshot = snapshot
+        self.retainedPluginIdentity = retainedPluginIdentity
         self.path = path
     }
 
@@ -47,15 +54,22 @@ package final class CanonRootAnchor: @unchecked Sendable {
             descriptor: ownedDescriptor,
             path: path,
             snapshot: current,
-            requiresPathBinding: false
+            requiresPathBinding: false,
+            retainedPluginIdentity: retainedPluginIdentity
         )
     }
+}
+
+struct CanonObjectIdentity: Hashable {
+    let device: UInt64
+    let inode: UInt64
 }
 
 final class CanonRootDescriptor {
     let descriptor: CanonOwnedFileDescriptor
     let path: String
     let snapshot: CanonFileSnapshot
+    let retainedPluginIdentity: RetainedPluginRootIdentity?
     private let requiresPathBinding: Bool
 
     init(opening root: URL) throws {
@@ -75,6 +89,7 @@ final class CanonRootDescriptor {
 
         descriptor = ownedDescriptor
         snapshot = openedSnapshot
+        retainedPluginIdentity = nil
         requiresPathBinding = true
     }
 
@@ -82,12 +97,14 @@ final class CanonRootDescriptor {
         descriptor: CanonOwnedFileDescriptor,
         path: String,
         snapshot: CanonFileSnapshot,
-        requiresPathBinding: Bool
+        requiresPathBinding: Bool,
+        retainedPluginIdentity: RetainedPluginRootIdentity?
     ) {
         self.descriptor = descriptor
         self.path = path
         self.snapshot = snapshot
         self.requiresPathBinding = requiresPathBinding
+        self.retainedPluginIdentity = retainedPluginIdentity
     }
 
     func validateBinding() throws {
@@ -156,6 +173,14 @@ struct CanonFileSnapshot: Equatable {
             && kind == other.kind
             && rawMode == other.rawMode
             && linkCount == other.linkCount
+    }
+
+    var objectIdentity: CanonObjectIdentity {
+        CanonObjectIdentity(device: device, inode: inode)
+    }
+
+    var isRegularFile: Bool {
+        kind == mode_t(S_IFREG)
     }
 }
 
