@@ -219,10 +219,17 @@ public struct ReviewCycleState: Codable, Hashable, Sendable {
     public var currentSemanticOrdinal: UInt64
     public var didRecordRemediation: Bool
     public var didRecordConfirmation: Bool
+    public var convergenceReceiptID: ReceiptID?
     public let redactionPolicy: RedactionPolicyBinding
     public let cyclePreFreezeEventHead: HashDigest
     public var currentRoundAnchorEventHead: HashDigest
     public var predecessorBaselineDigest: HashDigest?
+    public var closedRoundID: ReviewRoundID?
+    public var closedBaselineDigest: HashDigest?
+    public var closedRegisterDigest: HashDigest?
+    public var closedPathDecision: IssueRegisterPathDecision?
+    public var lastRemediatedRoundID: ReviewRoundID?
+    public var confirmationReceiptID: ReceiptID?
 
     init(
         id: ReviewCycleID,
@@ -234,10 +241,17 @@ public struct ReviewCycleState: Codable, Hashable, Sendable {
         currentSemanticOrdinal: UInt64,
         didRecordRemediation: Bool,
         didRecordConfirmation: Bool,
+        convergenceReceiptID: ReceiptID? = nil,
         redactionPolicy: RedactionPolicyBinding,
         cyclePreFreezeEventHead: HashDigest,
         currentRoundAnchorEventHead: HashDigest,
-        predecessorBaselineDigest: HashDigest?
+        predecessorBaselineDigest: HashDigest?,
+        closedRoundID: ReviewRoundID? = nil,
+        closedBaselineDigest: HashDigest? = nil,
+        closedRegisterDigest: HashDigest? = nil,
+        closedPathDecision: IssueRegisterPathDecision? = nil,
+        lastRemediatedRoundID: ReviewRoundID? = nil,
+        confirmationReceiptID: ReceiptID? = nil
     ) throws {
         self.id = id
         self.gate = gate
@@ -248,10 +262,17 @@ public struct ReviewCycleState: Codable, Hashable, Sendable {
         self.currentSemanticOrdinal = currentSemanticOrdinal
         self.didRecordRemediation = didRecordRemediation
         self.didRecordConfirmation = didRecordConfirmation
+        self.convergenceReceiptID = convergenceReceiptID
         self.redactionPolicy = redactionPolicy
         self.cyclePreFreezeEventHead = cyclePreFreezeEventHead
         self.currentRoundAnchorEventHead = currentRoundAnchorEventHead
         self.predecessorBaselineDigest = predecessorBaselineDigest
+        self.closedRoundID = closedRoundID
+        self.closedBaselineDigest = closedBaselineDigest
+        self.closedRegisterDigest = closedRegisterDigest
+        self.closedPathDecision = closedPathDecision
+        self.lastRemediatedRoundID = lastRemediatedRoundID
+        self.confirmationReceiptID = confirmationReceiptID
         try validateShape()
     }
 
@@ -271,6 +292,10 @@ public struct ReviewCycleState: Codable, Hashable, Sendable {
             currentSemanticOrdinal: container.decode(UInt64.self, forKey: .currentSemanticOrdinal),
             didRecordRemediation: container.decode(Bool.self, forKey: .didRecordRemediation),
             didRecordConfirmation: container.decode(Bool.self, forKey: .didRecordConfirmation),
+            convergenceReceiptID: container.decodeIfPresent(
+                ReceiptID.self,
+                forKey: .convergenceReceiptID
+            ),
             redactionPolicy: container.decode(RedactionPolicyBinding.self, forKey: .redactionPolicy),
             cyclePreFreezeEventHead: container.decode(HashDigest.self, forKey: .cyclePreFreezeEventHead),
             currentRoundAnchorEventHead: container.decode(
@@ -280,8 +305,70 @@ public struct ReviewCycleState: Codable, Hashable, Sendable {
             predecessorBaselineDigest: container.decodeIfPresent(
                 HashDigest.self,
                 forKey: .predecessorBaselineDigest
+            ),
+            closedRoundID: container.decodeIfPresent(ReviewRoundID.self, forKey: .closedRoundID),
+            closedBaselineDigest: container.decodeIfPresent(
+                HashDigest.self,
+                forKey: .closedBaselineDigest
+            ),
+            closedRegisterDigest: container.decodeIfPresent(
+                HashDigest.self,
+                forKey: .closedRegisterDigest
+            ),
+            closedPathDecision: container.decodeIfPresent(
+                IssueRegisterPathDecision.self,
+                forKey: .closedPathDecision
+            ),
+            lastRemediatedRoundID: container.decodeIfPresent(
+                ReviewRoundID.self,
+                forKey: .lastRemediatedRoundID
+            ),
+            confirmationReceiptID: container.decodeIfPresent(
+                ReceiptID.self,
+                forKey: .confirmationReceiptID
             )
         )
+    }
+
+    var hasVerifiedCurrentRoundClosure: Bool {
+        closedRoundID == currentRoundID &&
+            closedBaselineDigest != nil &&
+            closedRegisterDigest != nil &&
+            closedPathDecision != nil
+    }
+
+    var hasVerifiedTerminalConvergence: Bool {
+        guard phase == .converged,
+              convergenceReceiptID != nil,
+              hasVerifiedCurrentRoundClosure,
+              closedPathDecision == .directConvergenceNoAcceptedCurrentScope
+        else { return false }
+        switch currentRoundKind {
+        case .initial:
+            return !didRecordRemediation &&
+                !didRecordConfirmation &&
+                confirmationReceiptID == nil
+        case .normalConfirmation, .exception:
+            return didRecordRemediation &&
+                didRecordConfirmation &&
+                confirmationReceiptID != nil &&
+                lastRemediatedRoundID != nil &&
+                lastRemediatedRoundID != currentRoundID
+        }
+    }
+
+    mutating func clearCurrentRoundClosure() {
+        closedRoundID = nil
+        closedBaselineDigest = nil
+        closedRegisterDigest = nil
+        closedPathDecision = nil
+    }
+
+    mutating func installClosure(_ fact: VerifiedReviewRoundClosureFact) {
+        closedRoundID = fact.roundID
+        closedBaselineDigest = fact.baselineDigest
+        closedRegisterDigest = fact.registerDigest
+        closedPathDecision = fact.pathDecision
     }
 
     func validate(runID: RunID, stage: WorkflowStage, nextCycleOrdinal: UInt64) throws {
@@ -318,32 +405,89 @@ public struct ReviewCycleState: Codable, Hashable, Sendable {
     }
 
     private func validateShape() throws {
+        let closurePresence = [
+            closedRoundID != nil,
+            closedBaselineDigest != nil,
+            closedRegisterDigest != nil,
+            closedPathDecision != nil,
+        ]
+        guard closurePresence.allSatisfy({ !$0 }) || closurePresence.allSatisfy({ $0 }) else {
+            throw WorkflowError.invalidState
+        }
+        if let closedRoundID {
+            guard closedRoundID == currentRoundID else { throw WorkflowError.invalidState }
+        }
+        if let lastRemediatedRoundID {
+            guard didRecordRemediation else { throw WorkflowError.invalidState }
+            if lastRemediatedRoundID == currentRoundID {
+                guard hasVerifiedCurrentRoundClosure,
+                      closedPathDecision == .requiresRemediation
+                else { throw WorkflowError.invalidState }
+            }
+        }
+        if confirmationReceiptID != nil {
+            guard didRecordConfirmation else { throw WorkflowError.invalidState }
+        }
+        if closedPathDecision == .requiresRemediation,
+           phase != .invalidated,
+           phase != .converged {
+            guard phase == .awaitingRemediation else { throw WorkflowError.invalidState }
+        }
+        if phase == .converged {
+            guard hasVerifiedTerminalConvergence else { throw WorkflowError.invalidState }
+        } else if phase != .invalidated {
+            guard convergenceReceiptID == nil else { throw WorkflowError.invalidState }
+        }
         switch currentRoundKind {
         case .initial:
             guard currentSemanticOrdinal == 0,
                   predecessorBaselineDigest == nil,
                   !didRecordConfirmation,
+                  confirmationReceiptID == nil,
                   [.collectingInitial, .awaitingRemediation, .converged, .invalidated].contains(phase)
             else { throw WorkflowError.invalidState }
             if phase == .collectingInitial || phase == .converged {
                 guard !didRecordRemediation else { throw WorkflowError.invalidState }
             }
+            if hasVerifiedCurrentRoundClosure {
+                guard phase != .collectingInitial else { throw WorkflowError.invalidState }
+            }
         case .normalConfirmation:
             guard currentSemanticOrdinal == 1,
                   predecessorBaselineDigest != nil,
                   didRecordRemediation,
-                  [.collectingNormalConfirmation, .converged, .invalidated].contains(phase)
+                  [.collectingNormalConfirmation, .awaitingRemediation, .converged, .invalidated]
+                    .contains(phase)
             else { throw WorkflowError.invalidState }
             if phase == .converged {
-                guard didRecordConfirmation else { throw WorkflowError.invalidState }
+                guard didRecordConfirmation,
+                      confirmationReceiptID != nil
+                else { throw WorkflowError.invalidState }
+            }
+            if confirmationReceiptID != nil {
+                guard hasVerifiedCurrentRoundClosure else { throw WorkflowError.invalidState }
+            }
+            if phase == .awaitingRemediation {
+                guard hasVerifiedCurrentRoundClosure,
+                      closedPathDecision == .requiresRemediation
+                else { throw WorkflowError.invalidState }
             }
         case .exception:
             guard currentSemanticOrdinal >= 2,
                   predecessorBaselineDigest != nil,
                   didRecordRemediation,
                   didRecordConfirmation,
-                  [.collectingException, .converged, .invalidated].contains(phase)
+                  [.collectingException, .awaitingRemediation, .converged, .invalidated]
+                    .contains(phase)
             else { throw WorkflowError.invalidState }
+            if phase == .awaitingRemediation {
+                guard hasVerifiedCurrentRoundClosure,
+                      closedPathDecision == .requiresRemediation
+                else { throw WorkflowError.invalidState }
+            }
+            if phase == .converged {
+                guard confirmationReceiptID != nil else { throw WorkflowError.invalidState }
+            }
         }
     }
 
@@ -357,9 +501,16 @@ public struct ReviewCycleState: Codable, Hashable, Sendable {
         case currentSemanticOrdinal = "current_semantic_ordinal"
         case didRecordRemediation = "did_record_remediation"
         case didRecordConfirmation = "did_record_confirmation"
+        case convergenceReceiptID = "convergence_receipt_id"
         case redactionPolicy = "redaction_policy"
         case cyclePreFreezeEventHead = "cycle_pre_freeze_event_head"
         case currentRoundAnchorEventHead = "current_round_anchor_event_head"
         case predecessorBaselineDigest = "predecessor_baseline_digest"
+        case closedRoundID = "closed_round_id"
+        case closedBaselineDigest = "closed_baseline_digest"
+        case closedRegisterDigest = "closed_register_digest"
+        case closedPathDecision = "closed_path_decision"
+        case lastRemediatedRoundID = "last_remediated_round_id"
+        case confirmationReceiptID = "confirmation_receipt_id"
     }
 }

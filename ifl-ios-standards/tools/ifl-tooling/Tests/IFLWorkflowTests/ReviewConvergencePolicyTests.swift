@@ -111,7 +111,7 @@ struct ReviewConvergencePolicyTests {
         #expect(proof.proofDigest.rawValue.count == 64)
     }
 
-    @Test("RC-09 misordered history is integrity escalation not eligibility")
+    @Test("RC-09 cross-bound history is integrity escalation not eligibility")
     func corruptExceptionHistory() throws {
         let fixture = try confirmedStateFixture()
         let valid = try exceptionContext(
@@ -120,6 +120,13 @@ struct ReviewConvergencePolicyTests {
             priorExceptionRoundIDs: []
         )
         let entries = valid.history.entries
+        let foreignRemediation = KernelReviewHistoryEntry(
+            kind: .remediationRecorded,
+            roundID: valid.precedingRoundID,
+            registerDigest: try workflowTestDigest("f"),
+            baselineDigest: valid.precedingBaselineDigest,
+            eventHead: try workflowTestDigest("d")
+        )
         let corrupt = ReviewExceptionContext(
             runID: valid.runID,
             cycleID: valid.cycleID,
@@ -131,7 +138,7 @@ struct ReviewConvergencePolicyTests {
             immediatelyPreceding: valid.immediatelyPreceding,
             current: valid.current,
             history: KernelReviewHistory(
-                entries: [entries[0], entries[2], entries[1]],
+                entries: [entries[0], entries[1], foreignRemediation],
                 priorExceptionRoundIDs: []
             ),
             exhaustionCause: .integrityViolation
@@ -154,7 +161,8 @@ struct ReviewConvergencePolicyTests {
         let context = try exceptionContext(
             fixture: fixture,
             current: [reviewFinding("high", severity: .high)],
-            priorExceptionRoundIDs: rounds
+            priorExceptionRoundIDs: rounds,
+            precedingRoundID: rounds.last
         )
         #expect(
             ReviewConvergencePolicy().evaluateException(context, budget: budget)
@@ -164,19 +172,22 @@ struct ReviewConvergencePolicyTests {
         let duplicateHistory = try exceptionContext(
             fixture: fixture,
             current: [reviewFinding("high", severity: .high)],
-            priorExceptionRoundIDs: [rounds[0], rounds[0]]
+            priorExceptionRoundIDs: [rounds[0], rounds[0]],
+            precedingRoundID: rounds[0]
         )
         #expect(
             ReviewConvergencePolicy().evaluateException(duplicateHistory, budget: budget)
                 == .escalation(.failed)
         )
 
+        let overLimitRounds = rounds + [
+            try ReviewRoundID(validating: String(repeating: "d", count: 64)),
+        ]
         let overLimit = try exceptionContext(
             fixture: fixture,
             current: [reviewFinding("high", severity: .high)],
-            priorExceptionRoundIDs: rounds + [
-                try ReviewRoundID(validating: String(repeating: "d", count: 64)),
-            ]
+            priorExceptionRoundIDs: overLimitRounds,
+            precedingRoundID: overLimitRounds.last
         )
         #expect(
             ReviewConvergencePolicy().evaluateException(overLimit, budget: budget)
@@ -225,12 +236,44 @@ struct ReviewConvergencePolicyTests {
         #expect(proof.qualifyingFingerprints.count == 2)
     }
 
+    @Test("RRC-06 exception semantic ordinal uses checked predecessor advancement")
+    func checkedExceptionSemanticOrdinal() throws {
+        let policy = ReviewConvergencePolicy()
+        #expect(
+            try policy.nextExceptionSemanticOrdinal(after: UInt64.max - 1) == UInt64.max
+        )
+        #expect(throws: WorkflowError.ordinalOverflow) {
+            try policy.nextExceptionSemanticOrdinal(after: UInt64.max)
+        }
+    }
+
+    @Test("RRC-03 confirmed convergence requires the latest register to be terminal")
+    func confirmedConvergenceRequiresTerminalLatestRegister() throws {
+        let source = try LaneBReviewScenario.make(acceptedCurrentScope: true)
+        let successor = try source.makeSuccessorBaseline()
+        let unresolved = try successor.makeConfirmationRegister(acceptedCurrentScope: true)
+        let terminal = try successor.makeConfirmationRegister(acceptedCurrentScope: false)
+
+        #expect(throws: WorkflowPolicyError.remediationRequired) {
+            try ReviewConvergenceValidator.validateConfirmedTerminal(unresolved.verifiedRegister)
+        }
+        try ReviewConvergenceValidator.validateConfirmedTerminal(terminal.verifiedRegister)
+    }
+
     @Test("RC-09 reducer consumes an exact proof and persists valid exception state")
     func reducerConsumesProof() throws {
         let fixture = try confirmedStateFixture()
-        let proof = try eligibleProof(fixture)
+        let admission = try eligibleAdmission(fixture)
+        let proof = admission.eligibility
+        let predecessor = try #require(fixture.state.reviewCycle)
+        #expect(predecessor.closedRoundID == predecessor.currentRoundID)
+        #expect(predecessor.closedBaselineDigest == fixture.baselineDigest)
+        #expect(predecessor.closedRegisterDigest == fixture.registerDigest)
+        #expect(predecessor.closedPathDecision == .requiresRemediation)
+        #expect(predecessor.lastRemediatedRoundID == predecessor.currentRoundID)
+        #expect(predecessor.confirmationReceiptID != nil)
         let event = try WorkflowEvent(id: "open-exception", kind: .reviewExceptionOpened)
-        let context = try exceptionTransitionContext(fixture, proof: proof)
+        let context = try exceptionTransitionContext(fixture, admission: admission)
         let next = try WorkflowReducer().decide(
             definition: EngineeringWorkflow.definition,
             state: fixture.state,
@@ -242,6 +285,13 @@ struct ReviewConvergencePolicyTests {
         #expect(next.reviewCycle?.currentRoundKind == .exception)
         #expect(next.reviewCycle?.currentSemanticOrdinal == 2)
         #expect(next.reviewCycle?.currentRoundID == proof.nextRoundID)
+        #expect(next.reviewCycle?.predecessorBaselineDigest == fixture.baselineDigest)
+        #expect(next.reviewCycle?.closedRoundID == nil)
+        #expect(next.reviewCycle?.closedBaselineDigest == nil)
+        #expect(next.reviewCycle?.closedRegisterDigest == nil)
+        #expect(next.reviewCycle?.closedPathDecision == nil)
+        #expect(next.reviewCycle?.lastRemediatedRoundID == proof.precedingRoundID)
+        #expect(next.reviewCycle?.confirmationReceiptID == predecessor.confirmationReceiptID)
         let decoded = try CanonicalJSON.decode(
             RunState.self,
             from: CanonicalJSON.encode(next)
@@ -249,60 +299,45 @@ struct ReviewConvergencePolicyTests {
         #expect(decoded == next)
     }
 
-    @Test("RC-09 reducer rejects absent stale cross-cycle and replayed proof")
+    @Test("RC-09 reducer rejects absent or replayed admission without binding later CAS head")
     func reducerRejectsInvalidProof() throws {
         let fixture = try confirmedStateFixture()
-        let proof = try eligibleProof(fixture)
+        let admission = try eligibleAdmission(fixture)
         let event = try WorkflowEvent(id: "exception-without-proof", kind: .reviewExceptionOpened)
         #expect(throws: WorkflowError.exceptionPolicyRequired) {
             try WorkflowReducer().decide(
                 definition: EngineeringWorkflow.definition,
                 state: fixture.state,
                 event: event,
-                context: exceptionTransitionContext(fixture, proof: nil)
+                context: exceptionTransitionContext(fixture, admission: nil)
             )
         }
 
-        let staleContext = try TransitionContext(
-            actorID: ActorID(validating: "exception-author"),
-            principalID: PrincipalID(validating: "exception-principal"),
-            currentEventHead: workflowTestDigest("0"),
-            currentReviewBaselineDigest: fixture.baselineDigest,
-            satisfiedGuards: [],
-            reviewExceptionProof: proof,
-            verifiedFrozenBudget: verifiedFrozenBudget(proof)
-        )
-        #expect(throws: WorkflowError.invalidExceptionProof) {
-            try WorkflowReducer().decide(
-                definition: EngineeringWorkflow.definition,
-                state: fixture.state,
-                event: WorkflowEvent(id: "stale-proof", kind: .reviewExceptionOpened),
-                context: staleContext
+        let laterPublicationHead = try workflowTestDigest("0")
+        let advanced = try WorkflowReducer().decide(
+            definition: EngineeringWorkflow.definition,
+            state: fixture.state,
+            event: WorkflowEvent(id: "later-publication-head", kind: .reviewExceptionOpened),
+            context: exceptionTransitionContext(
+                fixture,
+                admission: admission,
+                currentEventHead: laterPublicationHead
             )
-        }
+        ).proposedState
+        #expect(advanced.reviewCycle?.currentRoundID == admission.successorBaseline.roundID)
 
         let accepted = try WorkflowReducer().decide(
             definition: EngineeringWorkflow.definition,
             state: fixture.state,
             event: WorkflowEvent(id: "consume-proof", kind: .reviewExceptionOpened),
-            context: exceptionTransitionContext(fixture, proof: proof)
+            context: exceptionTransitionContext(fixture, admission: admission)
         ).proposedState
         #expect(throws: WorkflowError.invalidExceptionProof) {
             try WorkflowReducer().decide(
                 definition: EngineeringWorkflow.definition,
                 state: accepted,
                 event: WorkflowEvent(id: "replay-proof-new-event", kind: .reviewExceptionOpened),
-                context: exceptionTransitionContext(fixture, proof: proof)
-            )
-        }
-
-        let crossCycle = try crossCycleProof(fixture)
-        #expect(throws: WorkflowError.invalidExceptionProof) {
-            try WorkflowReducer().decide(
-                definition: EngineeringWorkflow.definition,
-                state: fixture.state,
-                event: WorkflowEvent(id: "cross-cycle-proof", kind: .reviewExceptionOpened),
-                context: exceptionTransitionContext(fixture, proof: crossCycle)
+                context: exceptionTransitionContext(fixture, admission: admission)
             )
         }
     }
@@ -310,81 +345,74 @@ struct ReviewConvergencePolicyTests {
     @Test("Residual D-006 exception admission requires exact Kernel-frozen budget binding")
     func reducerRequiresFrozenBudgetFact() throws {
         let fixture = try confirmedStateFixture()
-        let proof = try eligibleProof(fixture)
-        let event = try WorkflowEvent(id: "budget-bound-exception", kind: .reviewExceptionOpened)
-
-        #expect(throws: WorkflowError.invalidExceptionProof) {
-            try WorkflowReducer().decide(
-                definition: EngineeringWorkflow.definition,
-                state: fixture.state,
-                event: event,
-                context: exceptionTransitionContext(
-                    fixture,
-                    proof: proof,
-                    includeVerifiedBudget: false
-                )
-            )
-        }
-
-        let mismatchedDigest = VerifiedFrozenBudgetFact(
-            runID: proof.runID,
-            cycleID: proof.cycleID,
-            policyVersion: proof.policyVersion,
-            policyDigest: try workflowTestDigest("b"),
-            boundEventHead: proof.roundAnchorEventHead
+        let admission = try eligibleAdmission(fixture)
+        let proof = admission.eligibility
+        let wrongBudget = try AttemptBudget.standardV1(
+            policyDigest: workflowTestDigest("b")
         )
-        #expect(throws: WorkflowError.invalidExceptionProof) {
-            try WorkflowReducer().decide(
-                definition: EngineeringWorkflow.definition,
-                state: fixture.state,
-                event: WorkflowEvent(id: "budget-digest-mismatch", kind: .reviewExceptionOpened),
-                context: exceptionTransitionContext(
-                    fixture,
-                    proof: proof,
-                    verifiedBudgetOverride: mismatchedDigest
-                )
+        #expect(throws: WorkflowPolicyError.invalidExceptionProof) {
+            try VerifiedFrozenBudgetFact.freeze(
+                budget: wrongBudget,
+                runID: proof.runID,
+                cycleID: proof.cycleID,
+                convergencePolicyDigest: fixture.confirmation.baseline.convergencePolicyDigest,
+                boundEventHead: proof.roundAnchorEventHead
             )
         }
+        let accepted = try WorkflowReducer().decide(
+            definition: EngineeringWorkflow.definition,
+            state: fixture.state,
+            event: WorkflowEvent(id: "budget-bound-exception", kind: .reviewExceptionOpened),
+            context: exceptionTransitionContext(fixture, admission: admission)
+        ).proposedState
+        #expect(accepted.reviewCycle?.currentRoundID == admission.successorBaseline.roundID)
+    }
 
-        let mismatchedVersion = VerifiedFrozenBudgetFact(
-            runID: proof.runID,
-            cycleID: proof.cycleID,
-            policyVersion: proof.policyVersion + 1,
-            policyDigest: proof.budgetDigest,
-            boundEventHead: proof.roundAnchorEventHead
+    @Test("RC-05 exception lineage is continuous and exhausts the frozen budget")
+    func continuousBoundedExceptionLineage() throws {
+        let fixture = try confirmedStateFixture()
+        let budget = try AttemptBudget.standardV1(policyDigest: workflowTestDigest("a"))
+        let first = try eligibleProof(fixture)
+        let secondContext = try exceptionContext(
+            fixture: fixture,
+            current: [reviewFinding("second-high", severity: .high)],
+            priorExceptionRoundIDs: [first.nextRoundID],
+            precedingRoundID: first.nextRoundID
         )
-        #expect(throws: WorkflowError.invalidExceptionProof) {
-            try WorkflowReducer().decide(
-                definition: EngineeringWorkflow.definition,
-                state: fixture.state,
-                event: WorkflowEvent(id: "budget-version-mismatch", kind: .reviewExceptionOpened),
-                context: exceptionTransitionContext(
-                    fixture,
-                    proof: proof,
-                    verifiedBudgetOverride: mismatchedVersion
-                )
-            )
+        guard case let .eligible(second) = ReviewConvergencePolicy().evaluateException(
+            secondContext,
+            budget: budget
+        ) else {
+            Issue.record("expected the continuous second exception round")
+            return
         }
+        #expect(second.nextSemanticOrdinal == 3)
+        #expect(second.remainingExceptionRounds == 0)
 
-        let stale = VerifiedFrozenBudgetFact(
-            runID: proof.runID,
-            cycleID: proof.cycleID,
-            policyVersion: proof.policyVersion,
-            policyDigest: proof.budgetDigest,
-            boundEventHead: try workflowTestDigest("0")
+        let unrelatedPrior = try ReviewRoundID(
+            validating: String(repeating: "f", count: 64)
         )
-        #expect(throws: WorkflowError.invalidExceptionProof) {
-            try WorkflowReducer().decide(
-                definition: EngineeringWorkflow.definition,
-                state: fixture.state,
-                event: WorkflowEvent(id: "budget-stale", kind: .reviewExceptionOpened),
-                context: exceptionTransitionContext(
-                    fixture,
-                    proof: proof,
-                    verifiedBudgetOverride: stale
-                )
-            )
-        }
+        let discontinuous = try exceptionContext(
+            fixture: fixture,
+            current: [reviewFinding("discontinuous-high", severity: .high)],
+            priorExceptionRoundIDs: [unrelatedPrior],
+            precedingRoundID: first.nextRoundID
+        )
+        #expect(
+            ReviewConvergencePolicy().evaluateException(discontinuous, budget: budget)
+                == .escalation(.failed)
+        )
+
+        let exhausted = try exceptionContext(
+            fixture: fixture,
+            current: [reviewFinding("third-high", severity: .high)],
+            priorExceptionRoundIDs: [first.nextRoundID, second.nextRoundID],
+            precedingRoundID: second.nextRoundID
+        )
+        #expect(
+            ReviewConvergencePolicy().evaluateException(exhausted, budget: budget)
+                == .exhausted(.waitingForUser)
+        )
     }
 }
 
@@ -394,8 +422,12 @@ private struct HistoryFixture {
     let confirmation: KernelReviewHistoryEntry
 }
 
-private struct ConfirmedStateFixture {
+struct ConfirmedStateFixture {
     let state: RunState
+    let source: LaneBReviewScenario
+    let successor: LaneBSuccessorScenario
+    let confirmation: LaneBReviewScenario
+    let firstExceptionRemediation: VerifiedCommittedRemediationSuccessor
     let baselineDigest: HashDigest
     let registerDigest: HashDigest
     let remediationEventHead: HashDigest
@@ -432,27 +464,32 @@ private func reviewHistoryFixture() throws -> HistoryFixture {
     )
 }
 
-private func confirmedStateFixture() throws -> ConfirmedStateFixture {
+func confirmedStateFixture() throws -> ConfirmedStateFixture {
     let initialHead = try workflowTestDigest("1")
-    var state = try reviewGateState()
+    let source = try LaneBReviewScenario.make(
+        acceptedCurrentScope: true,
+        runID: workflowTestRunID,
+        gate: .requirements,
+        preFreezeEventHead: initialHead,
+        activeProfileDigest: workflowTestDigest("a")
+    )
+    let sourceClosure = try verifiedReviewClosure(source)
+    var state = try reviewGateState(runID: source.runID, gate: source.baseline.gate)
     state = try reduceReview(
         state,
         event: WorkflowEvent(
             id: "policy-initial-freeze",
             kind: .reviewBaselineFrozen,
-            reviewRound: try .initial(
-                gate: .requirements,
-                cycleOrdinal: 0,
-                preFreezeEventHead: initialHead,
-                redactionPolicy: reviewRedactionPolicy
-            )
+            reviewRound: try reviewRoundInput(for: source.baseline)
         ),
         head: initialHead
     )
     state = try reduceReview(
         state,
         event: WorkflowEvent(id: "policy-initial-close", kind: .reviewInventoryClosed),
-        head: try workflowTestDigest("2")
+        head: source.currentness.currentEventHead,
+        baseline: source.baseline.digest,
+        closureFact: sourceClosure
     )
     let remediationHead = try workflowTestDigest("3")
     state = try reduceReview(
@@ -460,26 +497,41 @@ private func confirmedStateFixture() throws -> ConfirmedStateFixture {
         event: WorkflowEvent(id: "policy-remediation", kind: .reviewRemediationRecorded),
         head: remediationHead
     )
-    let cycleID = try #require(state.reviewCycle?.id)
-    let baseline = try workflowTestDigest("4")
-    let confirmationAnchor = try workflowTestDigest("5")
+    let successor = try source.makeSuccessorBaseline(anchor: remediationHead)
+    _ = try laneBVerifiedRemediation(
+        source: source,
+        successorBaseline: successor.baseline
+    )
+    let confirmation = try successor.makeConfirmationRegister(acceptedCurrentScope: true)
+    let confirmationClosure = try verifiedReviewClosure(confirmation)
     state = try reduceReview(
         state,
         event: WorkflowEvent(
             id: "policy-confirmation-freeze",
             kind: .reviewBaselineFrozen,
-            reviewRound: try .later(
-                cycleID: cycleID,
-                gate: .requirements,
-                kind: .normalConfirmation,
-                semanticOrdinal: 1,
-                roundAnchorEventHead: confirmationAnchor,
-                predecessorBaselineDigest: baseline,
-                redactionPolicy: reviewRedactionPolicy
-            )
+            reviewRound: try reviewRoundInput(for: confirmation.baseline)
         ),
-        head: confirmationAnchor,
-        baseline: baseline
+        head: confirmation.baseline.preCreationEventHead,
+        baseline: source.baseline.digest
+    )
+    state = try reduceReview(
+        state,
+        event: WorkflowEvent(
+            id: "policy-confirmation-inventory",
+            kind: .reviewInventoryRecorded
+        ),
+        head: try workflowTestDigest("9"),
+        baseline: confirmation.baseline.digest
+    )
+    state = try reduceReview(
+        state,
+        event: WorkflowEvent(
+            id: "policy-confirmation-close",
+            kind: .reviewInventoryClosed
+        ),
+        head: confirmation.currentness.currentEventHead,
+        baseline: confirmation.baseline.digest,
+        closureFact: confirmationClosure
     )
     let confirmationHead = try workflowTestDigest("6")
     state = try reduceReview(
@@ -490,45 +542,85 @@ private func confirmedStateFixture() throws -> ConfirmedStateFixture {
         ),
         head: confirmationHead
     )
+    let currentRoundRemediationHead = try workflowTestDigest("7")
+    state = try reduceReview(
+        state,
+        event: WorkflowEvent(
+            id: "policy-confirmation-remediation",
+            kind: .reviewRemediationRecorded
+        ),
+        head: currentRoundRemediationHead
+    )
+    let exceptionTemplate = try laneBRemediationSuccessorBaseline(
+        source: confirmation,
+        kind: .exception,
+        semanticOrdinal: 2,
+        anchor: try workflowTestDigest("8"),
+        artifactHash: "c"
+    )
+    let firstExceptionRemediation = try laneBCommittedRemediation(
+        source: confirmation,
+        successorTemplate: exceptionTemplate
+    ).successor
     return ConfirmedStateFixture(
         state: state,
-        baselineDigest: baseline,
-        registerDigest: try workflowTestDigest("7"),
-        remediationEventHead: remediationHead,
+        source: source,
+        successor: successor,
+        confirmation: confirmation,
+        firstExceptionRemediation: firstExceptionRemediation,
+        baselineDigest: confirmation.baseline.digest,
+        registerDigest: confirmation.register.digest,
+        remediationEventHead: firstExceptionRemediation.producedEventHead,
         confirmationEventHead: confirmationHead,
-        exceptionEventHead: try workflowTestDigest("8")
+        exceptionEventHead: firstExceptionRemediation.publicationAnchorEventHead
     )
 }
 
-private func exceptionContext(
+func exceptionContext(
     fixture: ConfirmedStateFixture,
     immediatelyPreceding: [ReviewFindingSummary] = [],
     current: [ReviewFindingSummary],
-    priorExceptionRoundIDs: [ReviewRoundID]
+    priorExceptionRoundIDs: [ReviewRoundID],
+    precedingRoundID: ReviewRoundID? = nil,
+    precedingRegisterDigest: HashDigest? = nil,
+    precedingBaselineDigest: HashDigest? = nil,
+    remediationEventHead: HashDigest? = nil,
+    confirmationEventHead: HashDigest? = nil,
+    roundAnchorEventHead: HashDigest? = nil
 ) throws -> ReviewExceptionContext {
-    let roundID = try #require(fixture.state.reviewCycle?.currentRoundID)
+    let roundID: ReviewRoundID
+    if let precedingRoundID {
+        roundID = precedingRoundID
+    } else {
+        roundID = try #require(fixture.state.reviewCycle?.currentRoundID)
+    }
+    let registerDigest = precedingRegisterDigest ?? fixture.registerDigest
+    let baselineDigest = precedingBaselineDigest ?? fixture.baselineDigest
+    let remediationHead = remediationEventHead ?? fixture.remediationEventHead
+    let confirmationHead = confirmationEventHead ?? fixture.confirmationEventHead
+    let anchorHead = roundAnchorEventHead ?? fixture.exceptionEventHead
     let history = KernelReviewHistory(
         entries: [
             KernelReviewHistoryEntry(
                 kind: .registerJoined,
                 roundID: roundID,
-                registerDigest: fixture.registerDigest,
-                baselineDigest: fixture.baselineDigest,
+                registerDigest: registerDigest,
+                baselineDigest: baselineDigest,
                 eventHead: try workflowTestDigest("2")
-            ),
-            KernelReviewHistoryEntry(
-                kind: .remediationRecorded,
-                roundID: roundID,
-                registerDigest: fixture.registerDigest,
-                baselineDigest: fixture.baselineDigest,
-                eventHead: fixture.remediationEventHead
             ),
             KernelReviewHistoryEntry(
                 kind: .confirmationRecorded,
                 roundID: roundID,
-                registerDigest: fixture.registerDigest,
-                baselineDigest: fixture.baselineDigest,
-                eventHead: fixture.confirmationEventHead
+                registerDigest: registerDigest,
+                baselineDigest: baselineDigest,
+                eventHead: confirmationHead
+            ),
+            KernelReviewHistoryEntry(
+                kind: .remediationRecorded,
+                roundID: roundID,
+                registerDigest: registerDigest,
+                baselineDigest: baselineDigest,
+                eventHead: remediationHead
             ),
         ],
         priorExceptionRoundIDs: priorExceptionRoundIDs
@@ -538,9 +630,9 @@ private func exceptionContext(
         cycleID: try #require(fixture.state.reviewCycle?.id),
         gate: try #require(fixture.state.reviewCycle?.gate),
         precedingRoundID: roundID,
-        precedingRegisterDigest: fixture.registerDigest,
-        precedingBaselineDigest: fixture.baselineDigest,
-        roundAnchorEventHead: fixture.exceptionEventHead,
+        precedingRegisterDigest: registerDigest,
+        precedingBaselineDigest: baselineDigest,
+        roundAnchorEventHead: anchorHead,
         immediatelyPreceding: immediatelyPreceding,
         current: current,
         history: history,
@@ -548,7 +640,7 @@ private func exceptionContext(
     )
 }
 
-private func eligibleProof(
+func eligibleProof(
     _ fixture: ConfirmedStateFixture
 ) throws -> ReviewExceptionEligibility {
     let context = try exceptionContext(
@@ -566,71 +658,126 @@ private func eligibleProof(
     return proof
 }
 
-private func crossCycleProof(
+func eligibleAdmission(
     _ fixture: ConfirmedStateFixture
-) throws -> ReviewExceptionEligibility {
-    let otherCycle = try ReviewCycleID.derive(
-        runID: fixture.state.runID,
-        gate: .requirements,
-        cycleOrdinal: 9,
-        preFreezeEventHead: workflowTestDigest("9")
-    )
-    let base = try exceptionContext(
+) throws -> VerifiedReviewExceptionAdmission {
+    try sealedAdmission(
         fixture: fixture,
-        current: [reviewFinding("cross-high", severity: .high)],
-        priorExceptionRoundIDs: []
+        predecessor: fixture.source,
+        remediation: fixture.firstExceptionRemediation,
+        priorAdmissions: []
     )
-    let cross = ReviewExceptionContext(
-        runID: base.runID,
-        cycleID: otherCycle,
-        gate: base.gate,
-        precedingRoundID: base.precedingRoundID,
-        precedingRegisterDigest: base.precedingRegisterDigest,
-        precedingBaselineDigest: base.precedingBaselineDigest,
-        roundAnchorEventHead: base.roundAnchorEventHead,
-        immediatelyPreceding: base.immediatelyPreceding,
-        current: base.current,
-        history: base.history,
-        exhaustionCause: base.exhaustionCause
-    )
-    let budget = try AttemptBudget.standardV1(policyDigest: workflowTestDigest("a"))
-    guard case let .eligible(proof) = ReviewConvergencePolicy().evaluateException(
-        cross,
-        budget: budget
-    ) else { throw WorkflowPolicyError.invalidExceptionProof }
-    return proof
 }
 
-private func exceptionTransitionContext(
-    _ fixture: ConfirmedStateFixture,
-    proof: ReviewExceptionEligibility?,
-    includeVerifiedBudget: Bool = true,
-    verifiedBudgetOverride: VerifiedFrozenBudgetFact? = nil
-) throws -> TransitionContext {
-    let budget = verifiedBudgetOverride ?? (
-        includeVerifiedBudget ? proof.map(verifiedFrozenBudget) : nil
+func sealedAdmission(
+    fixture: ConfirmedStateFixture,
+    predecessor: LaneBReviewScenario,
+    remediation: VerifiedCommittedRemediationSuccessor,
+    priorAdmissions: [VerifiedReviewExceptionAdmission]
+) throws -> VerifiedReviewExceptionAdmission {
+    let current = remediation.sourceRegister
+    let registerJoinedHead = try workflowTestDigest("2")
+    let context = ReviewExceptionContext(
+        runID: current.baseline.runID,
+        cycleID: current.baseline.cycleID,
+        gate: current.baseline.gate,
+        precedingRoundID: current.baseline.roundID,
+        precedingRegisterDigest: current.register.digest,
+        precedingBaselineDigest: current.baseline.digest,
+        roundAnchorEventHead: remediation.successorBaseline.preCreationEventHead,
+        immediatelyPreceding: reviewSummaries(
+            predecessor.register,
+            acceptedState: .failedRemediation
+        ),
+        current: reviewSummaries(current.register, acceptedState: .active),
+        history: KernelReviewHistory(
+            entries: [
+                KernelReviewHistoryEntry(
+                    kind: .registerJoined,
+                    roundID: current.baseline.roundID,
+                    registerDigest: current.register.digest,
+                    baselineDigest: current.baseline.digest,
+                    eventHead: registerJoinedHead
+                ),
+                KernelReviewHistoryEntry(
+                    kind: .remediationRecorded,
+                    roundID: current.baseline.roundID,
+                    registerDigest: current.register.digest,
+                    baselineDigest: current.baseline.digest,
+                    eventHead: remediation.producedEventHead
+                ),
+                KernelReviewHistoryEntry(
+                    kind: .confirmationRecorded,
+                    roundID: fixture.confirmation.baseline.roundID,
+                    registerDigest: fixture.confirmation.register.digest,
+                    baselineDigest: fixture.confirmation.baseline.digest,
+                    eventHead: fixture.confirmationEventHead
+                ),
+            ],
+            priorExceptionRoundIDs: priorAdmissions.map(\.successorBaseline.roundID)
+        ),
+        exhaustionCause: .authorityOrDecisionRequired
     )
-    return try TransitionContext(
+    let budget = try AttemptBudget.standardV1(
+        policyDigest: current.baseline.convergencePolicyDigest
+    )
+    guard case let .eligible(admission) = ReviewConvergenceValidator
+        .evaluateExceptionForTesting(
+            context,
+            predecessorRegister: predecessor.verifiedRegister,
+            remediation: remediation,
+            priorAdmissions: priorAdmissions,
+            budget: budget,
+            registerJoinedEventHead: registerJoinedHead,
+            remediationEventHead: remediation.producedEventHead,
+            confirmationEventHead: fixture.confirmationEventHead,
+            confirmationRoundID: fixture.confirmation.baseline.roundID,
+            confirmationRegisterDigest: fixture.confirmation.register.digest,
+            confirmationBaselineDigest: fixture.confirmation.baseline.digest
+        )
+    else { throw WorkflowPolicyError.invalidExceptionProof }
+    return admission
+}
+
+func exceptionTransitionContext(
+    _ fixture: ConfirmedStateFixture,
+    admission: VerifiedReviewExceptionAdmission?,
+    currentEventHead: HashDigest? = nil
+) throws -> TransitionContext {
+    guard let admission else {
+        return try TransitionContext(
+            actorID: ActorID(validating: "exception-author"),
+            principalID: PrincipalID(validating: "exception-principal"),
+            currentEventHead: currentEventHead ?? fixture.exceptionEventHead,
+            currentReviewBaselineDigest: fixture.baselineDigest,
+            satisfiedGuards: []
+        )
+    }
+    return try TransitionContext.openingException(
         actorID: ActorID(validating: "exception-author"),
         principalID: PrincipalID(validating: "exception-principal"),
-        currentEventHead: fixture.exceptionEventHead,
-        currentReviewBaselineDigest: fixture.baselineDigest,
-        satisfiedGuards: [],
-        reviewExceptionProof: proof,
-        verifiedFrozenBudget: budget
+        currentEventHead: currentEventHead ?? fixture.exceptionEventHead,
+        admission: admission
     )
 }
 
-private func verifiedFrozenBudget(
-    _ proof: ReviewExceptionEligibility
-) -> VerifiedFrozenBudgetFact {
-    VerifiedFrozenBudgetFact(
-        runID: proof.runID,
-        cycleID: proof.cycleID,
-        policyVersion: proof.policyVersion,
-        policyDigest: proof.budgetDigest,
-        boundEventHead: proof.roundAnchorEventHead
+private func reviewSummaries(
+    _ register: IssueRegister,
+    acceptedState: ReviewFindingState
+) -> [ReviewFindingSummary] {
+    let dispositions = Dictionary(
+        uniqueKeysWithValues: register.dispositions.map { ($0.fingerprint, $0) }
     )
+    return register.entries.map { entry in
+        ReviewFindingSummary(
+            fingerprint: entry.fingerprint.failureFingerprint,
+            severity: entry.severity,
+            mustFix: entry.mustFix,
+            state: dispositions[entry.fingerprint.failureFingerprint]?.entersRemediation == true
+                ? acceptedState
+                : .resolved
+        )
+    }.sorted { $0.fingerprint.rawValue < $1.fingerprint.rawValue }
 }
 
 private func reviewFinding(

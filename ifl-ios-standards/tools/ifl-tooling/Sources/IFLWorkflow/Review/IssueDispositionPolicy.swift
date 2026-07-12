@@ -56,9 +56,10 @@ public struct DispositionAuthorityClaim: Codable, Hashable, Sendable {
         rationaleDigest: HashDigest,
         evidenceReferences: [String]
     ) throws {
-        guard !evidenceReferences.isEmpty,
-              evidenceReferences.allSatisfy(WorkflowIdentifier.isValid),
-              Set(evidenceReferences).count == evidenceReferences.count
+        let references = evidenceReferences.sorted()
+        guard !references.isEmpty,
+              references.allSatisfy(WorkflowIdentifier.isValid),
+              Set(references).count == references.count
         else { throw WorkflowPolicyError.invalidDispositionEvidence }
         self.actorID = actorID
         self.principalID = principalID
@@ -66,7 +67,7 @@ public struct DispositionAuthorityClaim: Codable, Hashable, Sendable {
         self.claimedAuthenticated = claimedAuthenticated
         self.authorityPolicyDigest = authorityPolicyDigest
         self.rationaleDigest = rationaleDigest
-        self.evidenceReferences = evidenceReferences
+        self.evidenceReferences = references
     }
 
     public init(from decoder: any Decoder) throws {
@@ -75,6 +76,7 @@ public struct DispositionAuthorityClaim: Codable, Hashable, Sendable {
             allowed: Set(CodingKeys.allCases.map(\.stringValue))
         )
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let references = try container.decode([String].self, forKey: .evidenceReferences)
         try self.init(
             actorID: container.decode(ActorID.self, forKey: .actorID),
             principalID: container.decode(PrincipalID.self, forKey: .principalID),
@@ -82,8 +84,11 @@ public struct DispositionAuthorityClaim: Codable, Hashable, Sendable {
             claimedAuthenticated: container.decode(Bool.self, forKey: .claimedAuthenticated),
             authorityPolicyDigest: container.decode(HashDigest.self, forKey: .authorityPolicyDigest),
             rationaleDigest: container.decode(HashDigest.self, forKey: .rationaleDigest),
-            evidenceReferences: container.decode([String].self, forKey: .evidenceReferences)
+            evidenceReferences: references
         )
+        guard references == evidenceReferences else {
+            throw WorkflowPolicyError.invalidDispositionEvidence
+        }
     }
 
     enum CodingKeys: String, CodingKey, CaseIterable {
@@ -165,7 +170,9 @@ public struct DispositionEvidenceEnvelope: Codable, Hashable, Sendable {
         disputed: Bool,
         authority: DispositionAuthorityClaim
     ) throws {
-        let referenceLists = [equivalenceEvidenceReferences, refutationEvidenceReferences]
+        let equivalenceReferences = equivalenceEvidenceReferences.sorted()
+        let refutationReferences = refutationEvidenceReferences.sorted()
+        let referenceLists = [equivalenceReferences, refutationReferences]
         let optionalIdentifiers = [remediationAssignmentID, accountableOwner, deferredScope, revisitCondition]
             .compactMap { $0 }
         guard referenceLists.joined().allSatisfy(WorkflowIdentifier.isValid),
@@ -180,8 +187,8 @@ public struct DispositionEvidenceEnvelope: Codable, Hashable, Sendable {
         self.remediationAssignmentID = remediationAssignmentID
         self.scopeDigest = scopeDigest
         self.canonicalFingerprint = canonicalFingerprint
-        self.equivalenceEvidenceReferences = equivalenceEvidenceReferences
-        self.refutationEvidenceReferences = refutationEvidenceReferences
+        self.equivalenceEvidenceReferences = equivalenceReferences
+        self.refutationEvidenceReferences = refutationReferences
         self.governingClauseDigest = governingClauseDigest
         self.accountableOwner = accountableOwner
         self.deferredScope = deferredScope
@@ -202,6 +209,14 @@ public struct DispositionEvidenceEnvelope: Codable, Hashable, Sendable {
         }
         let issueWire = try container.decode(String.self, forKey: .issueFingerprint)
         let canonicalWire = try container.decodeIfPresent(String.self, forKey: .canonicalFingerprint)
+        let equivalenceReferences = try container.decodeIfPresent(
+            [String].self,
+            forKey: .equivalenceEvidenceReferences
+        ) ?? []
+        let refutationReferences = try container.decodeIfPresent(
+            [String].self,
+            forKey: .refutationEvidenceReferences
+        ) ?? []
         try self.init(
             issueFingerprint: FailureFingerprint(validatingWire: issueWire),
             severity: container.decode(RiskClass.self, forKey: .severity),
@@ -213,14 +228,8 @@ public struct DispositionEvidenceEnvelope: Codable, Hashable, Sendable {
             ),
             scopeDigest: container.decodeIfPresent(HashDigest.self, forKey: .scopeDigest),
             canonicalFingerprint: try canonicalWire.map(FailureFingerprint.init(validatingWire:)),
-            equivalenceEvidenceReferences: container.decodeIfPresent(
-                [String].self,
-                forKey: .equivalenceEvidenceReferences
-            ) ?? [],
-            refutationEvidenceReferences: container.decodeIfPresent(
-                [String].self,
-                forKey: .refutationEvidenceReferences
-            ) ?? [],
+            equivalenceEvidenceReferences: equivalenceReferences,
+            refutationEvidenceReferences: refutationReferences,
             governingClauseDigest: container.decodeIfPresent(
                 HashDigest.self,
                 forKey: .governingClauseDigest
@@ -232,6 +241,9 @@ public struct DispositionEvidenceEnvelope: Codable, Hashable, Sendable {
             disputed: container.decode(Bool.self, forKey: .disputed),
             authority: container.decode(DispositionAuthorityClaim.self, forKey: .authority)
         )
+        guard equivalenceReferences == equivalenceEvidenceReferences,
+              refutationReferences == refutationEvidenceReferences
+        else { throw WorkflowPolicyError.invalidDispositionEvidence }
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -286,20 +298,65 @@ public struct FrozenDispositionPolicy: Hashable, Sendable {
     public let mandatorySeverities: [RiskClass]
     public let permitsAuthenticatedHumanRiskAcceptance: Bool
 
-    public init(
+    private init(
         digest: HashDigest,
         authorizedPrincipalIDs: [PrincipalID],
         mandatorySeverities: [RiskClass],
         permitsAuthenticatedHumanRiskAcceptance: Bool
-    ) throws {
-        guard !authorizedPrincipalIDs.isEmpty,
-              Set(authorizedPrincipalIDs).count == authorizedPrincipalIDs.count,
-              Set(mandatorySeverities).count == mandatorySeverities.count
-        else { throw WorkflowPolicyError.invalidPolicy }
+    ) {
         self.digest = digest
         self.authorizedPrincipalIDs = authorizedPrincipalIDs
         self.mandatorySeverities = mandatorySeverities
         self.permitsAuthenticatedHumanRiskAcceptance = permitsAuthenticatedHumanRiskAcceptance
+    }
+
+    public static func freeze(
+        authorizedPrincipalIDs: [PrincipalID],
+        mandatorySeverities: [RiskClass],
+        permitsAuthenticatedHumanRiskAcceptance: Bool
+    ) throws -> FrozenDispositionPolicy {
+        let principals = authorizedPrincipalIDs.sorted { $0.rawValue < $1.rawValue }
+        let severities = mandatorySeverities.sorted { $0.rawValue < $1.rawValue }
+        guard !principals.isEmpty,
+              Set(principals).count == principals.count,
+              Set(severities).count == severities.count
+        else { throw WorkflowPolicyError.invalidPolicy }
+        let payload = FrozenDispositionPolicyPayload(
+            schemaVersion: 1,
+            authorizedPrincipalIDs: principals,
+            mandatorySeverities: severities,
+            permitsAuthenticatedHumanRiskAcceptance: permitsAuthenticatedHumanRiskAcceptance
+        )
+        return FrozenDispositionPolicy(
+            digest: CanonicalTreeDigest.sha256(try CanonicalJSON.encode(payload)),
+            authorizedPrincipalIDs: principals,
+            mandatorySeverities: severities,
+            permitsAuthenticatedHumanRiskAcceptance: permitsAuthenticatedHumanRiskAcceptance
+        )
+    }
+
+    var hasCanonicalDigest: Bool {
+        guard let frozen = try? Self.freeze(
+            authorizedPrincipalIDs: authorizedPrincipalIDs,
+            mandatorySeverities: mandatorySeverities,
+            permitsAuthenticatedHumanRiskAcceptance: permitsAuthenticatedHumanRiskAcceptance
+        ) else { return false }
+        return frozen.digest == digest
+    }
+}
+
+private struct FrozenDispositionPolicyPayload: Codable {
+    let schemaVersion: Int
+    let authorizedPrincipalIDs: [PrincipalID]
+    let mandatorySeverities: [RiskClass]
+    let permitsAuthenticatedHumanRiskAcceptance: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case schemaVersion = "schema_version"
+        case authorizedPrincipalIDs = "authorized_principal_ids"
+        case mandatorySeverities = "mandatory_severities"
+        case permitsAuthenticatedHumanRiskAcceptance =
+            "permits_authenticated_human_risk_acceptance"
     }
 }
 

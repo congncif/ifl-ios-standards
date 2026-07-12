@@ -126,7 +126,7 @@ struct VerifiedFrozenBudgetFact: Hashable, Sendable {
     let policyDigest: HashDigest
     let boundEventHead: HashDigest
 
-    init(
+    private init(
         runID: RunID,
         cycleID: ReviewCycleID,
         policyVersion: Int,
@@ -139,6 +139,43 @@ struct VerifiedFrozenBudgetFact: Hashable, Sendable {
         self.policyDigest = policyDigest
         self.boundEventHead = boundEventHead
     }
+
+    static func freeze(
+        budget: AttemptBudget,
+        runID: RunID,
+        cycleID: ReviewCycleID,
+        convergencePolicyDigest: HashDigest,
+        boundEventHead: HashDigest
+    ) throws -> VerifiedFrozenBudgetFact {
+        guard budget.policyVersion == 1,
+              budget.policyDigest == convergencePolicyDigest
+        else { throw WorkflowPolicyError.invalidExceptionProof }
+        return VerifiedFrozenBudgetFact(
+            runID: runID,
+            cycleID: cycleID,
+            policyVersion: budget.policyVersion,
+            policyDigest: budget.policyDigest,
+            boundEventHead: boundEventHead
+        )
+    }
+
+    #if DEBUG
+    static func testing(
+        runID: RunID,
+        cycleID: ReviewCycleID,
+        policyVersion: Int,
+        policyDigest: HashDigest,
+        boundEventHead: HashDigest
+    ) -> VerifiedFrozenBudgetFact {
+        VerifiedFrozenBudgetFact(
+            runID: runID,
+            cycleID: cycleID,
+            policyVersion: policyVersion,
+            policyDigest: policyDigest,
+            boundEventHead: boundEventHead
+        )
+    }
+    #endif
 }
 
 public struct TransitionContext: Sendable {
@@ -149,8 +186,8 @@ public struct TransitionContext: Sendable {
     public let hasRemainingExecutionPhases: Bool
     public let satisfiedGuards: Set<WorkflowGuard>
     public let canonSnapshot: CanonSnapshot?
-    public let reviewExceptionProof: ReviewExceptionEligibility?
-    let verifiedFrozenBudget: VerifiedFrozenBudgetFact?
+    let verifiedReviewExceptionAdmission: VerifiedReviewExceptionAdmission?
+    let verifiedReviewRoundClosure: VerifiedReviewRoundClosureFact?
 
     public init(
         actorID: ActorID,
@@ -159,8 +196,7 @@ public struct TransitionContext: Sendable {
         currentReviewBaselineDigest: HashDigest? = nil,
         hasRemainingExecutionPhases: Bool = false,
         satisfiedGuards: Set<WorkflowGuard>,
-        canonSnapshot: CanonSnapshot? = nil,
-        reviewExceptionProof: ReviewExceptionEligibility? = nil
+        canonSnapshot: CanonSnapshot? = nil
     ) throws {
         self.actorID = actorID
         self.principalID = principalID
@@ -169,8 +205,8 @@ public struct TransitionContext: Sendable {
         self.hasRemainingExecutionPhases = hasRemainingExecutionPhases
         self.satisfiedGuards = satisfiedGuards
         self.canonSnapshot = canonSnapshot
-        self.reviewExceptionProof = reviewExceptionProof
-        verifiedFrozenBudget = nil
+        verifiedReviewExceptionAdmission = nil
+        verifiedReviewRoundClosure = nil
     }
 
     init(
@@ -181,8 +217,8 @@ public struct TransitionContext: Sendable {
         hasRemainingExecutionPhases: Bool = false,
         satisfiedGuards: Set<WorkflowGuard>,
         canonSnapshot: CanonSnapshot? = nil,
-        reviewExceptionProof: ReviewExceptionEligibility? = nil,
-        verifiedFrozenBudget: VerifiedFrozenBudgetFact?
+        verifiedReviewExceptionAdmission: VerifiedReviewExceptionAdmission? = nil,
+        verifiedReviewRoundClosure: VerifiedReviewRoundClosureFact? = nil
     ) throws {
         self.actorID = actorID
         self.principalID = principalID
@@ -191,8 +227,41 @@ public struct TransitionContext: Sendable {
         self.hasRemainingExecutionPhases = hasRemainingExecutionPhases
         self.satisfiedGuards = satisfiedGuards
         self.canonSnapshot = canonSnapshot
-        self.reviewExceptionProof = reviewExceptionProof
-        self.verifiedFrozenBudget = verifiedFrozenBudget
+        self.verifiedReviewExceptionAdmission = verifiedReviewExceptionAdmission
+        self.verifiedReviewRoundClosure = verifiedReviewRoundClosure
+    }
+
+    static func closingReviewRound(
+        actorID: ActorID,
+        principalID: PrincipalID,
+        currentEventHead: HashDigest,
+        currentReviewBaselineDigest: HashDigest,
+        closure: VerifiedReviewRoundClosureFact
+    ) throws -> TransitionContext {
+        try TransitionContext(
+            actorID: actorID,
+            principalID: principalID,
+            currentEventHead: currentEventHead,
+            currentReviewBaselineDigest: currentReviewBaselineDigest,
+            satisfiedGuards: [],
+            verifiedReviewRoundClosure: closure
+        )
+    }
+
+    static func openingException(
+        actorID: ActorID,
+        principalID: PrincipalID,
+        currentEventHead: HashDigest,
+        admission: VerifiedReviewExceptionAdmission
+    ) throws -> TransitionContext {
+        try TransitionContext(
+            actorID: actorID,
+            principalID: principalID,
+            currentEventHead: currentEventHead,
+            currentReviewBaselineDigest: admission.eligibility.precedingBaselineDigest,
+            satisfiedGuards: [],
+            verifiedReviewExceptionAdmission: admission
+        )
     }
 }
 

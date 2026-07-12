@@ -30,9 +30,14 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
             return TransitionDecision(proposedState: state, reasonCode: "idempotent_replay")
         }
         guard !state.isTerminal else { throw WorkflowError.terminalState }
-        guard context.reviewExceptionProof == nil || event.kind == .reviewExceptionOpened else {
+        guard context.verifiedReviewExceptionAdmission == nil ||
+            event.kind == .reviewExceptionOpened
+        else {
             throw WorkflowError.invalidExceptionProof
         }
+        guard context.verifiedReviewRoundClosure == nil ||
+                event.kind == .reviewInventoryClosed
+        else { throw WorkflowError.invalidReviewRound }
 
         if event.kind.isGlobalControlEvent {
             return try decideGlobalControl(state: state, event: event, context: context)
@@ -72,7 +77,7 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
         if let requiredGate = ReviewGateKind.findingProducingGate(for: state.stage) {
             guard let cycle = state.reviewCycle,
                   cycle.gate == requiredGate,
-                  cycle.phase == .converged,
+                  cycle.hasVerifiedTerminalConvergence,
                   cycle.cycleOrdinal == state.nextReviewCycleOrdinal
             else { throw WorkflowError.illegalTransition }
             proposed.nextReviewCycleOrdinal = try incrementChecked(state.nextReviewCycleOrdinal)
@@ -258,16 +263,23 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
             case .normalConfirmation:
                 guard var cycle = state.reviewCycle,
                       cycle.phase == .awaitingRemediation,
-                      cycle.didRecordRemediation
+                      cycle.currentRoundKind == .initial,
+                      cycle.hasVerifiedCurrentRoundClosure,
+                      cycle.closedPathDecision == .requiresRemediation,
+                      cycle.lastRemediatedRoundID == cycle.currentRoundID,
+                      cycle.confirmationReceiptID == nil,
+                      let closedBaselineDigest = cycle.closedBaselineDigest
                 else { throw WorkflowError.missingRemediation }
                 let expectedOrdinal = try incrementChecked(cycle.currentSemanticOrdinal)
                 guard input.cycleID == cycle.id,
                       input.gate == cycle.gate,
                       input.semanticOrdinal == expectedOrdinal,
                       input.semanticOrdinal == 1,
-                      input.predecessorBaselineDigest == context.currentReviewBaselineDigest,
+                      input.predecessorBaselineDigest == closedBaselineDigest,
+                      context.currentReviewBaselineDigest == closedBaselineDigest,
                       input.redactionPolicy == cycle.redactionPolicy
                 else { throw WorkflowError.invalidReviewRound }
+                cycle.clearCurrentRoundClosure()
                 cycle.currentRoundID = try ReviewRoundID.derive(
                     runID: state.runID,
                     gate: input.gate,
@@ -288,36 +300,86 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
             }
 
         case .reviewInventoryRecorded:
-            guard proposed.reviewCycle?.phase == .collectingInitial else {
+            guard let phase = proposed.reviewCycle?.phase,
+                  [.collectingInitial, .collectingNormalConfirmation, .collectingException]
+                    .contains(phase),
+                  proposed.reviewCycle?.closedRoundID == nil
+            else {
                 throw WorkflowError.illegalTransition
             }
         case .reviewInventoryClosed:
+            guard let closure = context.verifiedReviewRoundClosure else {
+                throw WorkflowError.invalidReviewRound
+            }
             guard var cycle = proposed.reviewCycle,
-                  cycle.phase == .collectingInitial
+                  [.collectingInitial, .collectingNormalConfirmation, .collectingException]
+                    .contains(cycle.phase),
+                  cycle.closedRoundID == nil
             else { throw WorkflowError.illegalTransition }
-            cycle.phase = .awaitingRemediation
+            guard closure.runID == state.runID,
+                  closure.cycleID == cycle.id,
+                  closure.gate == cycle.gate,
+                  closure.roundID == cycle.currentRoundID,
+                  closure.roundKind == cycle.currentRoundKind,
+                  closure.semanticOrdinal == cycle.currentSemanticOrdinal,
+                  closure.roundAnchorEventHead == cycle.currentRoundAnchorEventHead,
+                  closure.predecessorBaselineDigest == cycle.predecessorBaselineDigest,
+                  closure.baselineDigest == context.currentReviewBaselineDigest,
+                  closure.currentEventHead == context.currentEventHead,
+                  closure.activeProfileDigest == state.canonSnapshotDigest,
+                  closure.redactionPolicy == cycle.redactionPolicy
+            else { throw WorkflowError.invalidReviewRound }
+            cycle.installClosure(closure)
+            if cycle.currentRoundKind == .initial ||
+                closure.pathDecision == .requiresRemediation {
+                cycle.phase = .awaitingRemediation
+            }
             proposed.reviewCycle = cycle
         case .reviewRemediationRecorded:
             guard var cycle = proposed.reviewCycle,
                   cycle.phase == .awaitingRemediation,
-                  !cycle.didRecordRemediation
+                  cycle.hasVerifiedCurrentRoundClosure,
+                  cycle.closedPathDecision == .requiresRemediation,
+                  cycle.lastRemediatedRoundID != cycle.currentRoundID
             else { throw WorkflowError.illegalTransition }
             cycle.didRecordRemediation = true
+            cycle.lastRemediatedRoundID = cycle.currentRoundID
             proposed.reviewCycle = cycle
         case .reviewConfirmationRecorded:
             guard var cycle = proposed.reviewCycle,
-                  cycle.phase == .collectingNormalConfirmation,
-                  !cycle.didRecordConfirmation
+                  cycle.currentRoundKind == .normalConfirmation,
+                  [.collectingNormalConfirmation, .awaitingRemediation].contains(cycle.phase),
+                  cycle.hasVerifiedCurrentRoundClosure,
+                  cycle.confirmationReceiptID == nil
             else { throw WorkflowError.illegalTransition }
             cycle.didRecordConfirmation = true
+            cycle.confirmationReceiptID = try ReceiptID(validating: event.id)
             proposed.reviewCycle = cycle
         case .reviewConverged:
             guard var cycle = proposed.reviewCycle else {
                 throw WorkflowError.illegalTransition
             }
-            let isDirect = cycle.phase == .awaitingRemediation && !cycle.didRecordRemediation
-            let isConfirmed = cycle.phase == .collectingNormalConfirmation && cycle.didRecordConfirmation
-            guard isDirect || isConfirmed else { throw WorkflowError.illegalTransition }
+            guard cycle.hasVerifiedCurrentRoundClosure else {
+                throw WorkflowError.illegalTransition
+            }
+            if cycle.closedPathDecision == .requiresRemediation {
+                throw WorkflowError.missingRemediation
+            }
+            let isDirect = cycle.currentRoundKind == .initial &&
+                cycle.phase == .awaitingRemediation &&
+                cycle.closedPathDecision == .directConvergenceNoAcceptedCurrentScope
+            let isConfirmed = cycle.currentRoundKind == .normalConfirmation &&
+                cycle.phase == .collectingNormalConfirmation &&
+                cycle.closedPathDecision == .directConvergenceNoAcceptedCurrentScope &&
+                cycle.confirmationReceiptID != nil
+            let isConfirmedException = cycle.currentRoundKind == .exception &&
+                cycle.phase == .collectingException &&
+                cycle.closedPathDecision == .directConvergenceNoAcceptedCurrentScope &&
+                cycle.confirmationReceiptID != nil
+            guard isDirect || isConfirmed || isConfirmedException,
+                  cycle.convergenceReceiptID == nil
+            else { throw WorkflowError.illegalTransition }
+            cycle.convergenceReceiptID = try ReceiptID(validating: event.id)
             cycle.phase = .converged
             proposed.reviewCycle = cycle
         case .reviewInvalidated:
@@ -326,27 +388,46 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
             else { throw WorkflowError.illegalTransition }
             proposed.nextReviewCycleOrdinal = try incrementChecked(cycle.cycleOrdinal)
             cycle.phase = .invalidated
+            cycle.clearCurrentRoundClosure()
+            cycle.lastRemediatedRoundID = nil
+            cycle.confirmationReceiptID = nil
             proposed.reviewCycle = cycle
         case .reviewExceptionOpened:
-            guard let proof = context.reviewExceptionProof else {
+            guard let admission = context.verifiedReviewExceptionAdmission else {
                 throw WorkflowError.exceptionPolicyRequired
             }
+            let proof = admission.eligibility
+            let frozenBudget = admission.frozenBudget
             guard var cycle = proposed.reviewCycle,
-                  let frozenBudget = context.verifiedFrozenBudget,
+                  let closedRoundID = cycle.closedRoundID,
+                  let closedBaselineDigest = cycle.closedBaselineDigest,
+                  let closedRegisterDigest = cycle.closedRegisterDigest,
                   proof.hasValidDigest,
                   proof.runID == state.runID,
                   proof.cycleID == cycle.id,
                   proof.gate == cycle.gate,
-                  proof.precedingRoundID == cycle.currentRoundID,
-                  proof.precedingBaselineDigest == cycle.predecessorBaselineDigest,
+                  cycle.currentRoundKind == .normalConfirmation ||
+                    cycle.currentRoundKind == .exception,
+                  cycle.phase == .awaitingRemediation,
+                  cycle.hasVerifiedCurrentRoundClosure,
+                  cycle.closedPathDecision == .requiresRemediation,
+                  cycle.lastRemediatedRoundID == cycle.currentRoundID,
+                  cycle.confirmationReceiptID != nil,
+                  proof.precedingRoundID == closedRoundID,
+                  proof.precedingRegisterDigest == closedRegisterDigest,
+                  proof.precedingBaselineDigest == closedBaselineDigest,
                   proof.precedingBaselineDigest == context.currentReviewBaselineDigest,
-                  proof.roundAnchorEventHead == context.currentEventHead,
+                  admission.remediation.sourceRegister.register.digest == closedRegisterDigest,
+                  admission.remediation.sourceRegister.baseline.digest == closedBaselineDigest,
+                  admission.successorBaseline.preCreationEventHead ==
+                    proof.roundAnchorEventHead,
                   frozenBudget.runID == state.runID,
                   frozenBudget.cycleID == cycle.id,
                   frozenBudget.policyVersion == proof.policyVersion,
                   frozenBudget.policyDigest == proof.budgetDigest,
-                  frozenBudget.boundEventHead == context.currentEventHead,
-                  proof.nextSemanticOrdinal == (try incrementChecked(cycle.currentSemanticOrdinal)),
+                  frozenBudget.boundEventHead == proof.roundAnchorEventHead,
+                  proof.nextSemanticOrdinal == (try ReviewConvergencePolicy()
+                    .nextExceptionSemanticOrdinal(after: cycle.currentSemanticOrdinal)),
                   proof.nextSemanticOrdinal >= 2,
                   proof.remainingExceptionRounds >= 0,
                   proof.policyVersion == 1,
@@ -354,8 +435,6 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
                   Set(proof.qualifyingFingerprints).count == proof.qualifyingFingerprints.count,
                   cycle.didRecordRemediation,
                   cycle.didRecordConfirmation,
-                  cycle.phase == .collectingNormalConfirmation ||
-                    cycle.phase == .collectingException,
                   proof.nextRoundID == (try ReviewRoundID.derive(
                     runID: state.runID,
                     gate: cycle.gate,
@@ -364,14 +443,20 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
                     semanticOrdinal: proof.nextSemanticOrdinal,
                     roundAnchorEventHead: proof.roundAnchorEventHead,
                     predecessorBaselineDigest: proof.precedingBaselineDigest
-                  ))
+                  )),
+                  proof.nextRoundID == admission.successorBaseline.roundID,
+                  proof.nextSemanticOrdinal == admission.successorBaseline.semanticOrdinal,
+                  admission.successorBaseline.kind == .exception,
+                  admission.successorBaseline.predecessorBaselineDigest ==
+                    proof.precedingBaselineDigest
             else { throw WorkflowError.invalidExceptionProof }
+            cycle.clearCurrentRoundClosure()
             cycle.phase = .collectingException
-            cycle.currentRoundID = proof.nextRoundID
+            cycle.currentRoundID = admission.successorBaseline.roundID
             cycle.currentRoundKind = .exception
-            cycle.currentSemanticOrdinal = proof.nextSemanticOrdinal
-            cycle.currentRoundAnchorEventHead = proof.roundAnchorEventHead
-            cycle.predecessorBaselineDigest = proof.precedingBaselineDigest
+            cycle.currentSemanticOrdinal = admission.successorBaseline.semanticOrdinal
+            cycle.currentRoundAnchorEventHead = admission.successorBaseline.preCreationEventHead
+            cycle.predecessorBaselineDigest = admission.successorBaseline.predecessorBaselineDigest
             proposed.reviewCycle = cycle
         default:
             throw WorkflowError.illegalTransition
@@ -382,6 +467,7 @@ public struct WorkflowReducer: WorkflowReducing, Sendable {
         )
         return TransitionDecision(proposedState: proposed, reasonCode: event.kind.rawValue)
     }
+
 }
 
 private extension WorkflowEventKind {

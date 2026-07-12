@@ -182,6 +182,124 @@ struct IssueDispositionPolicyTests {
             try derive(input)
         }
     }
+
+    @Test("RC-01 review disposition capability requires current receipt-backed kernel authority")
+    func reviewDispositionCapabilityIsReceiptBacked() throws {
+        let baseline = try LaneABaselineFixture.make()
+        let policies = try laneAVerifiedPolicySet(baseline: baseline.baseline)
+        let issue = try IssueFingerprint.derive(from: laneAIssueComponents())
+
+        _ = try laneAVerifiedDispositionEvidence(
+            fingerprint: issue,
+            severity: .critical,
+            mustFix: true,
+            baseline: baseline.baseline,
+            policies: policies
+        )
+        #expect(throws: (any Error).self) {
+            try laneAVerifiedDispositionEvidence(
+                fingerprint: issue,
+                severity: .critical,
+                mustFix: true,
+                baseline: baseline.baseline,
+                policies: policies,
+                hasSourceWriteCapability: true
+            )
+        }
+        #expect(throws: (any Error).self) {
+            try laneAVerifiedDispositionEvidence(
+                fingerprint: issue,
+                severity: .critical,
+                mustFix: true,
+                baseline: baseline.baseline,
+                policies: policies,
+                persistEvidenceReceipt: false
+            )
+        }
+        #expect(throws: PersistenceError.integrityViolation) {
+            try laneAVerifiedDispositionEvidence(
+                fingerprint: issue,
+                severity: .critical,
+                mustFix: true,
+                baseline: baseline.baseline,
+                policies: policies,
+                spliceEvidenceReceipt: true
+            )
+        }
+    }
+
+    @Test("RC-01 disposition policy digest changes with every behavior-bearing field")
+    func dispositionPolicyDigestIsCanonical() throws {
+        let base = try FrozenDispositionPolicy.freeze(
+            authorizedPrincipalIDs: [
+                PrincipalID(validating: "kernel-principal"),
+                PrincipalID(validating: "review-principal"),
+            ],
+            mandatorySeverities: [.high, .critical],
+            permitsAuthenticatedHumanRiskAcceptance: false
+        )
+        let reordered = try FrozenDispositionPolicy.freeze(
+            authorizedPrincipalIDs: [
+                PrincipalID(validating: "review-principal"),
+                PrincipalID(validating: "kernel-principal"),
+            ],
+            mandatorySeverities: [.critical, .high],
+            permitsAuthenticatedHumanRiskAcceptance: false
+        )
+        let changedPrincipal = try FrozenDispositionPolicy.freeze(
+            authorizedPrincipalIDs: [PrincipalID(validating: "other-principal")],
+            mandatorySeverities: [.high, .critical],
+            permitsAuthenticatedHumanRiskAcceptance: false
+        )
+        let changedSeverity = try FrozenDispositionPolicy.freeze(
+            authorizedPrincipalIDs: [
+                PrincipalID(validating: "kernel-principal"),
+                PrincipalID(validating: "review-principal"),
+            ],
+            mandatorySeverities: [.critical],
+            permitsAuthenticatedHumanRiskAcceptance: false
+        )
+        let changedRiskAcceptance = try FrozenDispositionPolicy.freeze(
+            authorizedPrincipalIDs: [
+                PrincipalID(validating: "kernel-principal"),
+                PrincipalID(validating: "review-principal"),
+            ],
+            mandatorySeverities: [.high, .critical],
+            permitsAuthenticatedHumanRiskAcceptance: true
+        )
+        #expect(throws: WorkflowPolicyError.invalidPolicy) {
+            try FrozenDispositionPolicy.freeze(
+                authorizedPrincipalIDs: [
+                    PrincipalID(validating: "kernel-principal"),
+                    PrincipalID(validating: "kernel-principal"),
+                ],
+                mandatorySeverities: [.critical],
+                permitsAuthenticatedHumanRiskAcceptance: false
+            )
+        }
+        #expect(throws: WorkflowPolicyError.invalidPolicy) {
+            try FrozenDispositionPolicy.freeze(
+                authorizedPrincipalIDs: [PrincipalID(validating: "kernel-principal")],
+                mandatorySeverities: [.critical, .critical],
+                permitsAuthenticatedHumanRiskAcceptance: false
+            )
+        }
+        #expect(base.digest == reordered.digest)
+        #expect(base.digest != changedPrincipal.digest)
+        #expect(base.digest != changedSeverity.digest)
+        #expect(base.digest != changedRiskAcceptance.digest)
+    }
+
+    @Test("RC-01 empty disposition authority set is rejected")
+    func emptyDispositionAuthorityIsRejected() {
+        #expect(throws: WorkflowPolicyError.invalidPolicy) {
+            try FrozenDispositionPolicy.freeze(
+                authorizedPrincipalIDs: [],
+                mandatorySeverities: [.critical],
+                permitsAuthenticatedHumanRiskAcceptance: false
+            )
+        }
+    }
 }
 
 private func dispositionFixture(_ filename: String) throws -> DispositionEvidenceEnvelope {
@@ -192,15 +310,50 @@ private func dispositionFixture(_ filename: String) throws -> DispositionEvidenc
         .deletingLastPathComponent()
         .deletingLastPathComponent()
         .appendingPathComponent("verification/fixtures/workflow/review/\(filename)")
-    return try CanonicalJSON.decode(
+    let decoded = try CanonicalJSON.decode(
         DispositionEvidenceEnvelope.self,
         from: Data(contentsOf: url)
+    )
+    return try rebindingDispositionPolicy(decoded)
+}
+
+private func rebindingDispositionPolicy(
+    _ input: DispositionEvidenceEnvelope
+) throws -> DispositionEvidenceEnvelope {
+    // These narrow semantic vectors predate behavior-bound policy digests and sit outside the
+    // checkpoint fixture boundary. Treat their disposition fields as templates, then exercise the
+    // policy with the same canonical frozen binding used by production review fixtures.
+    let authority = try DispositionAuthorityClaim(
+        actorID: input.authority.actorID,
+        principalID: input.authority.principalID,
+        claimedKind: input.authority.claimedKind,
+        claimedAuthenticated: input.authority.claimedAuthenticated,
+        authorityPolicyDigest: dispositionPolicy().digest,
+        rationaleDigest: input.authority.rationaleDigest,
+        evidenceReferences: input.authority.evidenceReferences
+    )
+    return try DispositionEvidenceEnvelope(
+        issueFingerprint: input.issueFingerprint,
+        severity: input.severity,
+        mustFix: input.mustFix,
+        evidenceKind: input.evidenceKind,
+        remediationAssignmentID: input.remediationAssignmentID,
+        scopeDigest: input.scopeDigest,
+        canonicalFingerprint: input.canonicalFingerprint,
+        equivalenceEvidenceReferences: input.equivalenceEvidenceReferences,
+        refutationEvidenceReferences: input.refutationEvidenceReferences,
+        governingClauseDigest: input.governingClauseDigest,
+        accountableOwner: input.accountableOwner,
+        deferredScope: input.deferredScope,
+        revisitCondition: input.revisitCondition,
+        humanRiskAcceptance: input.humanRiskAcceptance,
+        disputed: input.disputed,
+        authority: authority
     )
 }
 
 private func dispositionPolicy() throws -> FrozenDispositionPolicy {
-    try FrozenDispositionPolicy(
-        digest: workflowTestDigest("6"),
+    try FrozenDispositionPolicy.freeze(
         authorizedPrincipalIDs: [PrincipalID(validating: "kernel-principal")],
         mandatorySeverities: [.critical],
         permitsAuthenticatedHumanRiskAcceptance: false
@@ -251,7 +404,7 @@ private func dispositionEnvelope(
         principalID: PrincipalID(validating: "kernel-principal"),
         claimedKind: .kernel,
         claimedAuthenticated: true,
-        authorityPolicyDigest: workflowTestDigest("6"),
+        authorityPolicyDigest: dispositionPolicy().digest,
         rationaleDigest: workflowTestDigest("7"),
         evidenceReferences: authorityEvidenceReferences
     )
