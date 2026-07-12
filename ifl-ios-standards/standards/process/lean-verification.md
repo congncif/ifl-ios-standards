@@ -140,6 +140,9 @@ separate fields:
 - whether the accumulated focused signal and checkpoint owning gate are exactly equal in command,
   obligations, and candidate fingerprint (`EQUAL` or `DISTINCT`);
 - higher wave/release owner: ID, schedule, and complete obligation set;
+- designated owner for every accumulated/checkpoint/wave gate, with a default successful-run budget
+  of one;
+- any nondeterminism claim, exact repetition budget, independent-sample definition, and stopping rule;
 - intended lower-to-higher subsumption and the planned pre-run evaluation of all §6 conditions;
 - the complete normative §7 candidate-fingerprint/input-closure fields and invalidation conditions;
 - Product RED return policy for expected/unexpected behavior failures;
@@ -167,6 +170,21 @@ Use the cheapest causal signal at the earliest useful point and the expensive si
 
 Commands come from the consuming project's bindings/canonical scripts. Do not hard-code a Go, Kotlin,
 iOS, scheme, destination, or tool command in this policy.
+
+Before executing an accumulated, checkpoint, wave, build, or full-suite command, derive the complete
+verification key from gate ID/version, obligations, candidate fingerprint and input closure, command,
+configuration, toolchain, target/destination, and relevant environment/external-state stamp. Then make
+one decision:
+
+| Condition | Required action |
+|---|---|
+| a current GREEN receipt matches the complete key | `REUSE`; bind it to the pending obligation and do not execute |
+| any relevant key field changed, or the prior attempt was non-GREEN/invalid | `RUN_ONCE` at the declared owner |
+| the Plan Gate declared a nondeterminism claim with a finite sample budget and stopping rule | execute only that declared sample plan |
+
+Agent identity, handoff, confirmation, conversation age, and extra confidence are not invalidation
+events. The default successful-run budget is one. A subagent owns only its declared causal/focused
+signal; one designated owner executes each accumulated/checkpoint/wave gate.
 
 Do not rerun unrelated targeted tests after every slice. Run the new causal proof, then one accumulated
 targeted set at the semantic boundary. Plan one authoritative full-suite/build execution per evidence
@@ -288,6 +306,10 @@ At the Plan Gate, map:
   Behavioral defects get causal regression tests at their applicable tier. Mechanical/generated/docs
   defects use static, lint, schema/digest proof, or Tier 3 as applicable; never create a fake behavioral
   test merely to satisfy the loop.
+- Do not mutate or run an accumulated/checkpoint owning gate after an individual finding. First join,
+  deduplicate, and classify the complete frozen-roster inventory; then apply the accepted-current-scope
+  set as one batch. Tier-1 causal RED → GREEN remains per behavior, while the affected accumulated and
+  owning signals wait until the batch's final relevant mutation.
 - Run the affected focused proof and the still-pending checkpoint owning gate only after the batch's
   final mutation. Only after the complete roster join and materiality classification may the immutable
   initial-register decision select `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`. That decision skips

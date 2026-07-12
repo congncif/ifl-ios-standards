@@ -189,6 +189,8 @@ checkpoint map**, not task/file counts. Each checkpoint must declare:
 - an explicit `EQUAL`/`DISTINCT` decision between those two signals;
 - higher wave/release owner with its ID, schedule, complete obligations, and any intended subsumption
   evaluated before the lower gate would run;
+- one designated owner for each accumulated/checkpoint/wave gate and a repetition budget of one;
+  any nondeterminism claim must predeclare its sample count and stopping rule;
 - the complete normative evidence record from `lean-verification.md` §7, distinguishing candidate
   fingerprint from append-only audit-ledger identities;
 - separate Product RED, capability/preflight, and post-commit wave/release failure policies; and
@@ -220,6 +222,28 @@ For each approved semantic checkpoint, run this sequence:
 `{POST_JOIN_DEFAULT: owner pending | PRE_REVIEW_REQUIRED: owner GREEN} → collect-all review → classify materiality →`
 `{direct convergence | one remediation batch} → prospective subsumption/final focused-owner proof →`
 `{close direct path | bounded confirmation} → ready-for-commit route`
+
+### Verification execution decision
+
+Before any accumulated, checkpoint, wave, build, or full-suite command, compute its verification key:
+gate ID/version + obligations + candidate fingerprint/input closure + command/configuration/toolchain/
+environment. Resolve exactly one decision:
+
+| Observable state | Decision |
+|---|---|
+| a current GREEN receipt matches the complete key | `REUSE`; bind the receipt and run nothing |
+| a relevant key input changed, or the prior attempt was non-GREEN/invalid | `RUN_ONCE` at the declared owner |
+| the Plan Gate predeclared a nondeterminism claim, sample budget, and stopping rule | run only that declared budget |
+
+Another agent, handoff, confirmation request, elapsed conversation time, or desire for confidence does
+not invalidate a receipt. The default successful-run budget is one. Subagents may run the causal or
+focused signal for their owned work slice; only the designated gate owner runs an accumulated,
+checkpoint, wave, build, or full-suite gate.
+
+For review remediation, join, deduplicate, and classify the complete frozen-roster inventory before
+mutation. Add required Tier-1 causal regression tests and apply all accepted-current-scope fixes as one
+batch. Do not run the accumulated or owning gate after an individual finding; run the affected focused
+proof and pending owner once after the batch's last relevant mutation.
 
 - A work slice is not a checkpoint, review, commit, approval, or full-gate boundary. Do not ask the
   user to approve routine slices in co-working mode.
