@@ -1,7 +1,10 @@
 # Deploy ifl-ios-standards to GitHub
 
+> CI integration and publication are owned by DevOps and are outside package preparation. The
+> commands below document the handoff procedure; this release-candidate update does not run them.
+
 The marketplace currently lives on a removable drive. Pushing it to GitHub makes it installable
-from anywhere (teammates, CI, fresh machines) with no drive and no clone.
+from anywhere (teammates and fresh machines) with no drive and no clone.
 
 ## Repo shape
 
@@ -33,7 +36,7 @@ cd /Volumes/KingstonXS1000/WORKSPACE/ABC/ifl-ios-pack/marketplace
 
 git init
 git add .
-git commit -m "ifl-ios-standards marketplace v0.15.0"
+git commit -m "ifl-ios-standards marketplace v1.0.0-rc.1"
 
 # create the public repo under your account and push (gh is logged in as congncif)
 gh repo create congncif/ifl-ios-standards --public --source=. --remote=origin --push
@@ -42,15 +45,15 @@ gh repo create congncif/ifl-ios-standards --public --source=. --remote=origin --
 Tag the version so installs can pin it:
 
 ```bash
-git tag v0.15.0
-git push origin v0.15.0
+git tag v1.0.0-rc.1
+git push origin v1.0.0-rc.1
 ```
 
 > If `marketplace/` is also tracked by the parent `ifl-ios-pack` repo, keep it ignored there
 > (`echo 'marketplace/' >> ../.gitignore`) so the two repos don't nest — a dedicated marketplace
 > repo is the clean model.
 
-## Install from GitHub (teammates / CI / fresh machine)
+## Install from GitHub (teammates / fresh machine)
 
 Works exactly like any public plugin — **no clone, no drive, no jq**. Two CLI commands by repo name.
 
@@ -58,12 +61,12 @@ Works exactly like any public plugin — **no clone, no drive, no jq**. Two CLI 
 ```bash
 claude plugin marketplace add  congncif/ifl-ios-standards          # default branch
 claude plugin install          ifl-ios-standards@ifl-ios-standards
-# (pin a version: add  congncif/ifl-ios-standards#v0.15.0  instead)
+# (pin the release candidate: add  congncif/ifl-ios-standards#v1.0.0-rc.1  instead)
 ```
 
 **Codex:**
 ```bash
-codex plugin marketplace add   congncif/ifl-ios-standards          # --ref v0.15.0 to pin
+codex plugin marketplace add   congncif/ifl-ios-standards          # --ref v1.0.0-rc.1 to pin
 codex plugin add               ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -77,7 +80,7 @@ one-liner — it does **not** need the repo cloned:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
 # or with flags:
-curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash -s -- --ref=v0.15.0 --scope=project
+curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash -s -- --ref=v1.0.0-rc.1 --scope=project
 ```
 
 Or settings-only auto-enable (`~/.claude/settings.json` for global):
@@ -104,11 +107,11 @@ claude plugin marketplace add    congncif/ifl-ios-standards
 
 To go back to the drive, re-run `ifl-ios-standards/scripts/install-claude.sh`.
 
-## Updating
+## DevOps publication handoff
 
-1. Edit content under `ifl-ios-standards/`.
-2. Bump `version` in `ifl-ios-standards/.claude-plugin/plugin.json` (SemVer).
-3. `git commit` + `git push`; `git tag vX.Y.Z && git push origin vX.Y.Z`.
+1. Confirm `ifl-ios-standards/VERSION` and both provider manifest versions match.
+2. DevOps runs the repository's CI and publication checks.
+3. DevOps performs `git commit` + `git push`; then `git tag vX.Y.Z && git push origin vX.Y.Z`.
 4. Installs with `autoUpdate: true` pick up the default branch; pinned installs move when you
    re-add with the new `#vX.Y.Z`, or run `claude plugin marketplace update ifl-ios-standards`.
 

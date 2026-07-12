@@ -1,7 +1,7 @@
 {
   "name": "ifl-ios-standards",
-  "version": "0.18.4",
-  "description": "Reusable iOS engineering standards with provider-native Brain-Flow, specialist agents, Boardy/VIP task skills, bundled architecture standards, and scaffolders.",
+  "version": "1.0.0-rc.1",
+  "description": "Reusable iOS standards with 9 specialist agents, 21 skills including enterprise-ios, provider-native Brain Flow, ten enterprise chapters, and thin build-system-neutral source scaffolders.",
   "author": {
     "name": "IFL iOS"
   },
@@ -11,7 +11,7 @@
     "boardy",
     "vip",
     "swift",
-    "bazel",
+    "enterprise-ios",
     "architecture",
     "standards",
     "scaffolding",
@@ -21,8 +21,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "IFL iOS Standards",
-    "shortDescription": "Reusable iOS standards, agents, skills, and scaffolders",
-    "longDescription": "Brings reusable iOS engineering standards into Codex through provider-native Brain-Flow: one approved plan, continuous execution, semantic task commits, and one final AI consistency review. The plugin also ships pattern-neutral brain stage skills, Boardy/VIP task skills, specialist agents, bundled rulebook/spec/process standards, and Bazel module/board scaffolders. Reference paths shown as ${CLAUDE_PLUGIN_ROOT}/standards/\u2026 resolve relative to this plugin root under Codex.",
+    "shortDescription": "9 agents, 21 iOS skills, standards, and source scaffolders",
+    "longDescription": "Brings reusable iOS engineering standards into Codex through provider-native Brain Flow. The plugin ships 9 specialist agents, 21 skills including enterprise-ios and Boardy/VIP task routing, ten focused enterprise chapters, and thin build-system-neutral module/board source scaffolders. Reference paths shown as ${CLAUDE_PLUGIN_ROOT}/standards/\u2026 resolve relative to this plugin root under Codex.",
     "developerName": "IFL iOS",
     "category": "Engineering",
     "capabilities": [

@@ -25,10 +25,19 @@ skills only when the target project actually uses Boardy/VIP.
   `:boardy-review`, `:boardy-refactor`, `:boardy-troubleshoot`, `:boardy-adopt`.
   Call one explicitly when the task matches it; otherwise follow this constitution and the relevant
   process/spec files in the plugin.
+- **Brain Flow** (end-to-end delivery): `/ifl-ios-standards:brain-flow` in co-working or auto mode.
+  It uses the host provider's native task/thread, subagent, tool, and approval capabilities.
+- **Enterprise iOS router**: `/ifl-ios-standards:enterprise-ios`. Route only the applicable chapters
+  among its ten concerns: Swift 6 concurrency, SwiftUI production, data lifecycle, mobile security,
+  privacy/compliance, accessibility/global readiness, observability/operability, modern testing,
+  performance/resilience, and supply-chain/legal.
 - **Agents** (multi-step delivery): `ios-orchestrator` (start here for broad implementation work),
   `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`,
   `ios-review-triage`, `ios-doc-scribe` — appear in `/agents`.
-- **Scaffolders on PATH** when the plugin is enabled: `ifl-new-module`, `ifl-new-board`.
+- **Source scaffolders on PATH** when the plugin is enabled: `ifl-new-module`, `ifl-new-board`.
+  They emit additive, build-system-neutral source skeletons only. They resolve the repository-owned
+  module root from these bindings and never invent build files, targets, dependencies, platform
+  versions, destinations, commands, or CI configuration.
 
 The plugin's agents/skills read **this file** for everything project-specific below.
 
@@ -50,7 +59,12 @@ Full architecture rules live in `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/
 1. Domain is pure Swift — no UIKit, networking, persistence, or vendor SDKs.
 2. Dependencies point inward: Infrastructure → Business → Domain. Never reverse.
 3. Public contract boundary: Consumers depend only on another module's public contract, normally its IO target or documented public API surface. Allowed public imports include IO/contract targets, documented library APIs, shared value-model/contracts, design-system primitives, platform abstractions, and generated schema contracts; test-support imports are allowed only from test targets. Never import internal composition, plugin registry, feature implementation, concrete adapter, mock, or private targets. If no clear contract exists, introduce an IO/facade boundary before adding new cross-module dependencies.
-4. Views are humble; UI updates run on the main actor.
+4. UIKit and SwiftUI Views are humble. The Presenter prepares immutable, display-ready semantic
+   state. A UIKit controller renders it through a display port; a SwiftUI View observes an equivalent
+   MainActor presentation store and keeps `@State` UX-only. Views may select a Presenter-encoded
+   presentation phase and own small interaction/geometry state, but never format raw/domain values,
+   derive product or analytics meaning, choose business/navigation policy, perform business I/O, or
+   construct dependencies. Identical domain input yields equivalent semantic display state in both.
 5. One state, one writer. Concrete types built only at composition roots.
 6. No speculative abstraction, no unrelated changes. Verify with real signals — empty output ≠ success.
 7. When in doubt, stop and ask.
@@ -93,31 +107,31 @@ Apply these rules when translating product work into iOS architecture:
 
 | Concern | Value |
 |---------|-------|
-| Dependency manager | `{DependencyManager}` |
 | Module root | `{ModuleRoot}` |
-| Module dependency file | `{ModuleDependencyFile}` |
-| Interface target | `{ModuleName}` — glob `IO/**/*.swift` |
-| Implementation target | `{ModuleName}Plugins` — glob `Sources/**/*.swift` |
-| Test target | `{ModuleName}-Tests` — glob `Tests/**/*.swift` |
+| Build / package system | `{BuildSystem}` |
+| Build / package integration | `{BuildIntegration}` |
+| Public contract target / sources | `{InterfaceTargetPattern}` / `{InterfaceSourceGlob}` |
+| Implementation target / sources | `{ImplementationTargetPattern}` / `{ImplementationSourceGlob}` |
+| Test target / sources | `{TestTargetPattern}` / `{TestSourceGlob}` |
 
-> Dependency manager: CocoaPods / Bazel + rules_xcodeproj / SPM. Module root: `Features` for Bazel,
-> `submodules`/`Modules` for CocoaPods, `Packages` for SPM. Module dependency file: `BUILD.bazel` or
-> `*.podspec`. Keep the **Module root** value cell a single bare token (no prose/extra backticks) —
-> the scaffolders parse it.
-
-New Boardy modules emit the two-target split via `/ifl-ios-standards:boardy-new-module`. Keep the
-IO/Plugins split whenever this project's standard uses it.
+Fill **Module root** with one repository-relative path token and no explanatory prose; the source
+scaffolders parse that binding from root `CLAUDE.md`, then `AGENTS.md`, and fail instead of guessing.
+An explicit `--module-root` may override it. New Boardy modules preserve the public IO / internal
+Plugins source split, but the consuming repository must add those sources to its own build/package
+configuration and define all labels, dependencies, platform values, resources, targets, and tests.
 
 ---
 
 ## 5. Build / test / verify
 
 ```bash
-{BuildCommand}      # e.g. bazel build //Features/{ModuleName}:{ModuleName}Plugins  — or xcodebuild …
-{TestCommand}       # e.g. bazel test  //Features/{ModuleName}:{ModuleName}-Tests
+{BuildCommand}
+{TestCommand}
 ```
 
-Plan-scale execution and final AI review: see
+These commands come from this repository's governance; the plugin and its scaffolders do not supply
+or replace them. CI and release automation remain owned by the consuming repository/DevOps boundary.
+Plan-scale execution and the one final AI review: see
 `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`.
 
 ---
@@ -128,10 +142,21 @@ Plan-scale execution and final AI review: see
 
 - Use `/ifl-ios-standards:brain-flow` through the host provider's native task/thread, subagent, tool,
   and approval capabilities.
-- Keep one approved plan and its checklist as engineering state. Do not add provider profiles,
-  progress schemas, receipts, manifests, or a custom workflow engine.
-- Complete the plan before one final AI consistency review. Do not review after every workstream,
-  finding, test, or semantic commit.
+- Explicit `auto` / `full auto` selects auto mode; explicit `co-working` / `review with me` selects
+  co-working. Otherwise use the repository's configured default, falling back to co-working.
+- In co-working mode, obtain user approval for requirements/Definition of Done and for the complete
+  plan. In auto mode, record AI decisions at those two gates and continue without routine questions;
+  escalate only material ambiguity, a real blocker, an external hold, or missing authority.
+- Keep one approved full-plan checklist and provider-native task state. Do not add provider profiles,
+  verifier/lint/smoke scripts, progress schemas, receipts, manifests, fingerprints, evidence ledgers,
+  or a provider-independent workflow engine.
+- Complete every workstream and the last planned mutation before exactly one joined final AI
+  consistency review over the complete branch diff and final repository state. Parallel specialist
+  lanes are part of that one event. Collect findings first, apply accepted in-scope findings in one
+  corrective batch, and do not schedule routine per-workstream, per-finding, or confirmation re-review.
+- Use repository-owned code tests for executable behavior where risk warrants them. Do not run builds
+  or tests for template/documentation-only changes merely to manufacture evidence, and do not
+  duplicate repository CI.
 
 ### Core directives
 
@@ -166,10 +191,11 @@ Plan-scale execution and final AI review: see
 
 ### Project operations
 - Follow project governance for Git authority. An explicit scoped auto-commit instruction authorizes
-  local stage+commit for each completed semantic task in its plan/repository/branch without another
-  prompt. It never authorizes branch changes, amend/history rewrite, push, PR, merge, tag, publish,
-  install, or release. Stage only intended task paths.
-- Commit message convention: `{CommitPrefix}` *(e.g. a ticket-key prefix, if your team requires one)*.
+  local stage+commit for each completed semantic task in its approved plan, repository, worktree, and
+  branch without another prompt. It never authorizes branch creation/switch, amend/history rewrite,
+  push, PR, merge, tag, publish, install, release, or another external effect. Without that grant,
+  obtain per-operation authority. Stage only intended task paths.
+- Commit message convention: `{CommitPrefix}` *(resolve from project governance; do not invent one)*.
 - Project docs/plans/handoffs live in-repo under `docs/` per
   `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md` (working docs →
   `docs/02-working-docs/…`). The multi-agent pipeline workspace

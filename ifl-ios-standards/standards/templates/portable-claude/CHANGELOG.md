@@ -1,3 +1,5 @@
+<!-- template-version: 2.4.0 -->
+
 # Changelog — `portable-claude` template
 
 The portable-claude template is a **bindings starter** for a project adopting the reusable iOS
@@ -12,11 +14,20 @@ This template follows [SemVer](https://semver.org/), versioned independently of 
 
 ## [2.4.0] — 2026-07-13
 
-Simplified Brain-Flow for provider-native plan-scale delivery.
+Aligned portable Claude/Codex project bindings with the Standards 1.0 candidate.
 
-- Uses host-native task/thread and subagent capabilities without a custom Kernel.
-- Executes one approved plan continuously and reviews consistency once at the end.
-- Keeps semantic task commits traceable without per-checkpoint gates or evidence machinery.
+- Uses host-native task/thread and subagent capabilities in auto or co-working mode without a custom
+  Kernel or provider-independent workflow state.
+- Executes one approved full plan continuously and runs exactly one joined final AI consistency review.
+- Defines scoped local auto-commit authority without extending it to other Git/external operations.
+- Routes enterprise work through the ten `enterprise-ios` chapters.
+- Carries the shared UIKit/SwiftUI humble-View contract.
+- Describes module/board scaffolders as source-only, additive, and build-system-neutral; module roots,
+  build/package integration, commands, tests, CI, and release automation remain repository-owned.
+- Removes stale Bazel-scaffolder claims and process machinery based on verifier scripts, receipts,
+  manifests, fingerprints, evidence ledgers, or custom state.
+- Replaces fictional example project values with generic placeholders.
+- Normalizes template headers and `VERSION` at `2.4.0`.
 
 ## [2.3.0] — 2026-07-11
 

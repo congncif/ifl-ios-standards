@@ -22,7 +22,7 @@ Defaults to **global (user) scope** — the plugin is enabled in every project. 
 |---------|--------|-----------------------|
 | `scripts/install-claude.sh` | global — all projects | `~/.claude/settings.json` |
 | `scripts/install-claude.sh --scope=project --project=/path/to/repo` | one repo | `<repo>/.claude/settings.local.json` |
-| `scripts/install-claude.sh --scope=local` | this checkout only | none (CLI state only) |
+| `scripts/install-claude.sh --scope=local` | this checkout only | none (no settings file written) |
 
 ## Manual install
 
@@ -47,7 +47,7 @@ Or pre-seed settings (`~/.claude/settings.json` for global, repo `.claude/settin
 ## After install
 
 - Restart Claude Code, or run `/reload-plugins`, if discovery doesn't refresh.
-- Verify: `claude plugin list` shows `ifl-ios-standards@ifl-ios-standards` enabled;
+- Confirm discovery: `claude plugin list` shows `ifl-ios-standards@ifl-ios-standards` enabled;
   `/agents` lists the 9 `ios-*` agents; `/ifl-ios-standards:boardy-vip` resolves.
 - Wire the consuming repo: copy a starter from `standards/templates/portable-claude/` into the
   repo's `CLAUDE.md` and fill in scheme / module roots / build commands / base branch / remote.
@@ -65,7 +65,7 @@ source there instead.
 Same repo serves Codex via its `.codex-plugin/` manifests:
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.15.0 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v1.0.0-rc.1 to pin
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -79,4 +79,4 @@ Codex resolves `${CLAUDE_PLUGIN_ROOT}/standards/…` paths relative to the plugi
 
 - `claude` CLI (Claude Code) or `codex` CLI (Codex) on PATH.
 - `jq` (optional) for the Claude installer's automatic settings merge; without it it prints the block to paste.
-- For the scaffolders: the consuming project is a Bazel iOS repo (see `bin/ifl-new-module --help`).
+- For the scaffolders: a consuming iOS source tree; the generators are thin and build-system-neutral.

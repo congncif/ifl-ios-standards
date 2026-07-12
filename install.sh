@@ -9,10 +9,10 @@ set -euo pipefail
 # Run it any of these ways:
 #   curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
 #   bash install.sh
-#   bash install.sh --ref=v0.15.0 --scope=project
+#   bash install.sh --ref=v1.0.0-rc.1 --scope=project
 #
 # Flags (all optional):
-#   --ref=BRANCH|TAG|SHA   pin a version (e.g. v0.15.0); omit = default branch
+#   --ref=BRANCH|TAG|SHA   pin a version (e.g. v1.0.0-rc.1); omit = default branch
 #   --scope=user|project|local   default user (global, all projects)
 
 REPO="congncif/ifl-ios-standards"

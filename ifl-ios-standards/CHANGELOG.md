@@ -4,6 +4,12 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.0-rc.1] — 2026-07-13
+
+### Changed
+- Aligned the dual-provider package at 9 agents and 21 skills, including `enterprise-ios`, with provider-native Brain Flow and ten focused enterprise chapters.
+- Described the module/board generators as thin build-system-neutral source scaffolders and refreshed release-candidate install pins.
+
 ## [0.18.4] — 2026-07-09
 
 ### Fixed

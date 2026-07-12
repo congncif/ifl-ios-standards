@@ -1,243 +1,162 @@
-<!-- Created by claude-sonnet-4-6 on 2026-05-18 -->
+<!-- template-version: 2.4.0 -->
 
-# QUICK_REF.example.md — SHAPE REFERENCE (Boardy+VIP flavor)
+# QUICK_REF.example.md — placeholder-only Boardy+VIP shape reference
 
-> ⚠️ **DO NOT COPY VALUES.** This file shows the *shape* of a project-level `QUICK_REF.md` when the chosen presentation pattern is **Boardy+VIP**.
->
-> **Pattern-specific.** If the project chose MVVM / MVP / MVI / TCA / Composable / custom, regenerate this file with that pattern's conventions instead. The generic brain rulebook (`.ai/brain/rulebook/`) stays pattern-neutral; pattern-specific naming/code-patterns belong in this binding file.
->
-> When SETUP.md generates the real file:
-> - Replace `<SpecsRoot>` with the project's chosen specs folder (declared in `PROJECT_CONFIG.md`).
-> - Replace `<BindingsRoot>` with the chosen bindings root (default `.claude/project/`).
-> - Replace illustrative module names (`Auth`, `Profile`) with the project's actuals.
-> - Keep ONLY the sections relevant to the chosen pattern; drop the rest.
-> - This file is OPTIONAL — generate only if the project has ≥3 task-specific specs.
+> **Pattern-specific.** Generate a project `QUICK_REF.md` only when the consuming repository uses
+> Boardy+VIP and needs project-local routing beyond the plugin skills. Replace placeholders from the
+> repository; do not invent module names, prefixes, paths, build labels, dependencies, commands, or
+> platform values. For another presentation pattern, generate that pattern's own concise routing file.
 
 ---
 
-# QUICK_REF — Project Task → Spec Routing (Boardy+VIP)
+# QUICK_REF — Project Task Routing (Boardy+VIP)
 
-> Read this file **first** for every task. Then load exactly the one task-specific spec from the routing table below. Do not pre-load specs speculatively.
-
----
-
-## 1. Task → Spec Routing
-
-| Task | Load next |
-|------|-----------|
-| Architecture overview / runtime composition | `<SpecsRoot>/ARCHITECTURE.md` |
-| SDK-first / dependency choice | `<SpecsRoot>/SDK_FIRST.md` |
-| 3-layer dependency rule / cross-layer boundary | `<SpecsRoot>/LAYERING.md` |
-| Project-specific values (scheme, simulator, paths) | `<BindingsRoot>/PROJECT_CONFIG.md` |
-| New module | `<SpecsRoot>/MODULE_CREATION.md` |
-| IO / BoardID / InOut / ServiceMap | `<SpecsRoot>/IO_INTERFACE.md` |
-| Microboard with UI (VIP) | `<SpecsRoot>/MICROBOARD_UI.md` + `<SpecsRoot>/VIP_COMPONENTS.md` |
-| Microboard without UI | `<SpecsRoot>/MICROBOARD_NONUI.md` (read Decision Tree first!) |
-| Cross-module service sharing | `<SpecsRoot>/CROSS_MODULE_DI.md` |
-| Service / UseCase / Repository / Infra | `<SpecsRoot>/SERVICE_LAYER.md` |
-| Board communication / Bus / flows | `<SpecsRoot>/COMMUNICATION.md` |
-| Context navigation / backToPrevious / returnHere / alerts | `<SpecsRoot>/CONTEXT_NAVIGATION.md` |
-| Plugin / LauncherPlugin | `<SpecsRoot>/PLUGINS_INTEGRATION.md` |
-| ComposableBoard / TabBar | `<SpecsRoot>/COMPOSABLE_BOARD.md` |
-| Per-activation services / concurrency guard / routing config in Controller | `<SpecsRoot>/PER_ACTIVATION_RESOURCES.md` |
-| Multiple interchangeable providers / OCP extensible backend selection | `<SpecsRoot>/EXTENSIBLE_PROVIDER.md` |
-| Gate board activation behind another board | `<SpecsRoot>/ACTIVATION_BARRIER.md` |
-| Testing | `<SpecsRoot>/TESTING.md` |
-| Code review | `<SpecsRoot>/REVIEWER_CHECKLIST.md` only |
-| Code example | `<SpecsRoot>/EXAMPLES.md` (index) → load matching `EXAMPLES_*.md` |
-
-> **Non-UI Board type — decide before writing any code:**
-> 0. Does a VIP UI board already serve as the entry point to this flow? → Let that VIP board be the coordinator via `registerFlows()`. Do NOT wrap it with a Non-UI FlowBoard.
-> 1. Single async task then done? → **BlockTask Board**
-> 2. Coordinator that must remember a child board's output for a later step? → **Viewless Board**
-> 3. Pure pass-through routing with NO UI anchor, OR reused from multiple entry points, OR conditional gate logic? → **Flow Board** (`finishBus` is the only stored property allowed)
+Read root `CLAUDE.md` / `AGENTS.md` for project bindings, then use the matching plugin router/skill.
+Do not copy plugin rules into this file.
 
 ---
 
-## 2. Naming — Module Level
+## 1. Task Routing
 
-| Concept | No Prefix | With Prefix `EXA` |
-|---------|-----------|-------------------|
-| Module name | `Auth` | `EXAAuth` |
-| IO podspec | `Auth` | `EXAAuth` |
-| Plugins podspec | `AuthPlugins` | `EXAAuthPlugins` |
-| No-prefix name (VIP classes) | `Auth` | `Auth` |
-| IO ServiceMap class | `AuthServiceMap` | `EXAAuthServiceMap` |
-| IO ServiceMap var | `modAuth` | `modEXAAuth` |
-| Plugins ServiceMap class | `AuthPluginsServiceMap` | `EXAAuthPluginsServiceMap` |
-| Plugins ServiceMap var | `modAuthPlugins` | `modEXAAuthPlugins` |
+| Task | Route |
+|------|-------|
+| End-to-end delivery | `/ifl-ios-standards:brain-flow` |
+| Boardy+VIP task selection | `/ifl-ios-standards:boardy-vip` |
+| New module | `/ifl-ios-standards:boardy-new-module` |
+| New UIKit or SwiftUI board | `/ifl-ios-standards:boardy-new-board` |
+| IO / BoardID / InOut / ServiceMap | `/ifl-ios-standards:boardy-io-interface` |
+| Board communication / buses / flows | `/ifl-ios-standards:boardy-communication` |
+| Domain / use case / repository / infrastructure | `/ifl-ios-standards:boardy-service-layer` |
+| Plugin and app composition | `/ifl-ios-standards:boardy-plugin-composition` |
+| Tests | `/ifl-ios-standards:boardy-testing` |
+| Review | `/ifl-ios-standards:boardy-review` |
+| Refactor | `/ifl-ios-standards:boardy-refactor` |
+| Troubleshoot | `/ifl-ios-standards:boardy-troubleshoot` |
+| Adopt Standards 1.0 | `/ifl-ios-standards:boardy-adopt` |
+| Enterprise iOS concern | `/ifl-ios-standards:enterprise-ios` |
 
----
-
-## 3. Naming — BoardID
-
-| Type | Pattern | Example |
-|------|---------|---------|
-| Public (IO/) | `pub.mod.{ModuleName}.{BoardName}` | `pub.mod.Auth.SignIn` |
-| Internal (Sources/) | `mod.{ModuleName}.{BoardName}` | `mod.Auth.SignIn` |
-| Internal aliases public | `static let modXxx: BoardID = .pubXxx` | direct alias |
-
-```swift
-public extension BoardID { static let pubSignIn: BoardID = "pub.mod.Auth.SignIn" }
-extension BoardID { static let modSignIn: BoardID = "mod.Auth.SignIn" }
-```
+The enterprise router covers ten chapters: Swift 6 concurrency, SwiftUI production, data lifecycle,
+mobile security, privacy/compliance, accessibility/global readiness, observability/operability,
+modern testing, performance/resilience, and supply-chain/legal. Load only chapters intersecting the
+task; keep organization-specific thresholds, legal decisions, vendors, contacts, and risk acceptance
+in consuming-project governance.
 
 ---
 
-## 4. Naming — VIP Classes
+## 2. Non-UI Board Decision Order
 
-| Component | Pattern | Example |
-|-----------|---------|---------|
-| Board | `{Name}Board` | `SignInBoard` |
-| Builder | `{Name}Builder` | `SignInBuilder` |
-| Interactor | `{Name}Interactor` | `SignInInteractor` |
-| Presenter | `{Name}Presenter` | `SignInPresenter` |
-| ViewController | `{Name}ViewController` | `SignInViewController` |
-| UseCase protocol | `{Action}UseCase` | `AuthenticateUseCase` |
-| UseCase impl | `{Action}UseCaseInteractor` | `AuthenticateUseCaseInteractor` |
+1. If a VIP UI board already owns the entry, let it coordinate via `registerFlows()`; add no wrapper.
+2. One async task with a per-activation result → BlockTask Board.
+3. Coordinator retains a child output for a later step → Viewless Board.
+4. Stateless routing, reused entry, or conditional gate → Flow Board.
 
 ---
 
-## 5. Protocol Location Rules
+## 3. Naming Formulas
 
-| Protocol | Lives in | Conformed by |
-|----------|---------|-------------|
-| `{Name}Interactable` | `{Name}ViewController.swift` | Interactor |
-| `{Name}Presentable` | `{Name}Interactor.swift` | Presenter |
-| `{Name}Viewable` | `{Name}Presenter.swift` | ViewController |
-| `{Name}Controllable` | `{Name}Protocols.swift` | Interactor (UI) or Controller (Viewless) |
-| `{Name}ActionDelegate` | `{Name}Protocols.swift` | Board |
-| `{Name}ControlDelegate` | `{Name}Protocols.swift` | Board |
-| `{Name}UserInterface` | `{Name}Protocols.swift` | ViewController |
-| `{Name}Buildable` | `{Name}Protocols.swift` | Builder struct |
+| Concept | Formula |
+|---------|---------|
+| Complete module name | `{ModuleName}` from project/task binding; optional prefix is repository-owned |
+| Public BoardID literal | `pub.mod.{ModuleName}.{BoardName}` |
+| Board | `{BoardName}Board` |
+| Builder | `{BoardName}Builder` |
+| Interactor | `{BoardName}Interactor` |
+| Presenter | `{BoardName}Presenter` |
+| UIKit adapter | `{BoardName}ViewController` |
+| SwiftUI adapter | `{BoardName}View` + `{BoardName}PresentationStore` + hosting controller |
+| Use-case protocol | `{Action}UseCase` |
+| Use-case implementation | `{Action}UseCaseInteractor` |
 
----
-
-## 6. Key Code Patterns (Boardy+VIP)
-
-### Weak references — always
-```swift
-weak var delegate: {Name}ControlDelegate!       // Interactor → Board
-weak var actionDelegate: {Name}ActionDelegate!  // ViewController → Board
-weak var view: {Name}Viewable!                  // Presenter → ViewController
-```
-
-### Async/await — mandatory pattern
-```swift
-Task { [weak self] in
-    guard let self else { return }
-    do {
-        let result = try await useCase.execute()
-        await MainActor.run { [weak self] in
-            guard let self else { return }
-            presenter.presentResult(result)
-        }
-    } catch {
-        await MainActor.run { [weak self] in
-            guard let self else { return }
-            presenter.presentError(error)
-        }
-    }
-}
-```
-
-### registerFlows — always in init, never activate
-```swift
-init(identifier: BoardID, ...) {
-    super.init(identifier: identifier, boardProducer: producer)
-    registerFlows()  // LAST line of init
-}
-```
-
-### Access modifiers
-```swift
-// IO/  → everything public
-public final class AuthServiceMap: ServiceMap {}
-public struct SignInInput { ... }
-
-// Sources/  → internal by default
-final class AuthPluginsServiceMap: ServiceMap {}
-final class SignInBoard: ModernContinuableBoard, ... {}
-
-// Sources/Plugins/ — minimum App-boot construction surface may be public
-public struct AuthLauncherPlugin: LauncherPlugin {
-    public init() { /**/ }
-}
-```
+VIP class names do not inherit an optional organization module prefix. Resolve any real prefix from
+project bindings; never manufacture one from an example.
 
 ---
 
-## 7. Project-Specific Non-Negotiables (Boardy+VIP)
+## 4. Protocol Placement
 
-> Add to the generic hard rules (`${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/20-non-negotiable-rules.md`):
+| Protocol | Declaration owner | Typical conformer |
+|----------|-------------------|-------------------|
+| `{BoardName}Interactable` | View adapter file | Interactor |
+| `{BoardName}Presentable` | Interactor file | Presenter |
+| `{BoardName}Viewable` / display port | Presenter file | UIKit controller or MainActor SwiftUI store |
+| `{BoardName}Controllable` | protocols file | Interactor or viewless controller |
+| `{BoardName}ActionDelegate` | protocols file | Board |
+| `{BoardName}ControlDelegate` | protocols file | Board |
+| `{BoardName}UserInterface` | protocols file | View adapter |
+| `{BoardName}Buildable` | protocols file | Builder |
 
-1. Humble View (`UI-HUMBLE-001`…`004`) renders display-ready state and forwards typed intent. It may branch on Presenter-encoded loading/content/empty/error state and own UX-local interaction/geometry state; it never formats raw/domain values, derives product or analytics meaning, makes business/navigation-policy decisions, performs business I/O, or constructs dependencies.
-2. Unidirectional flow (`BRD-VIP-001`): `View → Interactor → UseCase → Presenter → View`. Exception: direct UI navigation intents may go `View → ActionDelegate(Board)`.
-3. IO exports public domain contracts. `Sources/**` is internal except the minimum App-boot construction surface in `Sources/Plugins/**` (`CORE-API-001`).
-4. Never import `{ModuleName}Plugins` from another feature module; depend on IO only (`CORE-COMP-001`).
-5. `weak var view` in Presenter; `weak var delegate` in Interactor.
-6. `registerFlows()` called in Board's `init`, never in `activate()`.
-7. Double-activation guard only when the Board is explicitly single-session; Board→Controller communication uses event buses, not retrieved controller references.
-8. `sharedRepository` as stored property on ModulePlugin — never created inside closures.
-9. `complete()` called at most once; `BlockTaskBoard` auto-completes (never call manually).
-10. Viewless boards using `attachObject` must release via `complete()` or `detachObject(_:)`; otherwise re-activation stacks controllers on buses.
-11. UIKit consumes immutable display-ready state through a display port. SwiftUI consumes the same semantic state through a MainActor presentation store; SwiftUI `State` is UX-only (`UIKIT-RENDER-001`, `UI-ISOLATION-001`).
+Use the current plugin cheatsheet/spec as authority when it differs from this shape reference.
 
 ---
 
-## 8. Module Folder Skeleton
+## 5. UIKit / SwiftUI Humble-View Contract
 
-```
+The Presenter prepares one immutable, display-ready semantic state for both frameworks.
+
+- A View may branch on a Presenter-encoded loading/content/empty/error phase.
+- A View may own focus, highlight, gesture, animation, scroll, disclosure, geometry, and visual
+  interpolation state.
+- A View never formats raw/domain dates, currency, quantities, labels, or errors; derives product or
+  analytics meaning; chooses eligibility, pricing, retry, CTA, or business navigation; performs
+  business I/O; or constructs business dependencies.
+- UIKit renders through a display port and forwards typed intent.
+- SwiftUI observes a MainActor presentation store conforming to the same semantic display port;
+  `@State` remains UX-only.
+- Identical domain input yields equivalent semantic display state for UIKit and SwiftUI. Layout and
+  framework-local interaction mechanics may differ.
+- Boardy still composes a `UIViewController` navigation surface; SwiftUI adapts at that boundary.
+
+---
+
+## 6. Core Boardy+VIP Rules
+
+1. Flow is View → Interactor → UseCase → Presenter → View. Pure navigation intent may go directly
+   from View to the Board action delegate.
+2. IO declarations are public and vendor-free. `Sources/**` is internal except the minimum justified
+   app-composition surface under `Sources/Plugins/**`.
+3. Feature consumers import another module's public IO contract, never its Plugins implementation.
+4. Presenter view, Interactor delegate, and View action delegate references are weak.
+5. Call `registerFlows()` in Board initialization, never activation.
+6. Add a double-activation guard only for an explicitly single-session Board.
+7. Board-to-controller communication uses event buses, not a retrieved controller reference.
+8. Keep shared repositories at module/plugin lifetime, outside registration closures.
+9. Call `complete()` at most once and only after owned streams/observers are released; a BlockTask
+   Board does not call it manually.
+10. UI/presentation mutation runs on the declared MainActor boundary.
+
+---
+
+## 7. Source-Only Scaffold Shape
+
+`ifl-new-module` emits the minimal source boundary under the repository-owned module root:
+
+```text
 {ModuleRoot}/{ModuleName}/
-├── {ModuleName}.podspec             ← IO target: source_files = 'IO/**/*.swift'
-├── {ModuleName}Plugins.podspec      ← Plugins target: source_files = 'Sources/**/*.swift'
 ├── IO/
-│   ├── {ModuleName}ServiceMap.swift
-│   └── {BoardName}/
-│       ├── {BoardName}IOInterface.swift
-│       ├── {BoardName}InOut.swift
-│       └── ServiceMap+{BoardName}.swift
+│   └── {ModuleName}ServiceMap.swift
 └── Sources/
-    ├── Plugins/
-    │   ├── {ModuleName}PluginsServiceMap.swift
-    │   └── {ModuleName}ModulePlugin.swift
-    ├── Microboards/{BoardName}/
-    │   ├── {BoardName}Protocols.swift
-    │   ├── {BoardName}Board.swift
-    │   ├── {BoardName}Builder.swift
-    │   ├── {BoardName}Interactor.swift
-    │   ├── {BoardName}Presenter.swift
-    │   ├── {BoardName}ViewController.swift
-    │   └── ServiceMap+{BoardName}.swift
-    └── Services/
-        ├── Domain/
-        ├── Application/{Action}UseCase.swift
-        └── Infra/
+    └── Plugins/
+        ├── {ModuleName}PluginsServiceMap.swift
+        └── {ModuleName}ModulePlugin.swift
 ```
 
-### Podfile entry
-```ruby
-pod '{ModuleName}',        :path => '{ModuleRoot}/{ModuleName}'
-pod '{ModuleName}Plugins', :path => '{ModuleRoot}/{ModuleName}'
-```
+`ifl-new-board` adds public files under `IO/{BoardName}/` and implementation files under
+`Sources/Microboards/{BoardName}/`. Its selectors are `ui`, `swiftui`, `viewless`, `flow`, and
+`blocktask`.
 
-### s.dependency — name only, never :path
-```ruby
-s.dependency 'Boardy'          # correct
-# s.dependency 'Boardy', :path => '.'  # WRONG — breaks lint
-```
+Both scaffolders are additive and fail on existing destinations. They resolve the module root from
+root `CLAUDE.md`, then `AGENTS.md`, unless an explicit `--module-root` is supplied. They emit no
+build/package files, target labels, dependencies, platform/deployment values, resources, tests,
+commands, or CI. The consuming repository integrates generated sources and adds tests only for real
+observable behavior.
 
 ---
 
-## 9. Example Dictionary
+## 8. Provider-Native Delivery
 
-Load `<SpecsRoot>/EXAMPLES.md` (index) to find which example file to load. Each example file is a self-contained work unit — load exactly one.
-
-| Work Unit | Example File |
-|-----------|--------------|
-| IO layer | `<SpecsRoot>/EXAMPLES_IO.md` |
-| Plugin layer | `<SpecsRoot>/EXAMPLES_PLUGIN.md` |
-| Full VIP UI Board (6 files) | `<SpecsRoot>/EXAMPLES_VIP_BOARD.md` |
-| Viewless Board (4 files) | `<SpecsRoot>/EXAMPLES_VIEWLESS_BOARD.md` |
-| Flow Board / BlockTask Board | `<SpecsRoot>/EXAMPLES_NONUI_BOARDS.md` |
-| Service layer | `<SpecsRoot>/EXAMPLES_SERVICE.md` |
+- Brain Flow supports co-working and auto mode with one requirements decision and one plan decision.
+- Execute the complete approved plan before exactly one joined final AI consistency review.
+- Scoped auto-commit may authorize local stage+commit for conforming semantic tasks only; all other
+  Git/external effects remain separately governed.
+- Use repository-owned code tests and CI. Do not add verifier/lint/smoke scripts, receipts, manifests,
+  fingerprints, evidence ledgers, custom workflow state, or per-workstream review gates.

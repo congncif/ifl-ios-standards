@@ -1,104 +1,74 @@
-<!-- Created by claude-opus-4-7 on 2026-05-09 -->
 # iOS Standards Specs
 
-Reusable design and execution standards for modular iOS apps, including pattern-neutral guidance plus Boardy/VIP, plugin composition, and domain-driven layering references.
+These specs explain how to apply the IFL iOS Standards to modular iOS work. They are derived guidance:
+Canon owns current obligations and the selected Profiles determine applicability.
 
----
+## Start here
 
-## Five Pillars
+1. Read `../GOVERNANCE.md` for authority, decision rights, change classes, deprecation, and exceptions.
+2. Read `../COMPATIBILITY.md` for provider, Boardy/UIKit/SwiftUI, build-system, and `0.18.x` migration
+   boundaries.
+3. Select `core` plus only the applicable Profiles from `../canon/profiles/`.
+4. Bind workspace, scheme, simulator, module root, build system, commands, and organization-policy
+   references in the consuming repo's `CLAUDE.md`, `AGENTS.md`, or equivalent project configuration.
+5. Load the smallest relevant spec set below. A spec, Skill, agent, template, example, or scaffolder
+   cannot override Canon.
 
-| # | Pillar | Rule home |
-|---|--------|-----------|
-| 1 | SDK-first | `standards/specs/SDK_FIRST.md` |
-| 2 | Modular + Interface Module | `standards/specs/MODULE_CREATION.md`, `standards/specs/IO_INTERFACE.md` |
-| 3 | Plugin Architecture | `standards/specs/PLUGINS_INTEGRATION.md` |
-| 4 | Micro-services Composable | `standards/specs/MICROBOARD_UI.md`, `standards/specs/MICROBOARD_NONUI.md`, `standards/specs/COMMUNICATION.md`, `standards/specs/COMPOSABLE_BOARD.md` |
-| 5 | Domain-driven Layered | `standards/specs/ARCHITECTURE.md`, `standards/specs/LAYERING.md`, `standards/specs/SERVICE_LAYER.md`, `standards/specs/VIP_COMPONENTS.md` |
+## Task routing
 
----
+Use `${CLAUDE_PLUGIN_ROOT}/standards/specs/...` from Claude Code. Under Codex, resolve the same paths
+relative to the plugin root.
 
-## Quick Start
+| Goal | Load |
+|---|---|
+| Understand authority or evolve the Standards | `../GOVERNANCE.md` → `../canon/adrs/ADR-0001-standards-authority-and-evolution.md` |
+| Assess provider/framework/build compatibility or migrate `0.18.x` | `../COMPATIBILITY.md` → `PACKAGE_MANAGER.md` |
+| Pick a Board/profile/bus/resource pattern | `DECISION_TREES.md` |
+| Adopt in a legacy project | `BROWNFIELD_MIGRATION.md` → `ADOPTION.md` |
+| Stand up a new project | `GREENFIELD_SETUP.md` |
+| Understand architecture and layering | `ARCHITECTURE.md` → `LAYERING.md` |
+| Choose a dependency or bind a package manager | `SDK_FIRST.md` → `PACKAGE_MANAGER.md` |
+| Create a module and public IO | `MODULE_CREATION.md` → `IO_INTERFACE.md` |
+| Build a Boardy/VIP UI or non-UI board | `MICROBOARD_UI.md` or `MICROBOARD_NONUI.md` |
+| Implement VIP components | `VIP_COMPONENTS.md` |
+| Wire board communication/navigation | `COMMUNICATION.md` → `CONTEXT_NAVIGATION.md` |
+| Compose plugins or cross-module dependencies | `PLUGINS_INTEGRATION.md` → `CROSS_MODULE_DI.md` |
+| Implement services/domain/infrastructure | `SERVICE_LAYER.md` → `LAYERING.md` |
+| Write or select tests | `TESTING.md` → `../enterprise/modern-testing.md` |
+| Review code | `REVIEW_PLAYBOOK.md` → `REVIEWER_CHECKLIST.md` |
+| Refactor a module or public symbol | `REFACTOR_PLAYBOOK.md` |
+| Debug a symptom or failure | `TROUBLESHOOTING.md` |
+| Find skeleton code | `EXAMPLES.md` → one matching `EXAMPLES_*.md` |
 
-1. Install and enable the `ifl-ios-standards` plugin.
-2. Seed the target project bindings with `ifl-init` or `/ifl-ios-standards:init`.
-3. Fill the target repo's `CLAUDE.md` / `AGENTS.md` project values: workspace, scheme, simulator, module root, base branch, app entry file.
-4. Use `standards/specs/ADOPTION.md` as the migration checklist when adopting the standards in an existing project.
-5. Keep project-specific examples out of reusable rule files; place them in the consuming repo's `CLAUDE.md`, `AGENTS.md`, `.claude/project/PROJECT_CONFIG.md`, or feature PRDs.
+## Profile selection
 
----
+| Profile | Select when |
+|---|---|
+| `core` | Always. It carries universal authority, inward-dependency, and enterprise obligations. |
+| `boardy-vip` | The governed scope uses Boardy lifecycle, IO, composition, communication, or VIP. |
+| `uikit` | The governed scope renders through UIKit. |
+| `swiftui` | The governed scope renders through SwiftUI. |
 
-## Task Routing
+UIKit and SwiftUI may coexist. Boardy/VIP is optional outside Boardy scope. Profiles specialize Core;
+they do not fork it. Use the Profile JSON files and mapped Rule IDs for the authoritative selection.
 
-Use `${CLAUDE_PLUGIN_ROOT}/standards/specs/...` paths when referencing these files from Claude Code skills/agents. Under Codex, resolve the same paths relative to the plugin root.
+## Project binding contract
 
-| I want to... | Load |
-|--------------|------|
-| Pick a pattern (Board type / ID prefix / bus shape / resource scope) | `standards/specs/DECISION_TREES.md` |
-| Adopt pack into a legacy UIKit project (brownfield) | `standards/specs/BROWNFIELD_MIGRATION.md` |
-| Stand up a new iOS app on the pack (greenfield) | `standards/specs/GREENFIELD_SETUP.md` |
-| Debug a symptom / lint failure / runtime crash | `standards/specs/TROUBLESHOOTING.md` |
-| Understand architecture | `standards/brain/rulebook/` → `standards/specs/ARCHITECTURE.md` |
-| Choose or add a dependency | `standards/specs/SDK_FIRST.md` |
-| Create a module | `standards/specs/MODULE_CREATION.md` → `standards/specs/IO_INTERFACE.md` |
-| Define public board IO | `standards/specs/IO_INTERFACE.md` |
-| Build a UI board | `standards/specs/MICROBOARD_UI.md` → `standards/specs/VIP_COMPONENTS.md` |
-| Build a non-UI board | `standards/specs/MICROBOARD_NONUI.md` |
-| Wire board communication | `standards/specs/COMMUNICATION.md` |
-| Add plugin integration | `standards/specs/PLUGINS_INTEGRATION.md` |
-| Share service across modules | `standards/specs/CROSS_MODULE_DI.md` |
-| Implement service layer | `standards/specs/SERVICE_LAYER.md` → `standards/specs/LAYERING.md` |
-| Write tests | `standards/specs/TESTING.md` |
-| Review code — procedural runbook (triage, categorize, comment templates) | `standards/specs/REVIEW_PLAYBOOK.md` |
-| Review code — exhaustive rule reference | `standards/specs/REVIEWER_CHECKLIST.md` |
-| Refactor — split/merge module, extract/move Board, rename public symbol | `standards/specs/REFACTOR_PLAYBOOK.md` |
-| Find skeleton code | `standards/specs/EXAMPLES.md` → one matching `EXAMPLES_*.md` |
+The specs use semantic placeholders such as Interface/contract target, Implementation/Plugins target,
+module root, build command, and organization policy. A consuming repository supplies the concrete values.
+CocoaPods, SwiftPM, Bazel, and mixed arrangements are valid when they preserve Canon boundaries; see
+`PACKAGE_MANAGER.md`.
 
----
+Do not put reusable project names, schemes, simulator models, module paths, legal values, security
+thresholds, response windows, or publication authority in these specs. Human-owned organization policy
+supplies those values. Missing authority is escalated, not guessed.
 
-## Assumed Project Shape
+## Reading contract
 
-The specs support modular iOS projects with:
-
-- Module root such as `{ModuleRoot}/{ModuleName}/`.
-- Interface target `{ModuleName}` containing `IO/**/*.swift`.
-- Implementation target `{ModuleName}Plugins` containing `Sources/**/*.swift`.
-- App-level dependency configuration such as `Podfile`, `BUILD.bazel`, `Package.swift`, or equivalent package wiring.
-- Optional Boardy `Motherboard`, `BoardProducer`, and `ServiceMap` usage when the project adopts Boardy/VIP.
-- Optional plugin host that installs `LauncherPlugin`s before launch.
-- Build/test commands documented outside reusable specs, referenced via the consuming repo's `CLAUDE.md` / `AGENTS.md` or `.claude/project/PROJECT_CONFIG.md`.
-
-If your project uses different folders or package tooling, update the consuming repo's project bindings; do not hard-code those values into reusable rules.
-
----
-
-## Terminology Map
-
-| Canonical term | Common alias |
-|----------------|--------------|
-| Interface Module | IO module / public target |
-| Implementation Module | Plugins module / Sources target |
-| Business Application Layer | VIP layer / Microboards |
-| Domain Layer | Services/Domain |
-| Infrastructure Layer | Services/Infra, Tracking, concrete Builders |
-| Plugin host | `PluginLauncher` |
-| Service registry | `BoardProducer` |
-| Service gateway | Motherboard |
-| Service contract | `ActivatableBoard`, `InteractableBoard` |
-| Service request | `BoardID` + Input |
-| Service response | Output flow |
-| Service command | Interaction command |
-
----
-
-## Non-Negotiables
-
-- Start from the consuming repo's `CLAUDE.md` / `AGENTS.md` bindings, then load the relevant plugin skill/spec/process docs.
-- Keep Interface Modules public and Implementation Modules internal.
-- Consumers import Interface Modules only, never Plugins.
-- Board → Controller communication uses event buses, not stored/retrieved controller references.
-- `watch(content:)` is lifecycle tracking only.
-- Duplicate-activation guard only when a board is explicitly single-session.
-- Presenter is the only Domain → ViewModel mapper.
-- Domain stays pure: no UIKit, Boardy, networking SDKs, DTOs, or vendor types.
-- Concrete Builder structs are composition roots; Board depends on `Buildable` protocol only.
-- Project-specific values live in the consuming repo's project bindings.
+- Canon → accepted ADR → active Rule/Profile → derived document is the precedence path.
+- Follow links to detailed standards instead of copying their Rules into another spec.
+- Treat code and build snippets as examples adapted through project bindings.
+- Documentation and metadata use the approved plan's one final joined AI consistency review; executable
+  project changes use the consuming repository's normal tests.
+- CI, tags, publication, and external release remain DevOps/Release-owned and are not requirements of
+  these specs.

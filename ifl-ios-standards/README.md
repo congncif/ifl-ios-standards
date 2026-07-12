@@ -1,8 +1,8 @@
 # ifl-ios-standards
 
-A Claude Code plugin packaging reusable **iOS engineering standards**: specialist agents,
-provider-native brain workflows, Boardy/VIP and enterprise-iOS task routing, bundled architecture
-references, and thin build-system-neutral module/board source scaffolders.
+A dual-provider plugin packaging reusable **iOS engineering standards**: 9 specialist agents,
+21 skills including `enterprise-ios`, provider-native Brain Flow, Boardy/VIP task routing, ten
+focused enterprise chapters, and thin build-system-neutral module/board source scaffolders.
 
 ## What's inside
 
@@ -33,10 +33,8 @@ data lifecycle, security, privacy, accessibility/global readiness, observability
 performance/resilience, or supply-chain/legal concerns. The enterprise router selects among the ten
 focused chapters; their files remain the single source of detailed standards.
 
-`brain-flow` uses provider-native task state and delegation to execute one approved plan, then runs
-one joined final AI consistency review over the complete result. The Standards 1.0 operating path does
-not invoke a verifier CLI or require receipts, manifests, or a provider-independent workflow state
-machine; frozen post-1.0 tooling artifacts are outside that operating contract.
+`brain-flow` uses provider-native planning, delegation, and checkpoints to execute one approved plan,
+then runs one joined final AI consistency review over the complete result.
 
 ## How references resolve
 
@@ -61,5 +59,5 @@ scripts/install-claude.sh --scope=project --project=/path/to/repo
 
 ## Versioning
 
-`plugin.json` `version` mirrors the upstream pack `VERSION` (currently `0.18.1`). Bump on content
-changes so installs pick up updates.
+Both provider manifests mirror the upstream pack `VERSION` (currently `1.0.0-rc.1`). Bump on
+content changes so installs pick up updates.

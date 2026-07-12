@@ -1,8 +1,9 @@
 # ifl-ios-standards — Claude Code + Codex marketplace
 
-A **plugin marketplace** distributing reusable **iOS engineering standards** — specialist
-agents, pattern-neutral brain workflows, Boardy/VIP task skills, the full architecture references,
-and Bazel module/board scaffolders. **One repo, both runtimes**: it ships
+A **plugin marketplace** distributing reusable **iOS engineering standards** — 9 specialist
+agents, 21 skills including `enterprise-ios`, provider-native Brain Flow, Boardy/VIP task skills,
+ten focused enterprise chapters, and thin build-system-neutral module/board source scaffolders.
+**One repo, both runtimes**: it ships
 `.claude-plugin/marketplace.json` (Claude Code) and `.codex-plugin/marketplace.json` (Codex) at its
 root, like a dual-runtime plugin.
 
@@ -15,7 +16,7 @@ claude plugin marketplace add  congncif/ifl-ios-standards
 claude plugin install          ifl-ios-standards@ifl-ios-standards
 ```
 
-Pin a version: `claude plugin marketplace add congncif/ifl-ios-standards#v0.18.1`.
+Pin the release candidate: `claude plugin marketplace add congncif/ifl-ios-standards#v1.0.0-rc.1`.
 Then `/reload-plugins` (or restart Claude Code).
 
 ### Update installed plugin
@@ -40,7 +41,7 @@ claude plugin marketplace update ifl-ios-standards
 claude plugin update -s user ifl-ios-standards@ifl-ios-standards
 
 # or pin a release tag
-./install.sh --ref=v0.18.1 --scope=user
+./install.sh --ref=v1.0.0-rc.1 --scope=user
 claude plugin marketplace update ifl-ios-standards
 claude plugin update -s user ifl-ios-standards@ifl-ios-standards
 ```
@@ -57,13 +58,13 @@ One-liner (no clone):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
-# flags: | bash -s -- --ref=v0.18.1 --scope=project
+# flags: | bash -s -- --ref=v1.0.0-rc.1 --scope=project
 ```
 
 ## Install — Codex
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v0.18.1 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v1.0.0-rc.1 to pin
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -82,9 +83,9 @@ curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl
 | Component | Count | What |
 |-----------|-------|------|
 | Agents | 9 | `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
-| Skills | 20 | **Brain stages** (pattern-neutral): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` (for Boardy/VIP routing) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
-| Reference | — | Full rulebook, 43 specs + process standards, lint scripts, `portable-claude` templates (bundled under `standards/`) |
-| Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — Bazel-aware; Claude exposes plugin `bin/` directly, while Codex uses `scripts/install-codex.sh` to create shims in `~/.local/bin` |
+| Skills | 21 | **Brain stages** (pattern-neutral, provider-native): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · **Enterprise iOS**: router `enterprise-ios` · `init` |
+| Reference | — | Full rulebook, specs + process standards, ten focused enterprise chapters, lint scripts, and `portable-claude` templates (bundled under `standards/`) |
+| Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — thin build-system-neutral source scaffolders; Claude exposes plugin `bin/` directly, while Codex uses `scripts/install-codex.sh` to create shims in `~/.local/bin` |
 
 ## New project? Init the bindings first
 
@@ -101,12 +102,14 @@ Then fill any remaining `{Placeholders}` (scheme, simulator, build/test commands
 ## Use it
 
 After install + init, describe the iOS task. Use `brain-*` skills for pattern-neutral workflow,
-or call a Boardy/VIP skill directly when the project uses Boardy/VIP:
+call a Boardy/VIP skill directly when the project uses Boardy/VIP, or use `enterprise-ios` to route
+enterprise concerns to the relevant chapter:
 
 ```text
 /ifl-ios-standards:boardy-vip          # router — read first, routes to the right skill/spec
 /ifl-ios-standards:init                # seed CLAUDE.md + AGENTS.md for a new project
 /ifl-ios-standards:brain-flow          # automate the whole workflow: analyze → … → done
+/ifl-ios-standards:enterprise-ios      # route to one or more enterprise chapters
 /ifl-ios-standards:boardy-new-module
 /ifl-ios-standards:boardy-new-board
 /ifl-ios-standards:boardy-review
@@ -133,5 +136,5 @@ docs-organization process standard) is optional.
 
 ## Versioning
 
-Plugin `version` (in `ifl-ios-standards/.claude-plugin/plugin.json`) follows the upstream pack
-`VERSION` (currently `0.18.1`). Bump on content changes; tag `vX.Y.Z` so installs can pin.
+Plugin `version` in both provider manifests follows the upstream pack `VERSION` (currently
+`1.0.0-rc.1`). Bump on content changes; use `vX.Y.Z` tags so installs can pin.

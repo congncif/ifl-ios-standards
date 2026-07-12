@@ -1,132 +1,69 @@
-<!-- Created by claude-opus-4-7 on 2026-05-23 -->
-# POLICY: Package Manager
+# Package Manager and Build-System Boundary
 
-> Boundary spec — defines which package manager this pack assumes today, what the rest of the spec corpus may and may not say about it, and the open ADR slot for future managers.
+## Decision
 
-## Decision (current — pack `0.4.x`+)
+The Standards are package-manager- and build-system-neutral. Canon defines module/target boundaries,
+visibility, dependency direction, composition, and supply-chain obligations. The consuming repository
+chooses and binds the mechanism that realizes them.
 
-**Pinned package manager: CocoaPods.**
+Supported bindings include CocoaPods, SwiftPM, Bazel, and documented mixed arrangements. This is a
+semantic compatibility statement, not a promise that every example, generator, or provider exposes
+identical manager-specific features.
 
-All worked examples, podspec snippets, `s.dependency` lines, `Podfile` blocks, and `pod install` instructions in this pack assume CocoaPods. The 2-target IO + Plugins module split is described using CocoaPods semantics (`{Module}.podspec` for IO, `{Module}Plugins.podspec` for Plugins).
+## Binding contract
 
-This is a **soft pin**, not a permanent decision. See "Open ADR" below.
+Project bindings in `CLAUDE.md`, `AGENTS.md`, or an equivalent repository-owned configuration identify:
 
-## Why CocoaPods (today)
+- package manager(s), build system, workspace/project, scheme, and module root;
+- Interface/contract and Implementation/Plugins target names;
+- target labels or dependency syntax and normal build/test commands;
+- organization-owned dependency, provenance, vulnerability, license, and release policies.
 
-- **QC baseline + Boardy ecosystem ship CocoaPods.** Switching managers would invalidate every working example in the corpus before the pack stabilizes.
-- **Resource bundles + Obj-C bridging headers** common in SDK adapters are simpler to express in podspec than in `Package.swift`.
-- **Local-path development** (`pod '{Module}', :path => '...'`) gives the 2-target IO+Plugins split clean cross-module compile-time isolation without ceremony.
-- **`s.dependency` is a single semantic concept** that maps 1:1 to the import-and-extend ServiceMap pattern — `s.dependency '{OtherModule}'` IS the cross-module contract.
+Across every manager:
 
-This is rationale for the current pin only — none of the above is an argument against future managers.
+- consumers depend on the public Interface/contract target, not the Implementation/Plugins target;
+- implementation targets may depend on contracts they implement or consume; contract targets do not
+  gain reverse dependencies on their implementations;
+- composition roots own concrete wiring;
+- manager-specific syntax cannot weaken selected Canon Profiles or Rules.
 
-## Open ADR slot
+For Boardy/VIP details, use `ARCHITECTURE.md`, `IO_INTERFACE.md`, `MODULE_CREATION.md`, and
+`PLUGINS_INTEGRATION.md`. For dependency selection and organization policy, use `SDK_FIRST.md` and
+`../enterprise/supply-chain-legal.md`.
 
-The following alternative managers are **explicitly out of scope for `0.x`** but reserved as future ADRs:
+## Manager-specific material
 
-| Manager | ADR ID (reserved) | Why it might matter |
-|---|---|---|
-| SwiftPM | `ADR-PM-001` | First-party Apple tooling; better Xcode integration since Xcode 13; modules-as-targets eliminates the podspec layer entirely. |
-| Bazel | `ADR-PM-002` | Hermetic builds + remote caching at scale; mono-repo workflows; finer-grained target graph than either CocoaPods or SwiftPM. |
-| Mixed / hybrid | `ADR-PM-003` | Real-world apps may keep CocoaPods for legacy SDKs and adopt SwiftPM for new modules. Boundary between the two needs explicit rules. |
+Examples and scaffolders may show a podspec, `Package.swift`, `BUILD` target, or hybrid wiring. Treat
+that material as an adapter example:
 
-When an ADR for any of these opens, it MUST extend (not replace) this policy and SHOULD document:
+- prose states the architectural concept in manager-neutral terms;
+- manager syntax stays local to the example or operational guide;
+- a consuming project translates the example into its bound build graph;
+- the presence of one adapter does not make that manager mandatory or make other adapters unsupported.
 
-1. Trigger — what changed that makes the new manager viable / necessary.
-2. Migration scope — full corpus rewrite, parallel examples, or per-module opt-in.
-3. Compatibility window — overlap period during which both managers are supported.
-4. Architecture-review impact — what changes for dependency, visibility, and BoardID rules.
-5. Bin-script impact — `new-module.sh` / `new-board.sh` flag surface.
+If a tool supports only one manager, its documentation must say so. The limitation belongs to that tool,
+not to the architecture standard.
 
-No ADR is open today.
+## Changing or adding a manager
 
-## Boundary contract — what specs may and may not say
+A project-local binding change does not require a Standards ADR when canonical boundaries and behavior
+remain unchanged. A pack-wide change requires a governed ADR when it changes public scaffolder behavior,
+support commitments, target semantics, dependency direction, or compatibility. Classify and release the
+change under `../GOVERNANCE.md`, including migration and affected derived documents.
 
-The core architecture (Boardy + VIP + 2-target split + Microboard + Composable + ActivationBarrier + Per-Activation Resources + Extensible Provider) is **package-manager-agnostic in concept**. The current pack uses CocoaPods to *illustrate* the architecture, not to *define* it.
+The Standards do not prescribe a universal lockfile, registry, mirror, version, checksum, license
+classification, remediation window, or release threshold. Apply the actual manager's authoritative
+resolution state and the consuming organization's human-owned supply-chain/legal policy; do not invent
+missing values.
 
-### Layer 1 — core pattern specs (MUST stay generic in prose)
+## Migration from the historical CocoaPods pin
 
-The following specs describe architectural concepts, and the **prose** should refer to "IO module" / "Plugins module" / "Interface module" / "Implementation module" rather than "IO podspec" / "Plugins podspec":
+The former `0.x` policy treated CocoaPods as the pack-wide default. For `1.0.0-rc.1`:
 
-- `ARCHITECTURE.md`
-- `IO_INTERFACE.md`
-- `LAYERING.md`
-- `MICROBOARD_UI.md` / `MICROBOARD_NONUI.md`
-- `VIP_COMPONENTS.md`
-- `COMMUNICATION.md`
-- `BOARDY_FOUNDATIONS.md`
-- `BUS_PATTERNS.md`
-- `COMPOSABLE_BOARD.md`
-- `ACTIVATION_BARRIER.md`
-- `PER_ACTIVATION_RESOURCES.md`
-- `EXTENSIBLE_PROVIDER.md`
-- `SERVICE_LAYER.md`
-- `SDK_FIRST.md`
-- `CROSS_MODULE_DI.md`
+1. Keep existing CocoaPods wiring if it satisfies Canon; no conversion is required.
+2. Keep or adopt SwiftPM, Bazel, or a mixed arrangement through project bindings.
+3. Translate podspec-specific prose into target/dependency concepts when applying an example elsewhere.
+4. Escalate only semantic gaps or tool limitations; manager choice alone is not an architecture
+   exception.
 
-**Code blocks in Layer-1 specs MAY contain `s.dependency '…'` / podspec snippets** as concrete illustration, but each code block SHOULD be preceded by prose that names the concept generically (e.g. *"Cross-module dep — in CocoaPods this is expressed via:"*) so the same passage stays readable when another manager is introduced.
-
-### Layer 2 — operational specs (MAY be CocoaPods-specific until an ADR opens)
-
-The following specs describe the *current* operational workflow and are allowed to be CocoaPods-specific without disclaimer:
-
-- `MODULE_CREATION.md` (Podfile + pod install + podspec scaffolding)
-- `ADOPTION.md` (checklist mentions podspec/package target)
-- `EXAMPLES_*.md` (all example skeletons may show podspec dep blocks)
-- `PLUGINS_INTEGRATION.md` (LauncherPlugin wiring — references `{Module}Plugins` import which is the Plugins podspec name)
-
-These specs accept the current pin and do not need to abstract over future managers. They will be revised when an ADR opens.
-
-### Forbidden leaks
-
-Even within Layer-1 specs:
-
-- ❌ A rule like "MUST use `:path => ...` syntax" → this is a CocoaPods-specific rule and belongs in `MODULE_CREATION.md` or a future SwiftPM-equivalent, not in `ARCHITECTURE.md`.
-- ❌ "The Plugins podspec MUST declare `s.dependency 'Boardy'`" stated as an architectural invariant → restate as "The Plugins module MUST link Boardy"; the podspec sentence belongs in `MODULE_CREATION.md`.
-- ❌ Hardcoded path conventions like `{ModuleRoot}/{Module}/{Module}.podspec` baked into pattern-spec prose → cite `MODULE_CREATION.md` for layout.
-
-When in doubt: **if swapping to SwiftPM would invalidate the sentence, the sentence belongs in an operational spec, not a pattern spec.**
-
-## Cross-module dep — manager-agnostic restatement
-
-A "cross-module dep" in this pack means: *module A's Plugins target links module B's IO target, so module A's ModulePlugin can `import B` and call `motherboard.serviceMap.modB...`.*
-
-| Manager | How this is expressed |
-|---|---|
-| CocoaPods (current) | `s.dependency 'B'` in `APlugins.podspec` + `pod 'B', :path => '...'` in `Podfile` |
-| SwiftPM (future ADR) | `.target(name: "APlugins", dependencies: ["B"])` in `Package.swift` |
-| Bazel (future ADR) | `deps = ["//modules/B:B"]` in `APlugins`' `BUILD.bazel` |
-
-The architectural rule — "Plugins links IO, IO never links Plugins, IO never links sibling Plugins" — is identical across all three.
-
-## Roadmap
-
-| Pack version | Manager status |
-|---|---|
-| `0.x` (current) | CocoaPods pinned; no ADR open |
-| `1.0` | Reassess. If no SwiftPM ADR has opened, re-affirm CocoaPods pin and document any boundary clean-ups discovered during `0.x`. |
-| `1.x` | An ADR for an alternative manager MAY open here; first such ADR will define parallel-examples vs migration semantics. |
-| `2.0` | If `1.x` opened an ADR, `2.0` is the earliest version where the pinned manager could change (major bump = adopter re-audit). |
-
-No timeline is committed. The roadmap is shape-only.
-
-## Adopter implications
-
-- Adopter projects using CocoaPods: zero special action; the pack works out of the box.
-- Adopter projects using a different manager today: the pack is **not** the right scaffolding source until an ADR for that manager opens. Adopter SHOULD fork the pack or maintain manager-specific overrides under `standards/local/` (convention TBD).
-- Adopter projects mixing managers: out of scope until `ADR-PM-003` opens.
-
-## How to escalate a manager change
-
-If an adopter project needs (or wants) to drive an ADR for a non-CocoaPods manager:
-
-1. Open an issue against the pack titled `ADR-PM-XXX — {manager}` referencing this spec.
-2. Provide: scope (single module / whole adopter / all adopters?), trigger, and a draft of which Layer-1 spec prose would need to flip from CocoaPods-illustrated to dual-illustrated.
-3. Do NOT submit a PR rewriting all examples first — the boundary contract is the artifact under review, not the code.
-
-## References
-
-- `ARCHITECTURE.md` (the architecture this policy preserves across managers)
-- `MODULE_CREATION.md` (operational spec — CocoaPods-specific by design)
-- `rules/SPEC_CONTRACT.md` (this spec is exempt from the 12-section format — see Exemptions)
-- `CHANGELOG.md` `0.5.0` entry (introduction of this policy)
+See `../COMPATIBILITY.md` for the complete `0.18.x` adoption path.

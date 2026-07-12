@@ -10,7 +10,7 @@ set -euo pipefail
 #   --scope=user     install globally; merge auto-enable into ~/.claude/settings.json
 #   --scope=project  install for one repo; merge into PATH/.claude/settings.local.json
 #                    (PATH from --project=, else $PWD)
-#   --scope=local    install for this checkout only; CLI state only, no settings file written
+#   --scope=local    install for this checkout only; no settings file written
 #
 # Steps: validate plugin + marketplace → marketplace add → install → (scope-dependent) settings merge.
 # The settings merge uses jq (deep-merge, never clobbers existing keys); if jq is absent it prints
@@ -97,7 +97,7 @@ EOF
 case "$SCOPE" in
   user)    merge_block "$HOME/.claude/settings.json" ;;
   project) merge_block "$PROJ/.claude/settings.local.json" ;;
-  local)   echo "  scope=local — CLI state only, no settings file written" ;;
+  local)   echo "  scope=local — no settings file written" ;;
 esac
 
 echo

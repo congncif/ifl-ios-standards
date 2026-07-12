@@ -9,10 +9,10 @@ set -euo pipefail
 # Run it any of these ways:
 #   curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl-ios-standards/scripts/install-codex.sh | bash
 #   bash install-codex.sh
-#   bash install-codex.sh --ref=v0.15.0
+#   bash install-codex.sh --ref=v1.0.0-rc.1
 #
 # Flags (all optional):
-#   --ref=BRANCH|TAG|SHA   pin a version (e.g. v0.15.0); omit = default branch (main)
+#   --ref=BRANCH|TAG|SHA   pin a version (e.g. v1.0.0-rc.1); omit = default branch (main)
 
 REPO="congncif/ifl-ios-standards"
 MARKETPLACE="ifl-ios-standards"      # the "name" field inside .codex-plugin/marketplace.json
@@ -42,7 +42,7 @@ fi
 codex plugin add "$PLUGIN@$MARKETPLACE"
 
 # 3. Codex currently loads plugin skills/MCP metadata, but does not guarantee that a
-# plugin's bin/ directory is exported to the user's shell PATH. Publish stable shims
+# plugin's bin/ directory is exported to the user's shell PATH. Create stable shims
 # for the scaffolders into ~/.local/bin, which is already on PATH for most Codex setups.
 BIN_DIR="${HOME}/.local/bin"
 CACHE_ROOT="${HOME}/.codex/plugins/cache/${MARKETPLACE}/${PLUGIN}"
