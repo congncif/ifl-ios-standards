@@ -10,7 +10,7 @@
         "source": "git-subdir",
         "url": "https://github.com/congncif/ifl-ios-standards.git",
         "path": "./ifl-ios-standards",
-        "ref": "main"
+        "ref": "v1.0.0-rc.1"
       },
       "policy": {
         "installation": "AVAILABLE",

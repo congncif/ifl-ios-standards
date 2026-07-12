@@ -139,3 +139,7 @@ docs-organization process standard) is optional.
 
 Plugin `version` in both provider manifests follows the upstream pack `VERSION` (currently
 `1.0.0-rc.1`). Bump on content changes; use `vX.Y.Z` tags so installs can pin.
+
+## License
+
+Distributed under the [MIT License](LICENSE).

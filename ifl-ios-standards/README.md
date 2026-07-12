@@ -61,3 +61,7 @@ scripts/install-claude.sh --scope=project --project=/path/to/repo
 
 Both provider manifests mirror the upstream pack `VERSION` (currently `1.0.0-rc.1`). Bump on
 content changes so installs pick up updates.
+
+## License
+
+Distributed under the packaged [MIT License](LICENSE).

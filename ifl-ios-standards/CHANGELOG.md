@@ -9,6 +9,8 @@ auto-update for installed plugins — bump it on every content change so install
 ### Changed
 - Aligned the dual-provider package at 9 agents and 21 skills, including `enterprise-ios`, with provider-native Brain Flow and ten focused enterprise chapters.
 - Described the module/board generators as thin build-system-neutral source scaffolders and refreshed release-candidate install pins.
+- Approved public distribution of the marketplace and packaged plugin under the MIT License.
+- Pinned the Codex marketplace payload to the immutable `v1.0.0-rc.1` release tag.
 
 ## [0.18.4] — 2026-07-09
 

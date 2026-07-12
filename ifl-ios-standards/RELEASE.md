@@ -1,7 +1,7 @@
 # Release Candidate Guide
 
 Target: `1.0.0-rc.1`
-State: candidate preparation; local acceptance and external release are not claimed
+State: locally accepted release candidate; approved for public distribution under the MIT License
 
 ## Acceptance order
 
@@ -37,6 +37,8 @@ local candidate state after the joined review, corrective batch, and Canon activ
   final repository state.
 - [x] The final handoff distinguishes local candidate acceptance from any CI, tag, artifact,
   publication, marketplace, or external release action.
+- [x] Human Legal/Release authority approved MIT public distribution; repository and packaged LICENSE
+  files are present and both provider manifests declare `MIT`.
 
 The approved plan and provider-native task state are sufficient to record these observations. Do not
 create a verifier script, receipt/evidence manifest, fingerprint, hash chain, custom gate file, or
@@ -55,8 +57,8 @@ install the new Standards.
 
 ## Ownership and out-of-scope operations
 
-Local candidate acceptance covers Standards content and its one joined AI review. It does not grant Git
-or external-system authority. CI configuration and execution, release automation, artifact building or
-signing, tags, pushes, marketplace updates, publication, rollout, and external release are owned by the
-organization's DevOps/Release process and are out of scope here. This guide neither requires nor
-authorizes those actions.
+Local candidate acceptance covers Standards content and its one joined AI review; it does not by itself
+grant Git or external-system authority. For `1.0.0-rc.1`, the Human Legal/Release Owner separately
+authorized MIT public distribution, the Git push/tag, local plugin update, and requested E2E. CI
+configuration/execution, release automation, artifact building/signing, and rollout remain owned by the
+organization's DevOps/Release process and are not implied by that authorization.
