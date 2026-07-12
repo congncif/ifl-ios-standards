@@ -154,7 +154,9 @@ Goal: take two modules that have grown into each other and collapse them into on
 
 Merging modules is usually the wrong call. Before doing it:
 
-- Count cross-module calls: `git grep -E "mod{ModuleA}.io" submodules/{ModuleB}/` and vice versa. If <5 in EACH direction, the modules aren't really tangled — the cross-calls are intentional, leave them.
+- Resolve `{ModuleRoot}`, `{AppRoot}`, package manifests, and the native dependency-refresh command
+  from the consuming repository's root `CLAUDE.md` or `AGENTS.md` before using any snippet below.
+- Count cross-module calls: `git grep -E "mod{ModuleA}.io" {ModuleRoot}/{ModuleB}/` and vice versa. If <5 in EACH direction, the modules aren't really tangled — the cross-calls are intentional, leave them.
 - Check ownership: if different teams own each module, the merge creates a new ownership conflict.
 - Check Board fan-in: if `{ModuleA}` is consumed from multiple places but `{ModuleB}` is consumed only by `{ModuleA}`, the right refactor is "promote ModuleB's Boards into ModuleA's Sources/Microboards/" (Refactor 3 — Extract a Board, in reverse: absorb).
 
@@ -166,28 +168,30 @@ Pick a survivor module (`{Keeper}`) and an absorbed module (`{Absorbed}`). The K
 
 1. **Update every consumer's `import`**:
    ```bash
-   git grep -l "import {Absorbed}" -- submodules App | xargs sed -i '' 's/import {Absorbed}/import {Keeper}/g'
-   git grep -l "import {Absorbed}Plugins" -- submodules App | xargs sed -i '' 's/import {Absorbed}Plugins/import {Keeper}Plugins/g'
+   git grep -l "import {Absorbed}" -- {ModuleRoot} {AppRoot} | xargs sed -i '' 's/import {Absorbed}/import {Keeper}/g'
+   git grep -l "import {Absorbed}Plugins" -- {ModuleRoot} {AppRoot} | xargs sed -i '' 's/import {Absorbed}Plugins/import {Keeper}Plugins/g'
    ```
    Verify with `git grep "{Absorbed}"` — only the Absorbed module itself should match now.
 
 2. **Update every consumer's ServiceMap accessor**:
    ```bash
-   git grep -l "mod{Absorbed}\b" -- submodules App | xargs sed -i '' 's/mod{Absorbed}\b/mod{Keeper}/g'
-   git grep -l "mod{Absorbed}Plugins\b" -- submodules App | xargs sed -i '' 's/mod{Absorbed}Plugins\b/mod{Keeper}Plugins/g'
+   git grep -l "mod{Absorbed}\b" -- {ModuleRoot} {AppRoot} | xargs sed -i '' 's/mod{Absorbed}\b/mod{Keeper}/g'
+   git grep -l "mod{Absorbed}Plugins\b" -- {ModuleRoot} {AppRoot} | xargs sed -i '' 's/mod{Absorbed}Plugins\b/mod{Keeper}Plugins/g'
    ```
 
 3. **Update public BoardID literals**:
    ```bash
-   git grep -l "pub\\.mod\\.{Absorbed}\\." -- submodules App | xargs sed -i '' 's/pub\\.mod\\.{Absorbed}\\./pub.mod.{Keeper}./g'
+   git grep -l "pub\\.mod\\.{Absorbed}\\." -- {ModuleRoot} {AppRoot} | xargs sed -i '' 's/pub\\.mod\\.{Absorbed}\\./pub.mod.{Keeper}./g'
    ```
-   Note: this WILL break any external runtime caller using the old literal — but Absorbed is going away, so by definition there are no surviving external callers if all consumer-side changes above succeeded. If you can't be sure, add a literal alias as a bridge (see Refactor 5).
+   Changing a raw BoardID is a breaking runtime change even when the source module disappears. Do it
+   only as an explicitly declared breaking cutover with all callers migrated; otherwise retain each
+   old raw ID and register it as a compatibility route to the Keeper implementation (see Refactor 5).
 
 4. **Move source files**:
    ```bash
-   git mv submodules/{Absorbed}/IO/*  submodules/{Keeper}/IO/
-   git mv submodules/{Absorbed}/Sources/Microboards/*  submodules/{Keeper}/Sources/Microboards/
-   git mv submodules/{Absorbed}/Sources/Services/*  submodules/{Keeper}/Sources/Services/
+   git mv {ModuleRoot}/{Absorbed}/IO/*  {ModuleRoot}/{Keeper}/IO/
+   git mv {ModuleRoot}/{Absorbed}/Sources/Microboards/*  {ModuleRoot}/{Keeper}/Sources/Microboards/
+   git mv {ModuleRoot}/{Absorbed}/Sources/Services/*  {ModuleRoot}/{Keeper}/Sources/Services/
    ```
    Resolve filename collisions (rare — only if both modules had a `Welcome` Board) by renaming one.
 
@@ -197,14 +201,16 @@ Pick a survivor module (`{Keeper}`) and an absorbed module (`{Absorbed}`). The K
 
 7. **Delete the absorbed module directory**:
    ```bash
-   git rm -rf submodules/{Absorbed}/
+   git rm -rf {ModuleRoot}/{Absorbed}/
    ```
 
-8. **Update Podfile** — remove `pod '{Absorbed}'` and `pod '{Absorbed}Plugins'`.
+8. **Update the bound build/package manifests** — remove the Absorbed Interface and Implementation
+   targets using the consuming repository's adapter. For a CocoaPods-bound project only, that means
+   removing its two Podfile entries; SwiftPM, Bazel, and mixed projects use their native equivalent.
 
 9. **Update App's `installAllModules()`** — remove `{Absorbed}LauncherPlugin()` install.
 
-10. **Run `pod install`**.
+10. **Run the bound dependency refresh once, if the selected adapter requires one**.
 
 11. **Run the merge slice's owned signal once** — use the consuming repository's native command after all executable cutover work is complete. It should exercise the flows that previously crossed the boundary.
 
@@ -213,7 +219,7 @@ Pick a survivor module (`{Keeper}`) and an absorbed module (`{Absorbed}`). The K
 - [ ] `git grep "{Absorbed}"` returns nothing (other than the changelog entry documenting the merge).
 - [ ] The one final joined AI review finds no dependency, visibility, or BoardID contract violation.
 - [ ] No `BoardID not registered` crashes on the formerly-cross-module flows.
-- [ ] Module count in `submodules/` decreased by exactly one.
+- [ ] Module count under the bound `{ModuleRoot}` decreased by exactly one.
 
 ### Rollback
 
@@ -245,20 +251,24 @@ Don't extract because the file is long. Long files with a single coherent respon
    - Has its own UI → `ui`.
    - Composable surface element → composable child of the existing surface.
 
-2. **Generate the skeleton**:
-   ```bash
-   ifl-new-board {Module} {NewBoard} {type}
-   ```
+2. **Decide visibility before creating files**:
+   - **Internal-only** (called only inside this module): keep the contract under
+     `Sources/Microboards/{NewBoard}/` with `mod.{Module}.{NewBoard}` and no `public` surface.
+   - **Public** (a proven cross-module caller exists): place the contract under
+     `IO/{NewBoard}/` with `pub.mod.{Module}.{NewBoard}`.
+   - A hypothetical future caller is not evidence. When in doubt, start internal; promotion is
+     additive, while demotion is breaking.
 
-3. **Move the extracted logic**:
+3. **Create the visibility-correct skeleton**:
+   - Public Board: run `ifl-new-board {Module} {NewBoard} {type} --root=. --module-root={ModuleRoot}`.
+   - Internal Board: create the type-specific implementation and internal IO directly under
+     `Sources/Microboards/{NewBoard}/`; the current CLI deliberately emits public IO and must not be
+     used and then partially deleted to simulate an internal Board.
+
+4. **Move the extracted logic**:
    - Cut from old Board's Interactor (or Controller / BlockTask handler) → paste into new Board's Interactor.
    - Define `Input` for the new Board to mirror what the old Board was passing internally.
    - Define `Output` to carry whatever the old Board's caller path expected.
-
-4. **Decide visibility**:
-   - **Internal-only** (called by only one Board in this module): keep new Board's IO under `Sources/Microboards/{NewBoard}/`; internal BoardID `mod.{Module}.{NewBoard}`.
-   - **Cross-module candidate** (might be called from outside this module): promote IO to `{Module}/IO/{NewBoard}/`; public BoardID `pub.mod.{Module}.{NewBoard}`.
-   - When in doubt, start internal. Promoting later is easy; demoting later is a breaking change.
 
 5. **Update the old Board** to activate the new Board:
    ```swift
@@ -308,8 +318,8 @@ Internal Boards have no cross-module callers by definition. The move is mechanic
 
 1. **`git mv`** the Board's files:
    ```bash
-   git mv submodules/{Source}/Sources/Microboards/{Board}/ \
-          submodules/{Destination}/Sources/Microboards/{Board}/
+   git mv {ModuleRoot}/{Source}/Sources/Microboards/{Board}/ \
+          {ModuleRoot}/{Destination}/Sources/Microboards/{Board}/
    ```
 
 2. **Update the BoardID literal** inside `{Board}IOInterface.swift`:
@@ -338,28 +348,34 @@ Internal Boards have no cross-module callers by definition. The move is mechanic
 
 Public Boards have external callers; the BoardID literal change is a runtime-breaking rename. Two options:
 
-**Option A — coordinated cutover** (callers are all in your repo and you can change them in the same PR):
+**Option A — declared breaking/coordinated cutover** (all runtime callers can migrate atomically):
 
 1-6 same as internal-Board sequence, but ALSO update every cross-module caller's `import` + ServiceMap accessor (similar to Refactor 2 steps 1-2 scoped to this one Board).
 
-7. Run `git grep` for the OLD literal — it must return zero hits before completing the coordinated cutover.
+7. Declare the breaking contract in the release/migration notes and run `git grep` for the OLD
+   literal — it must return zero hits before completing the coordinated cutover.
 
 **Option B — bridge alias** (callers are external — other repos, published SDKs, anything beyond your control):
 
-1-4 as internal-Board sequence; ALSO add a literal alias in `{Source}/IO/`:
+1-4 as internal-Board sequence; ALSO preserve the old raw ID in `{Source}/IO/`:
    ```swift
-   // submodules/{Source}/IO/{Board}/{Board}IOInterface.swift  (keep this file as a bridge)
+   // {ModuleRoot}/{Source}/IO/{Board}/{Board}IOInterface.swift  (compatibility bridge)
    public extension BoardID {
+       static let pub{Board}Legacy: BoardID = "pub.mod.{Source}.{Board}" // exact old raw ID
        static let pub{Board}: BoardID = "pub.mod.{Destination}.{Board}"
    }
    public typealias {Board}MainDestination = MainboardGenericDestination<...>
-   // ... keep the old surface, point its accessors at the new ID literal
+   // Keep the legacy accessor targeting .pub{Board}Legacy during the migration window.
    ```
-5. Document the bridge in the module's README; plan removal after callers migrate.
+5. Register **both** `.pub{Board}Legacy` and `.pub{Board}` to the same Destination builder/factory.
+   A deprecated Swift alias that points only to the new literal is not a runtime bridge.
+6. Document bridge ownership, migration telemetry/evidence, and removal policy in the module's
+   compatibility notes. Remove the old registration only in a declared breaking release after callers migrate.
 
 ### Verification
 
-- [ ] `git grep "{Board}"` (the literal old BoardID) returns zero (Option A) or only the bridge alias (Option B).
+- [ ] The old raw BoardID returns zero hits after declared Option A cutover, or remains in the
+  Option B compatibility constant, accessor, and registration.
 - [ ] The moved Board's literal matches its new home pattern.
 - [ ] The move slice's owned signal activates the Board from a Destination-module caller.
 - [ ] If public + Option A: the assigned signal covers every affected former Source-module caller path, or the plan names the distinct risk boundary and its owner.
@@ -391,36 +407,34 @@ If the rename is just "I like Y better than X", don't do it. Drift between name 
 
 | What's renamed | Breaking surface |
 |---------------|-------------------|
-| Module name (`{Old}` → `{New}`) | Every `import {Old}` + `import {Old}Plugins` + `mod{Old}` + `mod{Old}Plugins` + `pub.mod.{Old}.*` BoardID literal + podspec name + Podfile entry + LauncherPlugin class name |
+| Module name (`{Old}` → `{New}`) | Every `import {Old}` + `import {Old}Plugins` + `mod{Old}` + `mod{Old}Plugins` + `pub.mod.{Old}.*` BoardID literal + native target/manifest entry + LauncherPlugin class name |
 | Public BoardID (`pub.mod.{Module}.{OldBoard}` → `pub.mod.{Module}.{NewBoard}`) | The literal string itself + `pub{OldBoard}` constant + `io{OldBoard}` accessor + `{OldBoard}MainDestination` typealias |
 | Public Input/Output type | Every consumer's reference to the type name; usually less impact since types are referenced by their MainDestination |
 
 ### Mechanical sequence — public BoardID rename (most common)
 
-1. **Don't immediately delete the old literal**. Instead, add an alias:
-   ```swift
-   public extension BoardID {
-       static let pub{NewBoard}: BoardID = "pub.mod.{Module}.{NewBoard}"
-       @available(*, deprecated, renamed: "pub{NewBoard}")
-       static let pub{OldBoard}: BoardID = .pub{NewBoard}   // alias, same literal value? NO — this is for the Swift name, the literal IS changing
-   }
-   ```
-   Two cases:
-   - **Same literal, only Swift constant renamed**: the literal stays `"pub.mod.{Module}.{OldBoard}"`; only `pub{OldBoard}` → `pub{NewBoard}` in Swift. Add `@available(*, deprecated, renamed:)` to keep callers compiling but warned. This is a NIT-level rename and usually not worth doing as a dedicated refactor.
-   - **Literal changes too**: this is the breaking case. The bridge alias keeps callers' Swift code compiling but the literal value changes — meaning Boardy's runtime registry now keys on the new string. If callers ever pass the literal directly (not via the constant) they're broken at runtime. Search for direct-literal usage: `git grep '"pub\\.mod\\.{Module}\\.{OldBoard}"'` — if any matches, those must be updated in lockstep.
+1. **Classify the rename before editing**:
+   - **Swift constant only**: keep the old raw literal and add a deprecated Swift-name alias.
+   - **Raw literal changes**: either declare a breaking coordinated cutover, or run both raw IDs as
+     registered compatibility routes. A Swift alias alone cannot bridge Boardy's string registry.
 
-2. **Update the IOInterface** to the new literal:
+2. **For a compatible raw-literal migration, retain and register both IDs**:
    ```swift
    public extension BoardID {
        static let pub{NewBoard}: BoardID = "pub.mod.{Module}.{NewBoard}"
+       @available(*, deprecated, message: "Migrate to pub{NewBoard}")
+       static let pub{OldBoard}: BoardID = "pub.mod.{Module}.{OldBoard}" // exact old raw ID
    }
    ```
+   Register `.pub{OldBoard}` and `.pub{NewBoard}` to the same builder/factory for the documented
+   migration window. Keep the old accessor targeting `.pub{OldBoard}`. If dual registration is not
+   supported, the change is breaking and must be declared as such; do not claim compatibility.
 
 3. **Rename the file**:
    ```bash
-   git mv submodules/{Module}/IO/{OldBoard}/  submodules/{Module}/IO/{NewBoard}/
-   git mv submodules/{Module}/IO/{NewBoard}/{OldBoard}IOInterface.swift  \
-          submodules/{Module}/IO/{NewBoard}/{NewBoard}IOInterface.swift
+   git mv {ModuleRoot}/{Module}/IO/{OldBoard}/  {ModuleRoot}/{Module}/IO/{NewBoard}/
+   git mv {ModuleRoot}/{Module}/IO/{NewBoard}/{OldBoard}IOInterface.swift  \
+          {ModuleRoot}/{Module}/IO/{NewBoard}/{NewBoard}IOInterface.swift
    # repeat for InOut.swift and ServiceMap+{Board}.swift
    ```
 
@@ -429,18 +443,23 @@ If the rename is just "I like Y better than X", don't do it. Drift between name 
    - Accessors: `io{OldBoard}` → `io{NewBoard}`.
    - Constants: `pub{OldBoard}` → `pub{NewBoard}`.
 
-5. **Update callers** in the same PR (zero external-caller assumption — if you can't make this assumption, you need a bridge release; see step 7).
+5. **Update controlled callers** in the same change. Uncontrolled callers remain on the registered
+   old raw ID until the compatibility policy permits its removal.
 
 6. **Update the ModulePlugin**: `ServiceType` case + identifier mapping.
 
-7. **For external callers (different repos / published SDKs)**: ship the new constant alongside the old one for one release. Mark old as `@available(*, deprecated)`. Remove in the next major version.
+7. **For external callers**: publish the migration and keep the old constant, raw-ID registration,
+   and accessor for the governed deprecation window. Removal requires a declared breaking release;
+   elapsed time alone does not prove that runtime callers migrated.
 
 8. **Inspect the renamed public surface and every caller** before completing the rename, then run the
    rename slice's assigned consuming-repo signal once if executable behavior changed.
 
 ### Mechanical sequence — module rename
 
-This is essentially Refactor 2 (Merge) where the absorbed module is "empty" and the keeper takes its place. Steps 1-3 of Refactor 2 apply, scoped to the rename. Also rename the podspec file: `git mv {Old}.podspec {New}.podspec`.
+This is essentially Refactor 2 (Merge) where the absorbed module is "empty" and the keeper takes its
+place. Steps 1-3 of Refactor 2 apply, scoped to the rename. Rename the native target and manifest
+entries through the consuming repository's bound build/package adapter.
 
 ### Verification
 
@@ -461,7 +480,7 @@ the new contract.
 
 | Blocker | Fix |
 |---------|-----|
-| `pod install` fails with "duplicate symbol" after move | Old podspec still references the moved file. Update `source_files` glob in the source module's podspec (typically `'IO/**/*.swift'` + `'Sources/**/*.swift'` doesn't need changing, but explicit-file podspecs do) |
+| Native dependency refresh reports duplicate sources after move | The selected build/package adapter still references the old path. Update its source declaration. In a CocoaPods-bound repository this may be a podspec `source_files` entry; other adapters use their native manifest. |
 | `BoardID not registered` after move (public Board) | `ModulePlugin`'s `ServiceType.identifier` switch still maps the old case to the old BoardID. Update both case names and the mapped identifier |
 | Compile error: ambiguous type `Welcome` after merge | Both modules had a `Welcome` Board; the merge collided them. Rename one before completing the merge |
 | Final review finds `import {Other}Plugins` after split | One module's Board now imports the other's Plugins target — should be IO. Either move the type to `{Other}/IO/` (if it's domain) or move the Board back to `{Other}` (if it needs construction wiring) |
@@ -491,7 +510,8 @@ gates, receipts, or requests to rerun unchanged signals.
 ### Split / Merge / Move
 - [ ] The one final joined AI review finds no dependency, visibility, or BoardID contract violation.
 - [ ] Public domain contracts remain in `IO/**`; only the minimum App-boot construction surface is public under `Sources/Plugins/**`, and no sibling module imports Plugins.
-- [ ] Cross-deps acyclic (`grep -E "s\\.dependency" submodules/*/*.podspec` review).
+- [ ] Cross-deps are acyclic in the consuming repository's native dependency graph; any
+  manager-specific inspection command comes from project bindings.
 - [ ] The assigned native signal covers launch/activation and the affected flows at the planned risk boundary.
 - [ ] No leftover `import {Old}` / `mod{Old}` / `pub.mod.{Old}` references unless intentional (bridge alias).
 - [ ] Affected UIKit and SwiftUI adapters still consume equivalent display-ready semantics and forward the same typed intents.

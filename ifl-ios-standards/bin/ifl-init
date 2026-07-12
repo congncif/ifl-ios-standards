@@ -3,10 +3,10 @@ set -euo pipefail
 
 # ifl-init — seed a project's CLAUDE.md + AGENTS.md bindings from the plugin's starter template.
 #
-# Copies the portable-claude starter to the repo root and pre-fills the placeholders it can
-# detect from the repo (git remote/branch, dependency manager, module root, workspace/project).
-# Placeholders it can't infer (scheme, simulator, build/test commands, module prefix, commit
-# prefix) are left as {Placeholders} for you — or for the `/ifl-ios-standards:init` skill — to fill.
+# Copies the portable-claude starter to the repo root and pre-fills only values supported by
+# unambiguous repository evidence. Governed values it cannot prove (including base branch, module
+# root, destinations, and build/test commands) stay as {Placeholders} for the
+# `/ifl-ios-standards:init` skill or a human owner to resolve.
 #
 # Usage:
 #   ifl-init [--root=PATH] [--force] [--dry-run]
@@ -52,12 +52,25 @@ fi
 
 # ── Detect bindings from the repo ────────────────────────────────────────────
 
-git_get() { git -C "$ROOT" "$@" 2>/dev/null || true; }
-
 PROJECT_NAME="$(basename "$ROOT")"
-GIT_REMOTE="$(git_get remote | head -1)"; GIT_REMOTE="${GIT_REMOTE:-origin}"
-GIT_URL="$(git_get remote get-url "$GIT_REMOTE")"; GIT_URL="${GIT_URL:-TODO}"
-BASE_BRANCH="$(git_get symbolic-ref --short HEAD)"; BASE_BRANCH="${BASE_BRANCH:-main}"
+GIT_REMOTE="{GitRemote}"
+GIT_URL="{GitRemoteURL}"
+BASE_BRANCH="{BaseBranch}"
+
+# A single configured remote is observable. Its remote HEAD is acceptable base-branch evidence;
+# the current working branch is not.
+REMOTE_NAMES="$(git -C "$ROOT" remote 2>/dev/null || true)"
+REMOTE_COUNT="$(printf '%s\n' "$REMOTE_NAMES" | sed '/^$/d' | wc -l | tr -d ' ')"
+if [ "$REMOTE_COUNT" = 1 ]; then
+  GIT_REMOTE="$(printf '%s\n' "$REMOTE_NAMES" | sed -n '1p')"
+  DETECTED_GIT_URL="$(git -C "$ROOT" remote get-url "$GIT_REMOTE" 2>/dev/null || true)"
+  [ -n "$DETECTED_GIT_URL" ] && GIT_URL="$DETECTED_GIT_URL"
+
+  REMOTE_HEAD="$(git -C "$ROOT" symbolic-ref --quiet --short "refs/remotes/$GIT_REMOTE/HEAD" 2>/dev/null || true)"
+  case "$REMOTE_HEAD" in
+    "$GIT_REMOTE"/*) BASE_BRANCH="${REMOTE_HEAD#"$GIT_REMOTE"/}" ;;
+  esac
+fi
 
 # first_glob PATTERN  — echo the first matching path, or empty (never fails under set -e/pipefail).
 first_glob() {
@@ -67,23 +80,36 @@ first_glob() {
 }
 
 # Dependency manager + module root + module dependency file
-DEP_MGR="TODO (CocoaPods / Bazel / SPM)"; MODULE_ROOT="TODO"; MODULE_DEP_FILE="TODO"
+DEP_MGR="{DependencyManager}"; MODULE_ROOT="{ModuleRoot}"; MODULE_DEP_FILE="{ModuleDependencyFile}"
 if [ -f "$ROOT/MODULE.bazel" ] || [ -f "$ROOT/WORKSPACE" ] || [ -f "$ROOT/WORKSPACE.bazel" ] || [ -n "$(first_glob "$ROOT/*.bazelrc")" ] || [ -f "$ROOT/.bazelrc" ]; then
   DEP_MGR="Bazel (bazelisk) + rules_xcodeproj"; MODULE_DEP_FILE="BUILD.bazel"
-  if [ -d "$ROOT/Features" ]; then MODULE_ROOT="Features"; else MODULE_ROOT="TODO (e.g. Features)"; fi
 elif [ -f "$ROOT/Podfile" ] || [ -n "$(first_glob "$ROOT/*.podspec")" ]; then
   DEP_MGR="CocoaPods"; MODULE_DEP_FILE="*.podspec"
-  for c in submodules Modules; do [ -d "$ROOT/$c" ] && { MODULE_ROOT="$c"; break; }; done
 elif [ -f "$ROOT/Package.swift" ]; then
   DEP_MGR="Swift Package Manager"; MODULE_DEP_FILE="Package.swift"
-  [ -d "$ROOT/Packages" ] && MODULE_ROOT="Packages"
 fi
 
-# Workspace / xcodeproj
-WORKSPACE="TODO"
-WS="$(first_glob "$ROOT/*.xcworkspace")"
-PROJ="$(first_glob "$ROOT/*.xcodeproj")"
-if [ -n "$WS" ]; then WORKSPACE="$(basename "$WS")"; elif [ -n "$PROJ" ]; then WORKSPACE="$(basename "$PROJ")"; fi
+# Workspace / xcodeproj: fill only when the repository has one unambiguous candidate.
+single_glob() {
+  local pattern="$1" p found="" count=0
+  while IFS= read -r p; do
+    [ -e "$p" ] || continue
+    found="$p"
+    count=$((count + 1))
+  done < <(compgen -G "$pattern" || true)
+  [ "$count" = 1 ] && printf '%s\n' "$found"
+  return 0
+}
+
+WORKSPACE="{Workspace}"
+WS="$(single_glob "$ROOT/*.xcworkspace")"
+WS_ANY="$(first_glob "$ROOT/*.xcworkspace")"
+if [ -n "$WS" ]; then
+  WORKSPACE="$(basename "$WS")"
+elif [ -z "$WS_ANY" ]; then
+  PROJ="$(single_glob "$ROOT/*.xcodeproj")"
+  [ -n "$PROJ" ] && WORKSPACE="$(basename "$PROJ")"
+fi
 
 echo "ifl-init — seeding bindings"
 echo "  root:        $ROOT"

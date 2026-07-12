@@ -84,20 +84,21 @@ curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl
 |-----------|-------|------|
 | Agents | 9 | `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
 | Skills | 21 | **Brain stages** (pattern-neutral, provider-native): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · **Enterprise iOS**: router `enterprise-ios` · `init` |
-| Reference | — | Full rulebook, specs + process standards, ten focused enterprise chapters, lint scripts, and `portable-claude` templates (bundled under `standards/`) |
-| Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — thin build-system-neutral source scaffolders; Claude exposes plugin `bin/` directly, while Codex uses `scripts/install-codex.sh` to create shims in `~/.local/bin` |
+| Reference | — | Full rulebook, specs + process standards, ten focused enterprise chapters, and `portable-claude` templates (bundled under `standards/`) |
+| Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — thin build-system-neutral source scaffolders in plugin `bin/`; command-name invocation requires the runtime to export that directory or an installed shim directory to be on shell `PATH` |
 
 ## New project? Init the bindings first
 
 A project adopts the standard by carrying a `CLAUDE.md` + `AGENTS.md` with its own bindings. Seed them:
 
 ```bash
-ifl-init --root=.            # detects git/manager/module-root, writes CLAUDE.md + AGENTS.md
-# or, agent-driven (also fills scheme/build/test by introspection):
+ifl-init --root=.            # fills only unambiguous observed values; leaves governed values unresolved
+# or, agent-driven (resolves remaining bindings from repository evidence or asks):
 /ifl-ios-standards:init
 ```
 
-Then fill any remaining `{Placeholders}` (scheme, simulator, build/test commands).
+Then resolve every remaining project binding from repository evidence or its accountable owner. Never
+invent a remote, base branch, module root, destination, or build/test command.
 
 ## Use it
 

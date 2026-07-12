@@ -42,34 +42,43 @@ fi
 codex plugin add "$PLUGIN@$MARKETPLACE"
 
 # 3. Codex currently loads plugin skills/MCP metadata, but does not guarantee that a
-# plugin's bin/ directory is exported to the user's shell PATH. Create stable shims
-# for the scaffolders into ~/.local/bin, which is already on PATH for most Codex setups.
+# plugin's bin/ directory is exported to the user's shell PATH. Create shims that resolve
+# the most recently installed available cache entry each time they are invoked.
 BIN_DIR="${HOME}/.local/bin"
-CACHE_ROOT="${HOME}/.codex/plugins/cache/${MARKETPLACE}/${PLUGIN}"
-PLUGIN_DIR=""
 
-if [ -d "$CACHE_ROOT" ]; then
-  PLUGIN_DIR="$(find "$CACHE_ROOT" -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
-fi
-
-if [ -n "$PLUGIN_DIR" ] && [ -d "$PLUGIN_DIR/bin" ]; then
-  mkdir -p "$BIN_DIR"
-  for tool in ifl-init ifl-new-module ifl-new-board; do
-    src="$PLUGIN_DIR/bin/$tool"
-    dst="$BIN_DIR/$tool"
-    if [ -x "$src" ]; then
-      cat > "$dst" <<EOF
+mkdir -p "$BIN_DIR"
+for tool in ifl-init ifl-new-module ifl-new-board; do
+  dst="$BIN_DIR/$tool"
+  cat > "$dst" <<EOF
 #!/usr/bin/env bash
-exec "$src" "\$@"
-EOF
-      chmod +x "$dst"
-    fi
-  done
-  echo "Installed command shims into $BIN_DIR: ifl-init, ifl-new-module, ifl-new-board"
-else
-  echo "WARNING: installed plugin, but could not find cached bin/ under $CACHE_ROOT" >&2
-  echo "         Re-run this installer after starting a new Codex thread, or call tools via the cache path." >&2
+set -euo pipefail
+
+CACHE_ROOT="\${HOME}/.codex/plugins/cache/${MARKETPLACE}/${PLUGIN}"
+TOOL="$tool"
+SOURCE=""
+
+while IFS= read -r candidate; do
+  executable="\$candidate/bin/\$TOOL"
+  [ -x "\$executable" ] || continue
+  if [ -z "\$SOURCE" ] || [ "\$executable" -nt "\$SOURCE" ]; then
+    SOURCE="\$executable"
+  fi
+done < <(find "\$CACHE_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+
+if [ -z "\$SOURCE" ]; then
+  echo "\$TOOL: no executable cache entry found under \$CACHE_ROOT; reinstall the plugin" >&2
+  exit 1
 fi
+
+exec "\$SOURCE" "\$@"
+EOF
+  chmod +x "$dst"
+done
+echo "Installed dynamic command shims into $BIN_DIR: ifl-init, ifl-new-module, ifl-new-board"
+case ":$PATH:" in
+  *":$BIN_DIR:"*) ;;
+  *) echo "NOTE: add $BIN_DIR to shell PATH before invoking the scaffolders by name." ;;
+esac
 
 echo
 echo "Done. Start a new Codex thread, then describe a Boardy+VIP iOS task"

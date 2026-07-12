@@ -107,7 +107,7 @@ be enough; for medium/large work, use independent subagents.
 ## Requirement review verdict
 
 Reviewer: {role}
-Verdict: APPROVED | CHANGES_REQUIRED | USER_INPUT_REQUIRED | BLOCKED
+Verdict: APPROVED | AUTO_APPROVED | CHANGES_REQUIRED | USER_INPUT_REQUIRED | BLOCKED
 
 Findings:
 - Severity: blocking | material | non-blocking
@@ -124,6 +124,10 @@ Findings:
 - a measurable Definition of Done checklist exists;
 - all blocking standards satisfied;
 - any non-blocking assumptions recorded in the briefing/spec.
+
+Use `APPROVED` only for an explicit human/co-working gate decision. Use `AUTO_APPROVED` only for an
+auto-mode AI gate decision that satisfies every condition above; do not translate one token into the
+other downstream.
 
 ## 6. Write the artifact
 

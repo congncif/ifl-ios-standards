@@ -15,17 +15,20 @@ only seeds the project's own values.
 
 ## 1. Seed via the bundled helper
 
-Run the scaffolder. It copies the starter template to the repo root and pre-fills what it can detect
-(project name, git remote/branch, dependency manager, module root, workspace). Claude normally exposes
-the plugin `bin/` on PATH; Codex requires the `scripts/install-codex.sh` shim step for PATH commands:
+Run the scaffolder. It copies the starter template to the repo root and pre-fills only values backed by
+unambiguous repository evidence. Governed or ambiguous bindings remain `{Placeholders}`. The plugin
+ships the command in `bin/`; invoke it by name only when the host exports that directory or an installed
+shim directory is on shell `PATH`:
 
 ```bash
 ifl-init --root=.            # add --force to overwrite existing CLAUDE.md/AGENTS.md
 # preview first: ifl-init --root=. --dry-run
 ```
 
-If `ifl-init` isn't on PATH, run `scripts/install-codex.sh` to create `~/.local/bin` shims, or run it
-from the plugin cache/root: `${CLAUDE_PLUGIN_ROOT}/bin/ifl-init --root=.`
+If `ifl-init` isn't on `PATH`, run it from the known plugin root:
+`${CLAUDE_PLUGIN_ROOT}/bin/ifl-init --root=.` With separate installation authority,
+`scripts/install-codex.sh` can create dynamic shims in `~/.local/bin`; that directory must also be on
+the invoking shell's `PATH`.
 
 It refuses to overwrite an existing `CLAUDE.md`/`AGENTS.md` without `--force` — if the repo already
 has bindings, stop and ask the user before clobbering.
@@ -38,11 +41,11 @@ user only for what's genuinely ambiguous:
 | Placeholder | How to resolve |
 |-------------|----------------|
 | `{MainScheme}` | `xcodebuild -list` (CocoaPods/SPM) or the `xcodeproj()` rule target name (Bazel). For per-feature Bazel targets, note that rather than a single scheme. |
-| `{Simulator}` / `{Destination}` | `xcodebuild -showdestinations`, or default `iPhone 17` / `platform=iOS Simulator,name=iPhone 17`. |
-| `{BuildCommand}` / `{TestCommand}` | Bazel: `bazel build //…:…Plugins` / `bazel test //…:…-Tests`. CocoaPods: filtered `xcodebuild build/test`. Confirm against the repo's CI / Makefile if present. |
+| `{Simulator}` / `{Destination}` | Resolve from repository governance or an observed native destination inventory. If no supported destination is identified, leave unresolved and ask; do not choose a device default. |
+| `{BuildCommand}` / `{TestCommand}` | Copy the canonical commands from repository governance, CI configuration, Makefile, or equivalent owned entry point. If absent or ambiguous, leave unresolved and ask; do not synthesize commands from the package manager. |
 | `{ModulePrefix}` | Scan existing module/type names for a common prefix (e.g. `DAD`); empty if none. |
 | `{CommitPrefix}` | Look at recent `git log` for a ticket-key convention (e.g. `TCW-1234`); ask the user if unclear. |
-| `{Workspace}` (if still TODO) | Bazel rules_xcodeproj: the generated `*.xcodeproj` path; else the `.xcworkspace`. |
+| `{Workspace}` (if unresolved) | Resolve the repository's actual generated `*.xcodeproj` or `.xcworkspace`; ask when multiple candidates exist. |
 
 Edit `CLAUDE.md` to fill these, then mirror the exact content into `AGENTS.md` (keep the twins
 **identical** — copy `CLAUDE.md` over `AGENTS.md` after editing).

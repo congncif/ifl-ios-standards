@@ -2,7 +2,7 @@
 
 Status: In Review
 
-Owner: Architecture Owner
+Owner: Chief Architecture Owner
 
 Decision date: 2026-07-13
 
@@ -44,4 +44,3 @@ instead of leaking framework or vendor models into Domain or Application.
 3. Define the required capability as an inward-owned protocol using inward-owned values.
 4. Map external values at the boundary and migrate callers incrementally behind the protocol.
 5. Remove the obsolete outward import only after all consumers use the inward contract.
-

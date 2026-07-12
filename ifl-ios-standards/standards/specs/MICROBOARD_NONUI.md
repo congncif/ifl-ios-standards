@@ -50,7 +50,15 @@ Fully custom?                                    → Empty Board.
 
 ## Files
 
-The bundled CLI creates the public contract separately from the implementation:
+Choose visibility before creating files:
+
+- A Board with a proven cross-module caller is public. The bundled CLI creates its public contract
+  separately from the implementation.
+- A module-private Board keeps its contract and implementation under
+  `Sources/Microboards/{Board}/`, uses `mod.{Module}.{Board}`, and exports no `public` symbols. Create
+  that shape directly; do not run the public-only CLI and then delete pieces of its contract.
+
+Public CLI output:
 
 ```text
 IO/{Board}/
@@ -93,7 +101,8 @@ Sources/Microboards/{Board}/
 
 ## Naming
 
-- A scaffolded public BoardID is exactly `"pub.mod.{Module}.{Board}"` and lives in `IO/{Board}/`.
+- Decide visibility before scaffolding. A scaffolded public BoardID is exactly
+  `"pub.mod.{Module}.{Board}"` and lives in `IO/{Board}/`.
   The implementation aliases that public ID instead of creating a competing internal literal.
 - A genuinely module-private board may use `"mod.{Module}.{Board}"`, but the current CLI always
   creates public IO and therefore is not the tool for silently making an internal-only contract.

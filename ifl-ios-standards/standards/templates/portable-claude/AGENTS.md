@@ -34,7 +34,8 @@ skills only when the target project actually uses Boardy/VIP.
 - **Agents** (multi-step delivery): `ios-orchestrator` (start here for broad implementation work),
   `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`,
   `ios-review-triage`, `ios-doc-scribe` — appear in `/agents`.
-- **Source scaffolders on PATH** when the plugin is enabled: `ifl-new-module`, `ifl-new-board`.
+- **Source scaffolders in plugin `bin/`**: `ifl-new-module`, `ifl-new-board`. Invoke them by command
+  name only when the runtime exports plugin `bin/` or an installed shim directory is on shell `PATH`.
   They emit additive, build-system-neutral source skeletons only. They resolve the repository-owned
   module root from these bindings and never invent build files, targets, dependencies, platform
   versions, destinations, commands, or CI configuration.

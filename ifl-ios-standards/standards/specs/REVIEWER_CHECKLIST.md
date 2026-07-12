@@ -47,7 +47,8 @@
 - [ ] Barrier board (`{BarrierBoard}`) calls `complete()` in **every** exit path (`sendOutput` then `complete()`)
 - [ ] Barrier board `OutputType` carries a typed result enum when callers need to distinguish outcomes (not `Void`)
 - [ ] All controller exit paths pass the result to `delegate?.finish(_ result:)` before `complete()`
-- [ ] Gated board's module Plugins podspec adds `s.dependency '{BarrierModule}'`
+- [ ] Gated board's implementation target declares its dependency on `{BarrierModule}` with the
+  consuming repository's bound package/build adapter
 - [ ] No double-`complete()` on barrier board (all exit paths lead to exactly one `complete()`)
 
 ---
@@ -71,14 +72,15 @@
 
 ## Module Structure
 
-- [ ] Module lives directly under `{ModuleRoot}/{ModuleName}/` (not nested inside another module)
-- [ ] Two podspecs: `{ModuleName}.podspec` (IO) + `{ModuleNamePlugins}.podspec` (Sources)
-- [ ] IO podspec: `source_files = 'IO/**/*.swift'`
-- [ ] Plugins podspec: `source_files = 'Sources/**/*.swift'`
-- [ ] `s.dependency` has name only, no `:path =>`
-- [ ] Podfile uses `:path =>` (hash-rocket), not `path:` (keyword syntax)
-- [ ] `pod install` was run after any structural change
-- [ ] LauncherPlugin wired in the app entry file declared by `.claude/project/PROJECT_CONFIG.md` via `.install(launcherPlugin:)` before `.initialize()`
+- [ ] Module lives under the `{ModuleRoot}` declared by the consuming repository's root
+  `CLAUDE.md` or `AGENTS.md` binding
+- [ ] The native build/package adapter maps `IO/**` to the public Interface target and `Sources/**`
+  to the internal Implementation target
+- [ ] Cross-target dependencies preserve the Interface/Implementation direction in the repository's
+  native manifest; manager-specific syntax is reviewed only when that adapter is actually used
+- [ ] Any dependency refresh required by that adapter ran once for this completed structural slice
+- [ ] LauncherPlugin is wired in the app entry file declared by project bindings via
+  `.install(launcherPlugin:)` before `.initialize()`
 - [ ] App entry file imports `{ModuleNamePlugins}`, not `{ModuleName}`
 
 ---
@@ -225,7 +227,7 @@
 - [ ] ComposableBoard registered as `GuaranteedBoard` + activation sets up tabs
 - [ ] Each tab = one child board activated in `activate()`
 - [ ] Tab switching via `interaction` command, not direct board calls
-- [ ] Read `.ai/specs/COMPOSABLE_BOARD.md` for full rules (not duplicated here)
+- [ ] Read `COMPOSABLE_BOARD.md` from this plugin's `standards/specs/` for full rules (not duplicated here)
 
 ---
 

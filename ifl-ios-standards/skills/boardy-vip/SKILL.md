@@ -64,11 +64,17 @@ Process standards (apply to every task):
 
 ## 2. The 14 rules (never break)
 
-1. View has zero logic — renders ViewModels, forwards events.
+1. View is humble — it renders display-ready state and forwards typed intent. It may branch on
+   Presenter-encoded presentation state, own transient UX-local state, and calculate geometry-only
+   visual values. Formatting raw/domain values, deriving product or analytics meaning, deciding
+   business/navigation policy, fetching/persisting data, and constructing business dependencies stay
+   outside the View.
 2. Unidirectional flow: `VC → Interactor → UseCase → Presenter → VC`. Exception: `VC → ActionDelegate(Board)` for pure-navigation intents the Interactor would only forward.
 3. IO modules are `public`; `Sources/**` is `internal` EXCEPT `Sources/Plugins/**` (may be `public` for LauncherPlugin wiring). Provider configs live in `Sources/Plugins/`, never IO.
 4. Never import `{ModuleName}Plugins` from another module — only IO.
-5. Async UI updates always in `await MainActor.run { [weak self] in ... }`.
+5. UI and presentation-store mutation runs on an explicit MainActor boundary. Code already isolated
+   to MainActor calls that boundary directly; code crossing from nonisolated work uses `await
+   MainActor.run { [weak self] in ... }` or an equivalent `@MainActor` hop.
 6. `weak var view` in Presenter; `weak var delegate` in Interactor; `weak var actionDelegate` in ViewController. Interactor must NOT declare actionDelegate.
 7. `registerFlows()` called in Board's `init`, never in `activate()`.
 8. Double-activation guard only when the Board is explicitly single-session. All Board→Controller communication uses event buses, never retrieved controller references.

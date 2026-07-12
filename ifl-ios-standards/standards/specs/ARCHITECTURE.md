@@ -2,7 +2,9 @@
 
 # SPEC: Architecture (Top-Level Overview)
 
-> Reference: *Modern large-scale iOS app development* (PDF at `.ai/references/Modern large-scale iOS app development.pdf`).
+> Canonical authority: the bundled Canon, ADRs, and sibling specs under this plugin's
+> `standards/` directory. A consuming project may keep additional source references in its own
+> documented knowledge location.
 > Companion specs: `SDK_FIRST.md`, `MODULE_CREATION.md`, `IO_INTERFACE.md`, `PLUGINS_INTEGRATION.md`, `MICROBOARD_UI.md`, `MICROBOARD_NONUI.md`, `COMMUNICATION.md`, `COMPOSABLE_BOARD.md`, `LAYERING.md`, `SERVICE_LAYER.md`, `VIP_COMPONENTS.md`, `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded).
 
 ## When to use
@@ -17,12 +19,14 @@ Read FIRST, before any per-spec rule. Use as the orientation map for:
 ## When NOT to use
 
 - Implementing a single, scoped change inside one Board — the relevant per-spec is more useful.
-- Lookups for project-specific names (workspace / scheme / simulator) → those live in `.claude/project/PROJECT_CONFIG.md`.
-- Daily operational routing — that's `.claude/rules/QUICK_REF.md`.
+- Lookups for project-specific names (workspace / scheme / simulator / module root) → read the
+  consuming repository's root `CLAUDE.md`, then `AGENTS.md`.
+- Daily operational routing — load this plugin's `standards/rules/QUICK_REF.md`.
 
 ## Forces
 
-- Boardy is the pinned UI/coordination engine — non-negotiable across all features.
+- Boardy is the pinned coordination engine for projects and features that select the `boardy-vip`
+  Profile; Core itself remains architecture-pattern-neutral.
 - Interface Module / Implementation Module split keeps cross-module imports honest: feature consumers
   depend only on `{Module}`. App composition may construct the minimum public LauncherPlugin surface
   exported from `{Module}Plugins/Sources/Plugins/**`; that exception never authorizes feature-to-feature
@@ -36,19 +40,16 @@ Read FIRST, before any per-spec rule. Use as the orientation map for:
 This spec is governance, not generative — no file shape produced. Touches:
 
 ```
-.ai/specs/                                  ← all per-pillar specs sit here
-.ai/specs/compact/BOARDY_CHEATSHEET.compact.md
-.claude/rules/QUICK_REF.md                  ← operational routing index
-.claude/project/PROJECT_CONFIG.md           ← project-specific bindings
-.ai/references/Modern large-scale iOS app development.pdf
+${CLAUDE_PLUGIN_ROOT}/standards/specs/             ← bundled per-pillar specs
+${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/BOARDY_CHEATSHEET.compact.md
+${CLAUDE_PLUGIN_ROOT}/standards/rules/QUICK_REF.md  ← operational routing index
+<project-root>/CLAUDE.md or AGENTS.md        ← project-specific bindings
 ```
 
 Module anatomy this architecture mandates:
 
 ```
 {ModuleRoot}/{Module}/
-├── {Module}.podspec               ← Interface Module (public)
-├── {Module}Plugins.podspec        ← Implementation target; feature internals hidden
 ├── IO/                            ← BoardID, InOut, ServiceMap (public)
 │   ├── {Module}ServiceMap.swift
 │   └── {Board}/
@@ -136,7 +137,8 @@ Invariants:
    geometry/visual interpolation, and forwards typed intent. It does not format raw/domain values,
    derive product or analytics meaning, make business/navigation-policy decisions, fetch/persist
    business data, or construct dependencies.
-2. **Presenter is the only ViewModel mapper** (`UI-HUMBLE-002`) — Interactor passes domain models only.
+2. **Presenter or equivalent presentation mapper is the only ViewModel mapper** (`UI-HUMBLE-001`) —
+   the View receives display-ready state and does not derive presentation values itself.
 3. **Interactor never references `ActionDelegate`** (`BRD-VIP-001`) — UI navigation intent goes
    `View → ActionDelegate(Board)`.
 4. **Board is stateless** (`BRD-LIFE-001`) — per-session state lives in Interactor (UI) or Controller (Viewless).
@@ -160,7 +162,8 @@ Never depend on `{Module}Plugins` from another module.
 
 ### Spec routing
 
-`.claude/rules/QUICK_REF.md` is the daily operational index. This file is the high-level map.
+`standards/rules/QUICK_REF.md` in the plugin is the daily operational index. This file is the
+high-level map.
 
 | About to... | Read |
 |---|---|
@@ -190,13 +193,13 @@ Never depend on `{Module}Plugins` from another module.
 
 - Pillars compose strictly inward: Pillar 5 (Layering) is innermost; Pillar 4 (Boardy) sits in the BA + UI shells; Pillar 3 (Plugins) is the runtime glue; Pillar 2 (Modular) is the build-time boundary; Pillar 1 (SDK-first) governs dependency choices across all.
 - Module → ServiceMap → Board → VIP forms one composition tree per feature.
-- Cross-module composition uses IO pod's `MainboardGenericDestination` only.
+- Cross-module composition uses the Interface target's `MainboardGenericDestination` only.
 
 ## Lifecycle
 
 - This document — versionless governance; updated when a pillar's scope materially changes.
-- Per-spec docs in `.ai/specs/` — versioned alongside code via git history.
-- PDF reference — authoritative source for vocabulary; check it when terminology drift suspected.
+- Bundled docs in `standards/specs/` — versioned with the plugin via git history.
+- Canon and accepted ADRs are authoritative when historical references or project vocabulary drift.
 - Pillars are stable; pattern specs (e.g. `EXTENSIBLE_PROVIDER`, `ACTIVATION_BARRIER`) accrete over time.
 
 ## Testing
@@ -208,21 +211,23 @@ Never depend on `{Module}Plugins` from another module.
 ## Pitfalls
 
 - ❌ Treating one pillar in isolation (e.g. adding a Board without IO split) — leaves cross-cutting violations.
-- ❌ Hardcoding workspace / scheme / simulator names in specs — those belong in `PROJECT_CONFIG.md`.
-- ❌ Routing via this doc for daily work — `.claude/rules/QUICK_REF.md` is faster.
+- ❌ Hardcoding workspace / scheme / simulator names in specs — those belong in the consuming
+  repository's root `CLAUDE.md` or `AGENTS.md` bindings.
+- ❌ Routing via this doc for daily work — `standards/rules/QUICK_REF.md` is faster.
 - ❌ Using legacy terminology in new code — prefer canonical column.
-- ❌ Importing `{Module}Plugins` from another module — Pillar 2 violation; use IO pod.
-- ❌ Skipping the PDF cross-reference when introducing a new pattern — drift accumulates.
+- ❌ Importing `{Module}Plugins` from another module — Pillar 2 violation; use its Interface target.
+- ❌ Treating an external historical reference as stronger than Canon or an accepted ADR.
 
 ## References
 
-- `.ai/references/Modern large-scale iOS app development.pdf` (canonical text)
+- `../canon/adrs/ADR-0001-standards-authority-and-evolution.md` and sibling accepted ADRs
+  (canonical decisions)
 - `SDK_FIRST.md`, `MODULE_CREATION.md`, `IO_INTERFACE.md`, `PLUGINS_INTEGRATION.md`
 - `MICROBOARD_UI.md`, `MICROBOARD_NONUI.md`, `COMMUNICATION.md`, `COMPOSABLE_BOARD.md`
 - `LAYERING.md`, `SERVICE_LAYER.md`, `VIP_COMPONENTS.md`
 - `CROSS_MODULE_DI.md`, `ACTIVATION_BARRIER.md`, `EXTENSIBLE_PROVIDER.md`, `PER_ACTIVATION_RESOURCES.md`
 - `CONTEXT_NAVIGATION.md`, `TESTING.md`
 - `DECISION_TREES.md` (pick-a-pattern navigator — read BEFORE choosing Board type / ID / bus shape)
-- `.claude/rules/QUICK_REF.md` (operational routing)
-- `.claude/project/PROJECT_CONFIG.md` (project bindings)
+- `../rules/QUICK_REF.md` (operational routing)
+- The consuming repository's root `CLAUDE.md`, then `AGENTS.md` (project bindings)
 - `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded)

@@ -62,8 +62,8 @@ The cheatsheet has the no-prefix case. When the project applies a prefix (e.g. `
 | Concept | No prefix | With `DAD` prefix |
 |---------|-----------|-------------------|
 | Module name | `Profile` | `DADProfile` |
-| Module pod | `Profile` | `DADProfile` |
-| Plugins pod | `ProfilePlugins` | `DADProfilePlugins` |
+| Interface target | `Profile` | `DADProfile` |
+| Implementation target | `ProfilePlugins` | `DADProfilePlugins` |
 | IO ServiceMap class | `ProfileServiceMap` | `DADProfileServiceMap` |
 | IO ServiceMap accessor | `modProfile` | `modDADProfile` |
 | Plugins ServiceMap class | `ProfilePluginsServiceMap` | `DADProfilePluginsServiceMap` |
@@ -99,12 +99,13 @@ The cheatsheet has the no-prefix case. When the project applies a prefix (e.g. `
 13. **Viewless lifecycle** (`BRD-VIEWLESS-001`): attach Controller by priority: explicit `input.context`; `rootViewController`; then Board context as a last resort. Board lifecycle remains independent of Controller lifecycle. Identity filtering applies only to Controller→Board→Bus→Controller round-trips; Board-originated buses rely on the bus's weak target and never fabricate a source through `attachedObject(_:)`.
 14. **Concurrent block task** (`BRD-BLOCKTASK-001`): with `executingType: .concurrent`, route each activation through parameter callbacks (`onSuccess`, `onError`), not shared `.flow`. Sequential mode may use `.flow`, though parameter callbacks remain preferred.
 
-## 5. Module folder skeleton (canonical for this project)
+## 5. Module source skeleton (build-system neutral)
+
+Resolve `{ModuleRoot}` and native dependency commands from the consuming repository's root
+`CLAUDE.md` or `AGENTS.md`; never assume a `submodules/` directory or package manager.
 
 ```
 {ModuleRoot}/{ModuleName}/
-├── {ModuleName}.podspec             # IO target: source_files = 'IO/**/*.swift'
-├── {ModuleNamePlugins}.podspec      # Plugins target: source_files = 'Sources/**/*.swift'
 ├── IO/
 │   ├── {ModuleName}ServiceMap.swift
 │   └── {Board}/
@@ -117,13 +118,10 @@ The cheatsheet has the no-prefix case. When the project applies a prefix (e.g. `
     └── Services/{Domain, Application, Infra}/...
 ```
 
-Podfile (hash-rocket only):
-```ruby
-pod '{Module}',        :path => '{ModuleRoot}/{Module}'
-pod '{Module}Plugins', :path => '{ModuleRoot}/{Module}'
-```
-
-`s.dependency` carries a name only — never `:path`. `s.dependency 'Boardy', :path => '.'` breaks lint.
+The repository maps `IO/**` to the public Interface target and `Sources/**` to the internal
+Implementation target using its bound CocoaPods, SwiftPM, Bazel, or mixed adapter. Package-manager
+snippets elsewhere in this pack are labeled adapter examples, not universal commands. See
+`${CLAUDE_PLUGIN_ROOT}/standards/specs/PACKAGE_MANAGER.md`.
 
 ## 6. Example dictionary
 

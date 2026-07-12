@@ -54,6 +54,18 @@ module_root_from() {
     || true
 }
 
+is_unresolved_module_root() {
+  local value="$1" upper
+  case "$value" in
+    *'{'*|*'}'*) return 0 ;;
+  esac
+  upper="$(printf '%s' "$value" | tr '[:lower:]' '[:upper:]')"
+  case "$upper" in
+    TODO|TODO:*|TODO\ *|TBD|TBD:*|TBD\ *|UNRESOLVED|REJECTED) return 0 ;;
+  esac
+  return 1
+}
+
 resolve_module_root() {
   if [ -n "$MROOT" ]; then
     printf '%s\n' "$MROOT"
@@ -66,7 +78,7 @@ resolve_module_root() {
     "$ROOT/AGENTS.md" \
     "$ROOT/.claude/project/PROJECT_CONFIG.md"; do
     value="$(module_root_from "$file")"
-    if [ -n "$value" ] && [[ "$value" != \{* ]]; then
+    if [ -n "$value" ] && ! is_unresolved_module_root "$value"; then
       printf '%s\n' "${value%/}"
       return
     fi
@@ -77,6 +89,10 @@ resolve_module_root() {
 }
 
 MROOT="$(resolve_module_root)"
+if is_unresolved_module_root "$MROOT"; then
+  echo "ifl-new-module: module root is unresolved; replace TODO/TBD/{Placeholder} or pass a real repository-relative path" >&2
+  exit 64
+fi
 if ! [[ "$MROOT" =~ ^[A-Za-z0-9._/-]+$ ]]; then
   echo "ifl-new-module: module root must be a repository-relative path token (got '$MROOT')" >&2
   exit 64

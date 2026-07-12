@@ -7,10 +7,8 @@ Last sync: 2026-07-13 for Standards 1.0 candidate.
 ## File layout per module
 
 ```
-{Module}/                            ← module dir (two podspec targets live here)
-├── {Module}.podspec                 ← target name = "{Module}" (public Interface module, no suffix)
-├── {Module}Plugins.podspec          ← target name = "{Module}Plugins" (implementation target)
-├── IO/                              ← sources of the public "{Module}" target
+{ModuleRoot}/{Module}/               ← module root comes from CLAUDE.md / AGENTS.md bindings
+├── IO/                              ← sources of the public "{Module}" Interface target
 │   ├── {Module}ServiceMap.swift     ← public final class, single entry
 │   └── {PublicBoard}/
 │       ├── {PublicBoard}IOInterface.swift   ← BoardID + MainDestination typealias
@@ -22,6 +20,9 @@ Last sync: 2026-07-13 for Standards 1.0 candidate.
     ├── Plugins/                     ← ModulePlugin + minimum public LauncherPlugin construction surface
     └── ...
 ```
+
+The consuming repository binds these two logical targets to CocoaPods, SwiftPM, Bazel, or a mixed
+adapter. The source boundary is canonical; manifest filenames and dependency-sync commands are not.
 
 ## Naming
 

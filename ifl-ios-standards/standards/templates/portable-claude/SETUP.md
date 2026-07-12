@@ -189,7 +189,10 @@ Produce a short report:
 - Binding validation performed and, only if separately requested, any repository-owned command run.
 - Suggested next step: start the first task from root `CLAUDE.md` / `AGENTS.md` and the generated bindings.
 
-Do not commit or push. Setup output stays unstaged until the user approves.
+Apply the Git authority recorded in the project bindings. If an explicit scoped auto-commit grant
+covers this setup task, stage only the generated binding paths and commit them without another prompt.
+Otherwise leave them unstaged until local stage+commit authority is granted. Never infer or perform a
+push from setup approval, auto mode, or local commit authority; push always requires separate authority.
 
 ---
 

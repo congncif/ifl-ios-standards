@@ -103,7 +103,8 @@ Only after findings are disposed may the Canon lifecycle/statuses and indexes be
 Definition of Done be marked complete. This is the one review event; do not create per-task or
 per-finding review loops. See `standards/process/lean-verification.md` and `RELEASE.md`.
 
-The Standards do not require verifier scripts, receipts, manifests, hash chains, custom workflow state,
-CI, release scripts, tags, or publication. Provider-native task state and the approved plan are enough
-for local delivery. Organization CI and any external release remain DevOps/Release-owned and outside
-the Standards candidate acceptance scope.
+The Standards do not require verifier scripts, receipts, manifests, hash chains, derived-artifact
+registrations, custom workflow state, CI, release scripts, tags, or publication. Provider-native task
+state and the approved plan are enough for local delivery. Organization CI and any external release
+remain DevOps/Release-owned and outside the Standards candidate acceptance scope. Frozen custom-kernel
+contracts are preserved only under `backlog/post-1.0/custom-kernel/` and have no active authority.

@@ -3,6 +3,12 @@
 > CI integration and publication are owned by DevOps and are outside package preparation. The
 > commands below document the handoff procedure; this release-candidate update does not run them.
 
+> **Human Legal Owner prerequisite.** Both provider manifests intentionally remain `UNLICENSED`
+> pending an organizational licensing decision. Do not create a public repository, publish the
+> marketplace, or run any public-deployment command below until a named human Legal Owner approves
+> both the license and public distribution. Until then, use a private repository or an internal
+> directory marketplace and preserve `UNLICENSED`; an Agent cannot approve this gate.
+
 The marketplace currently lives on a removable drive. Pushing it to GitHub makes it installable
 from anywhere (teammates and fresh machines) with no drive and no clone.
 
@@ -29,7 +35,7 @@ directory has both:
 So the repo root = the **contents of this `marketplace/` dir** (a dedicated marketplace repo,
 separate from the ifl-ios-pack source). One `git push` updates both runtimes.
 
-## One-time push (run from the drive)
+## One-time public push (only after Legal Owner approval)
 
 ```bash
 cd /Volumes/KingstonXS1000/WORKSPACE/ABC/ifl-ios-pack/marketplace
@@ -109,10 +115,12 @@ To go back to the drive, re-run `ifl-ios-standards/scripts/install-claude.sh`.
 
 ## DevOps publication handoff
 
-1. Confirm `ifl-ios-standards/VERSION` and both provider manifest versions match.
-2. DevOps runs the repository's CI and publication checks.
-3. DevOps performs `git commit` + `git push`; then `git tag vX.Y.Z && git push origin vX.Y.Z`.
-4. Installs with `autoUpdate: true` pick up the default branch; pinned installs move when you
+1. Record the named human Legal Owner's license and public-distribution approval; without it, use the
+   private/internal alternative and stop the public handoff.
+2. Confirm `ifl-ios-standards/VERSION` and both provider manifest versions match.
+3. DevOps runs the repository's CI and publication checks.
+4. DevOps performs `git commit` + `git push`; then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+5. Installs with `autoUpdate: true` pick up the default branch; pinned installs move when you
    re-add with the new `#vX.Y.Z`, or run `claude plugin marketplace update ifl-ios-standards`.
 
 ## Private-repo note

@@ -4,7 +4,7 @@
 # VIP — View / Interactor / Presenter (Recommended Presentation Pattern)
 
 > **Status**: Optional pattern guide. The brain rulebook is pattern-neutral; this file is loaded only by projects that adopt VIP as their presentation pattern.
-> **Recommended**: VIP is the **default recommendation** for modular iOS systems — with or without Boardy. It enforces unidirectional flow, humble views, and single-source ViewModel mapping that align with the rulebook's hard rules (`rulebook/09-ui-layer-rules.md`, `rulebook/11-state-management-rules.md`).
+> **Recommended**: VIP is the **default recommendation** for modular iOS systems — with or without Boardy. It supports unidirectional flow, humble Views, and single-source ViewModel mapping. Canon Rules selected by the project's active Profiles remain authoritative.
 > **Boardy is optional**. Pure VIP works standalone with any router/coordinator. Boardy adds lifecycle + composition primitives on top; see §10 for the optional Boardy integration notes.
 
 ---
@@ -69,7 +69,7 @@ Each direction has one protocol. Name them after the role of the **receiver**.
 | Interactor → Router/Coordinator (control / completion) | `{Name}ControlDelegate` | `{Name}Protocols.swift` | Router/Coordinator/Board |
 | Builder contract | `{Name}Buildable` | `{Name}Protocols.swift` | Builder struct |
 
-**Weak references** at every back-edge:
+**Weak references** at every back-edge; forward edges remain strong:
 
 ```swift
 final class Presenter: Presentable {
@@ -82,10 +82,14 @@ final class Interactor: Interactable {
 }
 
 final class ViewController: Viewable {
-    weak var interactor: Interactable!         // View → Interactor (forward — but still weak: VC owned by container)
+    var interactor: Interactable!              // View → Interactor (strong forward edge)
     weak var actionDelegate: ActionDelegate!   // View → Router (back-edge for direct nav intent)
 }
 ```
+
+The Builder establishes the strong `View → Interactor → Presenter` ownership chain. Container or Board
+ownership is not a reason to weaken a forward edge: doing so can release the Interactor before the View
+forwards its next intent. Only the return edges to View, Router, Coordinator, or Board are weak.
 
 ---
 
@@ -213,20 +217,20 @@ struct {Name}Builder: {Name}Buildable {
 
 ---
 
-## 7. Non-Negotiable Rules (VIP-specific)
+## 7. Canon-Linked VIP Checklist
 
-These extend the brain rulebook's hard rules. A project adopting VIP must enforce all of them:
+This is derived guidance for a project that selects the relevant UI and, when applicable, `boardy-vip`
+Profiles. The cited Canon Rule supplies the actual scope, level, and exception policy.
 
 1. **View is humble (`UI-HUMBLE-001`…`004`).** It renders display-ready state, branches on presentation decisions already encoded as loading/content/empty/error, owns transient UX-local state, calculates only geometry/visual interpolation, and forwards typed intent. It does not format dates/currency/quantities/errors, derive user-visible or analytics meaning, decide eligibility/pricing/retry/navigation policy, fetch or persist business data, or construct dependencies.
 2. **Unidirectional pipeline (`BRD-VIP-001`).** `View → Interactor → UseCase → Presenter → View`. Skipping or reversing is a quick-fail.
-3. **Presenter is the single ViewModel mapper (`UI-HUMBLE-002`).** Interactor passes domain models to Presenter; Presenter builds display-ready ViewModels. Building a product ViewModel anywhere else is forbidden.
-4. **No domain types in View (`UI-HUMBLE-003`).** Views import only ViewModel structs and protocol types. Domain models stay below the Interactor boundary.
-5. **Framework-neutral core (`UIKIT-RENDER-001`).** Interactor and Presenter import neither UIKit nor SwiftUI. Presenter may use Foundation for locale-aware mapping; rendering adapters own framework mechanics only.
+3. **Presenter is the single ViewModel mapper (`UI-HUMBLE-001`).** Interactor passes domain models to Presenter; Presenter builds display-ready ViewModels. The View does not derive product-facing presentation values.
+4. **View consumes display-ready state (`UI-HUMBLE-001`, `UI-HUMBLE-003`, `UI-HUMBLE-004`).** Raw or domain values are mapped before rendering; the View does not format them or derive product or analytics meaning from them.
+5. **Framework boundary (`CORE-DEP-001`…`003`, `UIKIT-RENDER-001` when UIKit applies).** Keep Domain and Application dependencies inward, and give the rendering adapter immutable display-ready state rather than domain responsibilities.
 6. **Weak back-edges (`BRD-REF-001`).** `Presenter.view`, `Interactor.delegate`, `ViewController.actionDelegate` are always `weak`. Forward edges (View → Interactor, Interactor → Presenter) are owned-and-strong from the Builder.
 7. **UI isolation (`UI-ISOLATION-001`).** UIKit rendering and SwiftUI presentation-store mutation run on the declared MainActor boundary. Wrap Presenter calls from asynchronous Interactor work in `await MainActor.run { [weak self] in … }`.
-8. **Builder is the only composition root for the screen.** Concrete `Interactor`/`Presenter`/`ViewController` types are instantiated only in the Builder.
-9. **One Builder per screen.** Don't reuse a Builder across screens; copy the structure instead. Builders are composition, not abstraction.
-10. **Navigation intent is explicit.** Direct navigation requests from View use `ActionDelegate` (forwarded to Router/Coordinator). Business completion uses `ControlDelegate` from Interactor. Never reach into a parent controller.
+8. **Composition stays at a declared root (`CORE-COMP-001`).** In the conventional VIP shape, the Builder is that screen-level root; an equivalent declared composition root remains conforming.
+9. **Navigation intent is explicit (`BRD-NAV-001` when Boardy applies).** The View forwards typed intent, the Board or coordinator owns navigation policy, and business completion uses the Interactor control boundary.
 
 ---
 

@@ -1,25 +1,27 @@
-<!-- Created by claude-sonnet-4-6 on 2026-05-18 -->
-<!-- brain-version: 1.0.0 · last-updated: 2026-05-18 -->
+<!-- brain-version: 1.0.0 · last-updated: 2026-07-13 -->
 
-# 20. Non-Negotiable Rules
+# 20. Canon-Linked Review Checklist
 
-These are the rules that cannot be relaxed without explicit, documented architectural exception.
+This is a derived review aid, not a second source of obligations. Apply only Rules selected by the
+project's active Profiles. If this checklist and Canon differ, Canon governs and the inconsistency must
+be corrected under `CAN-AUTH-001`, `CAN-CONSIST-001`, and `CAN-DERIVED-001`.
 
-1. **Domain is pure Swift.** No UIKit, no networking, no vendor SDKs, no Codable.
-2. **Dependencies point inward.** Infrastructure → Business → Domain. Never the reverse.
-3. **Consumers depend on contracts, not implementations.** Cross-module imports target interface modules only.
-4. **Public is a commitment.** Promote visibility only when a consumer needs it. Audit it.
-5. **Vendor types do not appear in public interfaces.** Wrap them at the Infrastructure boundary.
-6. **One state, one writer.** Shared mutable state across boundaries is a code smell.
-7. **Views are humble.** No business decisions in the view layer.
-8. **UI updates run on the main actor.**
-9. **Concrete types are instantiated only at composition roots.**
-10. **No speculative abstraction.** Build for what exists; refactor when patterns emerge.
-11. **No unrelated changes.** Every line touched traces to the task at hand.
-12. **No bypass of safety checks.** Hooks, verification, and signing are part of the system.
-13. **Verify with real signals.** Empty output is failure. Build success requires explicit success markers.
-14. **Report facts, not theater.** Changed files, commands, outcomes, remaining work.
-15. **When in doubt, stop and ask.** Ambiguity is the agent's responsibility to surface, not to resolve silently.
+Use the linked Rule statement, scope, level, and exception policy when deciding conformance. The short
+prompts below do not strengthen those Rules or make Boardy, UIKit, SwiftUI, a build system, a workflow
+tool, or a verification mechanism universally mandatory.
 
----
+| Review prompt | Canon source |
+|---|---|
+| Keep Domain independent of UI, orchestration, persistence, networking, and vendor SDKs. | `CORE-DEP-001` |
+| Make Application/Business depend inward and consume outward capabilities through inward-owned protocols. | `CORE-DEP-002` |
+| Keep UI and Infrastructure as outward adapters to inward-owned contracts. | `CORE-DEP-003` |
+| Keep feature implementation APIs internal except for registered composition entries. | `CORE-API-001` |
+| Construct and register implementations only at a declared composition root. | `CORE-COMP-001`; with Boardy, `BRD-COMP-001` |
+| Keep Views humble: render display-ready state and forward intent without deriving product meaning. | `UI-HUMBLE-001`…`UI-HUMBLE-004` in the selected UI Profile |
+| Mutate rendered UI state on its declared MainActor boundary. | `UI-ISOLATION-001` in the selected UI Profile |
+| Follow the selected architecture Profile's lifecycle, communication, and dependency Rules. | The project's active Profile records under `standards/canon/profiles/` |
+| Use the risk-appropriate testing obligations selected by Core and any specialized Profile. | Applicable `TEST-*` Rules |
 
+Process discipline such as scoped changes, factual reporting, semantic commits, approval authority, and
+one final joined AI review is defined by the approved plan and `standards/process/`; it is operational
+guidance, not an additional architecture Rule registry.

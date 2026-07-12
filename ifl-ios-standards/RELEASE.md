@@ -21,21 +21,21 @@ cleanup.
 
 ## Factual RC checklist
 
-Check an item only from observed repository or review state, not intent. At Task 5 authoring time, only
-the target identifier is established; the remaining items are integration gates.
+Check an item only from observed repository or review state, not intent. This checklist records the
+local candidate state after the joined review, corrective batch, and Canon activation.
 
 - [x] `ifl-ios-standards/VERSION` identifies `1.0.0-rc.1` as the target candidate.
-- [ ] Tasks 1–5 are integrated and the two provider manifests, marketplace metadata, changelog, and
+- [x] Tasks 1–5 are integrated and the two provider manifests, marketplace metadata, changelog, and
   user-facing version references agree with the target.
-- [ ] Canon Rules, Profiles, ADRs, chapter metadata, derived-artifact mappings, and documentation have
+- [x] Canon Rules, Profiles, ADRs, chapter metadata, requirements, and documentation have
   been examined together in one final joined AI review.
-- [ ] Every joined-review finding has a recorded disposition; every accepted in-scope finding is
+- [x] Every joined-review finding has a recorded disposition; every accepted in-scope finding is
   corrected, and any true scope/architecture change has returned to planning.
-- [ ] Only after finding disposition, Canon lifecycle/status fields and registry indexes are activated
+- [x] Only after finding disposition, Canon lifecycle/status fields and registry indexes are activated
   consistently for the accepted candidate.
-- [ ] Only after Canon activation, the approved Plan 08 Definition of Done is confirmed against the
+- [x] Only after Canon activation, the approved Plan 08 Definition of Done is confirmed against the
   final repository state.
-- [ ] The final handoff distinguishes local candidate acceptance from any CI, tag, artifact,
+- [x] The final handoff distinguishes local candidate acceptance from any CI, tag, artifact,
   publication, marketplace, or external release action.
 
 The approved plan and provider-native task state are sufficient to record these observations. Do not
