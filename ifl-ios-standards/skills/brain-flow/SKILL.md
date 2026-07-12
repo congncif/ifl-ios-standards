@@ -70,8 +70,9 @@ Use `brain-execute` until the complete Definition of Done is implemented.
   templates, metadata, or documentation-only schemas.
 - Use the consuming project's ordinary code tests when code changes. Do not ship plugin-owned
   verification scripts or duplicate CI; CI/release automation is outside the plugin boundary.
-- Commit complete semantic tasks when separately authorized for traceability. A commit does not
-  trigger an intermediate consistency review.
+- Commit complete semantic tasks for traceability. If the user/project granted scoped auto-commit,
+  stage and commit each conforming task without another prompt; otherwise obtain the required local
+  Git authority. A commit does not trigger an intermediate consistency review.
 - In auto mode, continue without routine questions. Escalate only material ambiguity, missing required
   authority, an external hold, or a real blocker.
 
@@ -97,9 +98,9 @@ Report:
 - remaining blockers or explicitly deferred work;
 - Git operations actually performed.
 
-Never claim unrun tests, CI, publication, or release. Plan approval, auto mode, AI review, and commit
-cadence do not grant Git authority. Stage, commit, push, tag, publish, and release only under the
-consuming project's explicit authority model.
+Never claim unrun tests, CI, publication, or release. Consume only the authority granted by the
+project: scoped auto-commit may cover local stage+commit for semantic tasks, while branch changes,
+amend/history rewrite, push, PR, merge, tag, publish, install, and release remain separate.
 
 ## Non-negotiable operating constraints
 

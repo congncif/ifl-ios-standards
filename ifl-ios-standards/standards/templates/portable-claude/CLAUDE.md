@@ -165,9 +165,10 @@ Plan-scale execution and final AI review: see
 - Strong upfront criteria reduce rewrites more than any amount of careful coding.
 
 ### Project operations
-- Plan approval and auto mode grant no Git authority. Follow project governance for the exact
-  repository, semantic task, intended paths, parent, and native Git operation. Branch, push, PR, tag,
-  release, and history rewrite remain separate operations. Stage only intended paths.
+- Follow project governance for Git authority. An explicit scoped auto-commit instruction authorizes
+  local stage+commit for each completed semantic task in its plan/repository/branch without another
+  prompt. It never authorizes branch changes, amend/history rewrite, push, PR, merge, tag, publish,
+  install, or release. Stage only intended task paths.
 - Commit message convention: `{CommitPrefix}` *(e.g. a ticket-key prefix, if your team requires one)*.
 - Project docs/plans/handoffs live in-repo under `docs/` per
   `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md` (working docs →

@@ -16,7 +16,10 @@ and one final AI consistency review.
 - Continue through all approved workstreams without routine user interruption.
 - Escalate only material ambiguity, a real blocker, an external hold, or missing authority that cannot
   be safely inferred.
-- Auto mode never authorizes Git, publication, release, or other externally governed effects.
+- When the user/project has explicitly granted scoped auto-commit (for example, “commit after each
+  task”), auto mode stages and commits each conforming semantic task without another prompt.
+- Auto mode never infers branch, amend, history rewrite, push, PR, merge, tag, publication, install,
+  release, or another externally governed effect from that local commit grant.
 
 ## Provider operation
 
@@ -27,7 +30,8 @@ schemas, receipts, or a custom workflow state engine.
 
 ## Git and external effects
 
-Requirement approval, Plan approval, AI review, and commit cadence are engineering decisions only.
-The consuming project's governance decides whether staging, committing, pushing, PR creation, tagging,
-publishing, releasing, or another external effect needs explicit authority. Never infer one operation's
-authority from another.
+Requirement approval, Plan approval, and AI review are engineering decisions only. The consuming
+project's governance may provide per-operation Git authority or an explicit scoped auto-commit grant.
+The latter covers only local stage+commit for completed semantic tasks inside its approved scope. Never
+extend it to branch changes, amend/history rewrite, push, PR, merge, tag, publish, install, release, or
+another external effect.

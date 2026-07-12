@@ -210,9 +210,9 @@ Use the model ID that creates the file. Do not edit the header on later revision
 | Rule | Binding |
 |------|---------|
 | Trace boundary | One complete semantic task per commit by default; final AI review covers the full plan. |
-| Plan vs Git authority | Requirement/Plan approval and auto mode authorize no Git operation. |
-| Commit authority | Follow project governance for repo/worktree, semantic task, intended paths, parent, operation, cadence, and lifetime. |
-| Other Git operations | Branch, push, PR, tag, release, and history rewrite each require separately recorded authority. |
+| Plan vs Git authority | Plan approval alone grants no Git operation; bind per-operation or scoped auto-commit authority explicitly. |
+| Commit authority | `scoped-auto-commit` may authorize local stage+commit after every semantic task in the approved plan/repo/branch; otherwise use per-operation authority. |
+| Other Git operations | Branch, amend/history rewrite, push, PR, merge, tag, publish, install, and release remain separate. |
 | Staging | Stage explicit intended paths only; avoid broad staging. |
 | Target remote/base | `{GitRemote}` / `{BaseBranch}`; never infer the push branch from the base branch. |
 
