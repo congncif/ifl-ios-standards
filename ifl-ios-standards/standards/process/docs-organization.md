@@ -1,110 +1,57 @@
-# Process — Docs Organization
+# Process — Documentation organization
 
-**Trigger:** Whenever you create any project document (plan, spec, ADR, PRD, report, handoff, issue, feature request, design note), or when a tool/skill proposes a document path.
+Keep durable product knowledge separate from temporary working material. Do not create workflow
+artifacts merely because an agent stage or assignment ended.
 
-Project documents live with the code they describe — in-repo, version-controlled, classified — so they are reviewable and discoverable. They are never written to machine-global locations.
+## Repository layout
 
-## 1. Principle
-- All project docs go under the repo's `docs/` tree, classified by durability (top-level bucket) and type (inner folder).
-- **Never** write project docs to `~/.claude/`, the home directory, OS temp, or any path outside the repo. Those are machine-global — not shared, not version-controlled with the code.
-- Deviate from this layout **only on explicit user request**.
-
-## 2. The layout
-
-```
+```text
 docs/
-├── 01-living-docs/    # durable truth — edited in place, NO date prefix, stable kebab names
-│   ├── product/          # PRD, vision, scope, roadmap
-│   ├── architecture/     # tech design, system overview, diagrams
-│   ├── adr/              # Architecture Decision Records — NNNN-kebab-title.md
-│   ├── data/             # data model, schema, ERD, ownership
-│   ├── design-system/    # design tokens, component inventory, UX/UI guidelines
-│   ├── integrations/     # external-service contracts, API/dependency maps
-│   └── config/           # configuration & environment reference
-├── 02-working-docs/   # session/ephemeral — DATE-prefixed docs or per-work-item folders
-│   ├── work-items/       # one folder per ticket/work item: <WORK-ITEM-ID>-<slug>/
-│   ├── plans/            # standalone implementation plans not tied to a ticket/work item
-│   ├── specs/            # standalone design specs / brainstorm output
-│   ├── research/         # spikes, investigations
-│   ├── reports/          # standalone review / audit / coverage reports
-│   ├── handoffs/         # standalone briefing-handoff artifacts not tied to a ticket/work item
-│   ├── issues/           # standalone bug write-ups, incident notes
-│   └── feature-requests/ # standalone feature-request write-ups
-├── 03-release-docs/   # release-time artifacts
-│   ├── release-notes/    # per-version notes (vX.Y.Z.md)
-│   └── runbooks/         # deploy / rollback / on-call
-└── 99-archive/        # superseded docs; mirror original sub-path, prefix archived date
+├── 01-living-docs/       # current PRDs, architecture, ADRs, standards
+├── 02-working-docs/      # active plans, research, and work items
+├── 03-release-docs/      # release notes and runbooks
+└── 99-archive/           # superseded material
 ```
 
-Inner subfolders are create-on-demand — only the bucket a document belongs in must exist when that document is created.
+Use the consuming repository's bound equivalent when it differs.
 
-## 3. Routing rules
-1. Tool/skill output (e.g. superpowers brainstorming specs and plans) is redirected from its `docs/superpowers/specs|plans` default into `docs/02-working-docs/specs` and `docs/02-working-docs/plans`. Declare this override in the host `CLAUDE.md`/`AGENTS.md` so the skill writes there.
-2. ADRs → `docs/01-living-docs/adr/`. PRD, architecture, data design, design-system, integration, and config docs → the matching `01-living-docs/*` folder.
-3. Ticket/work-item documents → `docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/` with split files for requirements, plans, reports, handoffs, and artifacts.
-4. Standalone plans, specs, research, reports, handoffs, issues, feature requests → the matching `02-working-docs/*` folder.
-5. Release notes and runbooks → `03-release-docs/*`.
+## Work items
 
-## 4. Work item folders
-
-Every ticket/work item owns one folder:
+A non-trivial task may use:
 
 ```text
 docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/
 ├── requirements.md
 ├── plan.md
-├── reports/
-│   ├── implementation-report.md
-│   ├── verification-report.md
-│   ├── review-report.md
-│   └── final-report.md
-├── handoffs/
-│   └── briefing.md
-└── artifacts/
-    ├── diff.patch
-    ├── build.log
-    └── context-cache.json
+├── review.md             # created only for the single final AI review
+└── final-report.md       # optional concise handoff
 ```
 
-Rules:
-- Do not put all requirement, plan, report, and review content into one ever-growing file.
-- `requirements.md` owns the requirement summary, Definition of Done, and requirement gate.
-- `plan.md` owns the implementation plan and plan gate.
-- `reports/*` owns implementation, verification, review, and final reports.
-- `handoffs/briefing.md` is a lightweight handoff/index for multi-agent context; it links to the split files and may contain only the current handoff state.
-- `artifacts/*` holds generated support files such as diffs, logs, caches, screenshots, or exported evidence.
-- Docs that are not tied to a ticket/work item still use the standalone folders in `02-working-docs/*`.
+- `requirements.md` owns goal, scope, assumptions, risks, and Definition of Done.
+- `plan.md` owns design/architecture decisions, workstreams, task status, and dependencies.
+- `review.md` owns the one joined final AI review and accepted/deferred dispositions.
+- `final-report.md` is optional and summarizes completion; it must not duplicate the other files.
 
-## 5. Naming
-- **Living docs:** stable kebab-case, NO date prefix — edited in place as the single current truth.
-- **Standalone working docs:** `YYYY-MM-DD-<topic>[-kind].md` — dated because point-in-time and cumulative.
-- **Work item folders:** `<WORK-ITEM-ID>-<slug>/` where `WORK-ITEM-ID` is provided by the tracker or generated by requirement intake.
-- **ADRs:** `NNNN-kebab-title.md`, zero-padded sequential.
+Do not create verification reports, per-assignment receipts, checkpoint folders, manifests,
+fingerprints, evidence ledgers, or artifact trees by default. Use provider-native task state for
+ephemeral coordination. Add a separate artifact only when it is itself a user-requested deliverable or
+needed by the product domain.
 
-## 6. Lifecycle
-- A working doc that is completed or superseded moves to `99-archive/<original-bucket>/…` (same name, archived-date prefix).
-- A living doc is edited in place; when retired, it is archived the same way.
+## Placement
 
-## 7. Long generated documents
+- Current product/architecture truth → `01-living-docs/`.
+- Active requirements, plans, research, or final review → `02-working-docs/`.
+- Release notes/runbooks → `03-release-docs/`.
+- Superseded material → matching path under `99-archive/`.
 
-For long generated documents (briefings, plans, specs, reports, ADR drafts, research notes, migration
-guides), follow `process/long-document-writing.md`:
+Living documents use stable kebab-case names. Standalone working documents may use
+`YYYY-MM-DD-<topic>.md`. ADRs use the consuming project's zero-padded convention.
 
-- create a skeleton first;
-- write one major section per chunk;
-- keep section-local status truthful;
-- use correction sections for append-only artifacts;
-- write or correct the final report after final verification.
+## Lifecycle
 
-## Verification
+Edit living documents in place. When a working document is complete or superseded, archive it only if
+the repository's documentation policy requires retention. Do not maintain append-only audit history in
+ordinary agent workflow documents; Git already provides history.
 
-This process is being followed when:
-- Every new doc sits inside the repo `docs/` tree (not global, not repo-root scatter).
-- Its path matches its type (durability bucket + inner folder).
-- Tool-generated plans/specs land in `docs/02-working-docs/`, not `~/.claude/` or `docs/superpowers/`.
-- Ticket/work-item docs use one `docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/` folder with split files instead of one growing report/briefing file.
-
-## See also
-- `process/lean-verification.md` — semantic checkpoint and evidence-ownership policy for plan execution.
-- `process/long-document-writing.md` — chunk-safe writing for generated plans, specs, reports, and handoffs.
-- `process/README.md` — the process-doc index, when present.
+For long documents, use `process/long-document-writing.md`. For execution cadence, use
+`process/lean-verification.md`.

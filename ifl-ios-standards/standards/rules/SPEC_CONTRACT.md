@@ -23,15 +23,15 @@ Optional H2 sections **may** appear, but only **after** §12 (e.g. `## Migration
 
 ## Authoring rules
 
-- Use H2 (`## `) — not H3 — for the 12 required headings. The lint tool greps for the literal heading.
-- Order matters. The lint enforces order.
+- Use H2 (`## `) — not H3 — for the 12 required headings.
+- Keep the required headings in order so agents can navigate every pattern consistently.
 - A section may be intentionally empty for a spec that has nothing to say (e.g. a pure-domain spec has no `## Concurrency`); leave a single line `_Not applicable — <one-sentence reason>._` so the section is present but explicit.
 - Cite, don't repeat. If a rule lives in QUICK_REF or BOARDY_CHEATSHEET, link to it instead of copying.
 - Keep examples runnable — every code block must compile against the current Boardy+VIP pin.
 
 ## Exemptions
 
-The lint skips files whose name matches:
+The following non-pattern documents use their own fit-for-purpose structure:
 
 - `README.md`
 - `ADOPTION.md`
@@ -47,21 +47,8 @@ The lint skips files whose name matches:
 - `REFACTOR_PLAYBOOK.md` (procedural runbook for structural refactors, not a pattern spec)
 - Anything under `compact/` (compact specs have their own slim schema)
 
-## Lint tool
+## Review cadence
 
-`${CLAUDE_PLUGIN_ROOT}/standards/scripts/spec_doc_lint.swift` parses each non-exempt `${CLAUDE_PLUGIN_ROOT}/standards/specs/*.md`, checks the 12 H2 headings appear in order, and reports first-failure per file. Exit code:
-
-- `0` — all specs conform
-- `1` — at least one spec missing/misordered a section
-- `2` — invocation error (path not given, file unreadable)
-
-Run from project root:
-
-```bash
-swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/spec_doc_lint.swift ${CLAUDE_PLUGIN_ROOT}/standards/specs
-```
-
-## Audit cadence
-
-- On every PR that touches `${CLAUDE_PLUGIN_ROOT}/standards/specs/*.md`: the lint runs in CI (when CI is wired) or locally before merge.
-- Quarterly full sweep: re-run on the whole tree and address any drift.
+The plan's single final AI consistency review checks changed pattern specs for required headings,
+ordering, exemptions, cross-references, and runnable examples. Do not add a bundled lint script or a
+separate per-spec review loop.

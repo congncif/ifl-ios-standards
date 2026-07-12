@@ -1,4 +1,4 @@
-<!-- template-version: 2.2.0 -->
+<!-- template-version: 2.4.0 -->
 
 # Portable CLAUDE/AGENTS bindings starter
 
@@ -44,7 +44,7 @@ There is **no `.ai/brain/` to copy** — the rulebook + specs live in the plugin
    ```
    Edit §3–§5 (identity / structure / build commands). Done — the plugin's agents/skills read these.
 
-3. **Use it**: describe the iOS task. Use `brain-*` skills for pattern-neutral workflow, or call `/ifl-ios-standards:boardy-vip` for Boardy/VIP work.
+3. **Use it**: describe the iOS task. Use `brain-*` skills for pattern-neutral workflow, or call `/ifl-ios-standards:boardy-vip` for Boardy/VIP work. End-to-end `brain-flow` uses the host provider's native task/thread and subagent capabilities, executes one approved plan, and runs one final AI consistency review.
 
 ## Two ways to hold bindings
 
@@ -70,3 +70,4 @@ The plugin standard versions independently (see the plugin's `plugin.json` / `VE
 | 2026-05-18 | 1.0.0 | Initial release (copy-`.ai/brain`-into-repo model). |
 | 2026-06-09 | 2.0.0 | Rewritten for the plugin model: bindings starter only; standard ships in the `ifl-ios-standards` plugin; docs/handoffs follow docs-organization; package-manager-neutral. |
 | 2026-06-16 | 2.1.0 | Generalized wording beyond Boardy-only projects; clarified routing and plugin paths; removed install commands from seeded CLAUDE/AGENTS template. |
+| 2026-07-13 | 2.4.0 | Added provider-native plan-scale delivery with one final AI consistency review. |

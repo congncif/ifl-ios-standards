@@ -30,7 +30,7 @@ Each section below covers ONE of these. They're independent — read the section
 |-------|-----|
 | `git status` clean | Refactors generate large diffs; mix with feature work = unreviewable PR |
 | Working tree builds + tests green | Don't refactor on top of failing tests; you won't know which failures the refactor introduced |
-| the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) green | Same reason — refactor adds violations on top, you lose signal |
+| Affected architecture rules understood | Know the dependency, visibility, and BoardID constraints before moving code |
 | Identify ALL callers of the surface you're about to change | `git grep` for the public BoardID literal, the IO ServiceMap accessor, the module name in imports |
 | Confirm no in-flight PRs touch the same files | Merge conflicts on a refactor are painful; coordinate timing |
 | Pack version pinned in `PROJECT_CONFIG.md` | If the pack itself just bumped, rebase the pack version first — don't conflate pack + refactor diffs |
@@ -86,16 +86,14 @@ If two halves of the proposed split call each other ≥ 3 times after the cut, y
 
 7. **Run `pod install`** — this regenerates the workspace's Pods project.
 
-8. **Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`)** — must be clean before commit.
-
-9. **Build + smoke-test** — at minimum, activate one Board from each side of the split and confirm it renders.
+8. **Build + smoke-test** — at minimum, activate one Board from each side of the split and confirm it renders.
 
 ### Verification
 
 - [ ] Both modules have IO + Plugins podspecs + ServiceMaps.
 - [ ] Cross-deps acyclic: `grep -E "s\\.dependency '{(Old|New)Module}'" submodules/*/*.podspec` shows at most one direction.
 - [ ] No public BoardID renamed (rename is a separate refactor — see Refactor 5).
-- [ ] the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) clean.
+- [ ] The final AI review finds no dependency, visibility, or BoardID contract violation.
 - [ ] App still launches; first Board on each side activates without `BoardID not registered` crash.
 
 ### Rollback
@@ -166,14 +164,14 @@ Pick a survivor module (`{Keeper}`) and an absorbed module (`{Absorbed}`). The K
 
 9. **Update App's `installAllModules()`** — remove `{Absorbed}LauncherPlugin()` install.
 
-10. **Run `pod install`** and the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`).
+10. **Run `pod install`**.
 
 11. **Build + smoke-test** — every flow that previously crossed the boundary should still work, now via in-module calls.
 
 ### Verification
 
 - [ ] `git grep "{Absorbed}"` returns nothing (other than the changelog entry documenting the merge).
-- [ ] the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) clean.
+- [ ] The final AI review finds no dependency, visibility, or BoardID contract violation.
 - [ ] No `BoardID not registered` crashes on the formerly-cross-module flows.
 - [ ] Module count in `submodules/` decreased by exactly one.
 
@@ -233,16 +231,14 @@ Don't extract because the file is long. Long files with a single coherent respon
    - For internal: no LauncherPlugin change needed.
    - For public: add the case to the LauncherPlugin's exposed map.
 
-7. **Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`)** — must be clean.
-
-8. **Test both Boards independently**. The new Board should be testable in isolation; that's the point of the extraction.
+7. **Test both Boards independently**. The new Board should be testable in isolation; that's the point of the extraction.
 
 ### Verification
 
 - [ ] Old Board's file is now shorter and has a single clear responsibility.
 - [ ] New Board activates from the old Board's flow without crashes.
-- [ ] If new Board is internal, no `public` modifiers leaked out (check with `io_visibility` lint).
-- [ ] If new Board is public, BoardID matches `pub.mod.{Module}.{NewBoard}` (check with `boardid_naming` lint).
+- [ ] If new Board is internal, no `public` modifiers leaked out.
+- [ ] If new Board is public, BoardID matches `pub.mod.{Module}.{NewBoard}`.
 - [ ] Old Board's tests still pass; new Board has its own tests at Interactor level.
 
 ### Rollback
@@ -290,7 +286,7 @@ Internal Boards have no cross-module callers by definition. The move is mechanic
    git grep "mod{Source}Plugins.io{Board}"
    ```
 
-6. **Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`)** — `boardid_naming` will catch any literal you missed.
+6. **Inspect every changed BoardID literal and caller** before completing the move.
 
 ### Mechanical sequence — public Board (lives in `IO/`)
 
@@ -318,7 +314,7 @@ Public Boards have external callers; the BoardID literal change is a runtime-bre
 ### Verification
 
 - [ ] `git grep "{Board}"` (the literal old BoardID) returns zero (Option A) or only the bridge alias (Option B).
-- [ ] `boardid_naming.swift` clean — the moved Board's literal matches its new home pattern.
+- [ ] The moved Board's literal matches its new home pattern.
 - [ ] Smoke test: activate the Board from a Destination-module caller; observe it works.
 - [ ] If public + Option A: smoke test from every (former Source-module, now Destination-module) caller path.
 
@@ -390,7 +386,7 @@ If the rename is just "I like Y better than X", don't do it. Drift between name 
 
 7. **For external callers (different repos / published SDKs)**: ship the new constant alongside the old one for one release. Mark old as `@available(*, deprecated)`. Remove in the next major version.
 
-8. **Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`)**.
+8. **Inspect the renamed public surface and every caller** before completing the rename.
 
 ### Mechanical sequence — module rename
 
@@ -399,7 +395,7 @@ This is essentially Refactor 2 (Merge) where the absorbed module is "empty" and 
 ### Verification
 
 - [ ] `git grep "{OldName}"` returns zero non-deprecated references (or only the bridge with `@available(*, deprecated)`).
-- [ ] `boardid_naming.swift` clean.
+- [ ] Every BoardID literal matches its owning module and visibility pattern.
 - [ ] Smoke test every former call site.
 
 ### Rollback
@@ -415,8 +411,8 @@ If the rename is caught pre-merge: `git revert` the rename commit. Post-merge: y
 | `pod install` fails with "duplicate symbol" after move | Old podspec still references the moved file. Update `source_files` glob in the source module's podspec (typically `'IO/**/*.swift'` + `'Sources/**/*.swift'` doesn't need changing, but explicit-file podspecs do) |
 | `BoardID not registered` after move (public Board) | `ModulePlugin`'s `ServiceType.identifier` switch still maps the old case to the old BoardID. Update both case names and the mapped identifier |
 | Compile error: ambiguous type `Welcome` after merge | Both modules had a `Welcome` Board; the merge collided them. Rename one before completing the merge |
-| Audit-pack `forbidden_imports` fails after split with `import {Other}Plugins` | One module's Board now imports the other's Plugins target — should be IO. Either move the type to `{Other}/IO/` (if it's domain) or move the Board back to `{Other}` (if it needs construction wiring) |
-| Audit-pack `io_visibility` fails after extraction with `Sources-has-public` | Extracted Board's IO ended up in `Sources/Microboards/` but kept its `public` modifiers from when it was in `IO/`. Drop `public` for internal Boards; or move the IO trio to `{Module}/IO/{NewBoard}/` for public Boards |
+| Final review finds `import {Other}Plugins` after split | One module's Board now imports the other's Plugins target — should be IO. Either move the type to `{Other}/IO/` (if it's domain) or move the Board back to `{Other}` (if it needs construction wiring) |
+| Final review finds `Sources-has-public` after extraction | Extracted Board's IO ended up in `Sources/Microboards/` but kept its `public` modifiers from when it was in `IO/`. Drop `public` for internal Boards; or move the IO trio to `{Module}/IO/{NewBoard}/` for public Boards |
 | Renaming a Board breaks UI tests that match on accessibility identifiers | Accessibility IDs in some test setups use the Board name. Update test fixtures alongside the rename |
 
 ---
@@ -430,7 +426,7 @@ If the rename is caught pre-merge: `git revert` the rename commit. Post-merge: y
 - ❌ **Merging because two modules share a service** — extract the service to a third module instead. Merging is the wrong response to a shared dependency.
 - ❌ **Renaming a public BoardID literal without a bridge** — external callers will hit `BoardID not registered` at runtime, silently. Always check for external callers; if any exist, bridge before removal.
 - ❌ **"While I'm in here..." cleanup** — refactor is already high-stakes. Don't compound it with unrelated improvements. Open a separate PR for each.
-- ❌ **Skipping `the bundled lint scripts` between steps** — the lints exist to catch refactor mid-flight breakage. Run them between Board moves, not just at the end.
+- ❌ **Creating intermediate plugin gates between steps** — complete the semantic refactor, use its code tests, then include the full change in the plan's one final AI review.
 
 ---
 
@@ -439,7 +435,7 @@ If the rename is caught pre-merge: `git revert` the rename commit. Post-merge: y
 Tick before opening the PR:
 
 ### Split / Merge / Move
-- [ ] the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) clean.
+- [ ] The final AI review finds no dependency, visibility, or BoardID contract violation.
 - [ ] Cross-deps acyclic (`grep -E "s\\.dependency" submodules/*/*.podspec` review).
 - [ ] App launches; affected flows smoke-tested.
 - [ ] No leftover `import {Old}` / `mod{Old}` / `pub.mod.{Old}` references unless intentional (bridge alias).
@@ -452,7 +448,7 @@ Tick before opening the PR:
 ### Rename
 - [ ] `git grep "{OldName}"` returns only deprecated-bridge references.
 - [ ] External callers (if any) given a migration window via `@available(*, deprecated)`.
-- [ ] BoardID literal check: `boardid_naming.swift` clean for both old (bridge) and new constants.
+- [ ] BoardID literals match the contract for both old (bridge) and new constants.
 
 ---
 

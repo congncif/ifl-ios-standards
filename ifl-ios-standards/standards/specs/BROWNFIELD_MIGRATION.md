@@ -167,17 +167,11 @@ This lets legacy `UINavigationController` keep ownership while the screen conten
 **Option B — Full motherboard activation**
 Replace the legacy screen's host with a Boardy motherboard. Bigger lift; only do this once you have 3+ screens migrated and the legacy navigator is shrinking anyway.
 
-### Step 6 — Verify
+### Step 6 — Check the migrated behavior
 
-```bash
-# Standard lints (bundled in the plugin) — run on your module root
-swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/io_visibility.swift   <module-root>
-swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/forbidden_imports.swift <module-root>
-swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/boardid_naming.swift  <module-root>
-
-# Build (your project's canonical command — see CLAUDE.md)
-bazel build //<module-root>/...    # or: xcodebuild build ... | grep -E "(error:|BUILD SUCCEEDED|BUILD FAILED)"
-```
+Use the consuming project's canonical build/test command for executable code. In the plan's final AI
+review, inspect the migrated module for IO visibility, vendor/dependency boundaries, cross-module
+imports, and BoardID naming.
 
 Smoke-test the migrated screen end-to-end in the simulator before merging.
 
@@ -209,7 +203,7 @@ Now the boring part. For each subsequent screen:
 3. Port — same Phase 2 step 4 mechanics.
 4. Update legacy callers to go through the new ServiceMap.
 5. Delete the legacy code when no callers remain.
-6. Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift <module-root>`) before merge.
+6. Include the migrated surface in the plan's final AI consistency review before merge.
 
 Aim for one screen per PR. Stack PRs against `main`; don't run a parallel "migration branch" that diverges for weeks.
 
@@ -234,7 +228,7 @@ Aim for one screen per PR. Stack PRs against `main`; don't run a parallel "migra
 - **Don't big-bang.** Migrating all screens in one PR is the most common failure mode. Ship one screen, learn, then continue.
 - **Don't refactor while porting.** Phase 2 step 4 is mechanical extraction. Refactoring the view code mid-port doubles the diff size and the review cost.
 - **Don't create a "Common" module.** Cross-cutting types belong in the owning feature module's `IO/`. A `Common`/`Shared` sink module always grows into a god module. See `LAYERING.md` §Anti-patterns.
-- **Don't import `{Other}Plugins` cross-module.** Lint blocks this; the Boundary is `{Other}` (IO target) only. See `forbidden_imports.swift` Rule 3.
+- **Don't import `{Other}Plugins` cross-module.** The boundary is `{Other}` (IO target) only.
 - **Don't migrate the navigator first.** Migrating `AppDelegate` / root navigation early creates a chicken-and-egg between "Boardy works" and "every screen on Boardy". Let the navigator be the LAST migration.
 - **Don't migrate code you're about to delete.** If a screen is scheduled for removal in the next quarter, leave it alone.
 - **Don't migrate without a known target test.** If you can't smoke-test the migrated screen, you can't verify the port. Add a manual QA pass at minimum.
@@ -245,7 +239,7 @@ Aim for one screen per PR. Stack PRs against `main`; don't run a parallel "migra
 
 Before merging a port PR:
 
-- [ ] The bundled lint scripts report 0 violations for the touched module
+- [ ] The final AI review reports no dependency, visibility, or BoardID contract violation for the touched module
 - [ ] `xcodebuild build` reports `BUILD SUCCEEDED` for `{MainScheme}` AND the module's own scheme if one exists
 - [ ] The migrated screen renders identically (or intentionally better) compared to pre-port
 - [ ] All legacy entry points to the screen now go through `ServiceMap.mod{Module}Plugins.io{Board}` — no direct `{Board}ViewController()` calls

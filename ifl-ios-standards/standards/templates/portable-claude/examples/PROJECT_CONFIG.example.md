@@ -209,11 +209,11 @@ Use the model ID that creates the file. Do not edit the header on later revision
 
 | Rule | Binding |
 |------|---------|
-| Trace boundary | One reviewed and verified commit per independently valid semantic checkpoint by default. |
+| Trace boundary | One complete semantic task per commit by default; final AI review covers the full plan. |
 | Plan vs Git authority | Requirement/Plan approval and auto mode authorize no Git operation. |
-| Commit authority | Record user/policy grant, repo/worktree, checkpoint IDs, candidate closure/fingerprint, parent chain, cadence, and lifetime. |
+| Commit authority | Follow project governance for repo/worktree, semantic task, intended paths, parent, operation, cadence, and lifetime. |
 | Other Git operations | Branch, push, PR, tag, release, and history rewrite each require separately recorded authority. |
-| Staging | Stage explicit reviewed file paths only; avoid broad staging. |
+| Staging | Stage explicit intended paths only; avoid broad staging. |
 | Target remote/base | `{GitRemote}` / `{BaseBranch}`; never infer the push branch from the base branch. |
 
 ---

@@ -134,20 +134,18 @@ brain-flow/orchestrator runs:
 docs/02-working-docs/work-items/<WORK-ITEM-ID>-<slug>/requirements.md
 ```
 
-The same work-item folder owns related files:
+The same work-item folder may own only the durable files needed for this task:
 
 ```text
 plan.md
-reports/{implementation-report,verification-report,review-report,final-report}.md
-handoffs/briefing.md
-artifacts/*
+review.md
+final-report.md
 ```
 
 If the consuming repo declares a different working-docs root, use that root. For long generated
-artifacts, follow `process/long-document-writing.md`: split work-item docs by purpose first, create a
-skeleton file, append one major section per chunk, and write final status after verification. In
-append-only handoff flows, do not edit a prior summary; append `## Correction — Requirement summary`
-or `## Requirement summary v{n}`.
+artifacts, follow `process/long-document-writing.md`: split by durable purpose, write one coherent
+major section at a time, and keep final status factual. Do not create per-stage reports, receipts,
+manifests, or evidence files by default.
 
 ## Verification
 

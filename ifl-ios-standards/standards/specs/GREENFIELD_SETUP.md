@@ -168,15 +168,11 @@ Scaffolded files contain `// TODO:` markers. Work in this order (see `/ifl-ios-s
 
 The compact cheatsheet (`${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/BOARDY_CHEATSHEET.compact.md`) has the file-by-file naming reference.
 
-### Step 2e — verify the slice
+### Step 2e — inspect the slice
 
-Run the lint scripts (bundled at `${CLAUDE_PLUGIN_ROOT}/standards/scripts/`) against your module root, e.g.:
-```bash
-swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/io_visibility.swift Features/Onboarding
-swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/forbidden_imports.swift Features/Onboarding
-swift ${CLAUDE_PLUGIN_ROOT}/standards/scripts/boardid_naming.swift Features/Onboarding
-```
-Expect: IO public + Sources internal (except `Sources/Plugins/**`), no Domain leaks, `pub.mod.Onboarding.Welcome` matches the public BoardID pattern. Fix before adding a second Board — violations compound.
+Before adding a second Board, inspect the first slice for public IO, internal Sources (except
+`Sources/Plugins/**`), a pure Domain layer, and the `pub.mod.Onboarding.Welcome` BoardID pattern. The
+plan's final AI review checks these rules across the complete change.
 
 ---
 
@@ -249,17 +245,11 @@ jobs:
         run: |
           claude plugin marketplace add congncif/ifl-ios-standards
           claude plugin install ifl-ios-standards@ifl-ios-standards
-      - name: Lint modules
-        run: |
-          PLUGIN_ROOT="$(claude plugin root ifl-ios-standards 2>/dev/null || echo .)"
-          swift "$PLUGIN_ROOT/standards/scripts/io_visibility.swift" Features
-          swift "$PLUGIN_ROOT/standards/scripts/forbidden_imports.swift" Features
-          swift "$PLUGIN_ROOT/standards/scripts/boardid_naming.swift" Features
       - name: Build
         run: bazel build //... # or: pod install && xcodebuild test ...
 ```
-Mandatory: `macos-latest` (Linux has no Swift toolchain on PATH). Resolve the bundled lint scripts
-from the installed plugin root, or vendor them under `tools/` if you prefer no network in CI.
+CI ownership and policy belong to the consuming organization. The plugin ships no verification
+scripts and does not prescribe CI wiring.
 
 ### Optional — pre-commit hook
 ```bash

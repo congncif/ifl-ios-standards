@@ -35,7 +35,7 @@ When an ADR for any of these opens, it MUST extend (not replace) this policy and
 1. Trigger — what changed that makes the new manager viable / necessary.
 2. Migration scope — full corpus rewrite, parallel examples, or per-module opt-in.
 3. Compatibility window — overlap period during which both managers are supported.
-4. Lint impact — what changes for `forbidden_imports`, `io_visibility`, `boardid_naming`.
+4. Architecture-review impact — what changes for dependency, visibility, and BoardID rules.
 5. Bin-script impact — `new-module.sh` / `new-board.sh` flag surface.
 
 No ADR is open today.

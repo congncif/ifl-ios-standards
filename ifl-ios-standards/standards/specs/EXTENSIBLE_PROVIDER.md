@@ -55,7 +55,7 @@ IO pod exposes nothing about specific providers — only unified service-type IO
 
 Provider configurations are **construction wiring**, not domain meaning. The Interface module exposes what the module DOES (board activations); it does NOT expose HOW the module is wired at App boot. The configuration is only ever passed to `{Feature}LauncherPlugin.init(providerConfiguration:)` — a registration-time concern that sits next to the LauncherPlugin itself.
 
-Although the marker protocol and concrete config structs are `public` (the App must construct them), they belong under `Sources/Plugins/` — the pack's public-export zone for LauncherPlugin construction inputs. The `io_visibility` lint allows `public` symbols under `Sources/Plugins/**` for exactly this reason. See `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
+Although the marker protocol and concrete config structs are `public` (the App must construct them), they belong under `Sources/Plugins/` — the pack's public-export zone for LauncherPlugin construction inputs. Public symbols are permitted there for exactly this reason. See `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
 
 Self-test: "Does a client module call this to USE the feature, or does App call this to BOOT the feature?"
 - IO/: `motherboard.io{Feature}.show(...)` → USE → domain

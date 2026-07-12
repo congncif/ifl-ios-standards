@@ -1,4 +1,4 @@
-<!-- template-version: 2.2.0 -->
+<!-- template-version: 2.4.0 -->
 
 # CLAUDE.md — {ProjectName} Project Constitution (starter)
 
@@ -117,12 +117,21 @@ IO/Plugins split whenever this project's standard uses it.
 {TestCommand}       # e.g. bazel test  //Features/{ModuleName}:{ModuleName}-Tests
 ```
 
-Checkpoint economics (TDD tiers, review/gate ownership, evidence reuse): see
+Plan-scale execution and final AI review: see
 `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`.
 
 ---
 
 ## 6. Operating discipline
+
+### Provider-native Brain-Flow
+
+- Use `/ifl-ios-standards:brain-flow` through the host provider's native task/thread, subagent, tool,
+  and approval capabilities.
+- Keep one approved plan and its checklist as engineering state. Do not add provider profiles,
+  progress schemas, receipts, manifests, or a custom workflow engine.
+- Complete the plan before one final AI consistency review. Do not review after every workstream,
+  finding, test, or semantic commit.
 
 ### Core directives
 
@@ -149,16 +158,16 @@ Checkpoint economics (TDD tiers, review/gate ownership, evidence reuse): see
 
 #### 4. Goal-Driven Execution
 
-- Before starting multi-step work, map independently valid semantic checkpoints, internal causal work
-  slices, reviewer coverage, and one owner for each verification obligation.
+- Before starting multi-step work, create one complete plan with dependency-ordered workstreams,
+  shared-writer ownership, semantic commit tasks, and one final AI review.
 - Convert every request into a concrete, testable success criterion before touching files.
 - For ambiguous requests, state your interpretation as a success criterion and confirm before proceeding.
 - Strong upfront criteria reduce rewrites more than any amount of careful coding.
 
 ### Project operations
-- Plan/phase approval and auto mode grant no Git authority. Record object-scoped commit authority for the
-  exact repository, semantic checkpoint, candidate closure/fingerprint, and parent chain. Branch, push,
-  PR, tag, release, and history rewrite require separate authority. Stage by explicit reviewed paths.
+- Plan approval and auto mode grant no Git authority. Follow project governance for the exact
+  repository, semantic task, intended paths, parent, and native Git operation. Branch, push, PR, tag,
+  release, and history rewrite remain separate operations. Stage only intended paths.
 - Commit message convention: `{CommitPrefix}` *(e.g. a ticket-key prefix, if your team requires one)*.
 - Project docs/plans/handoffs live in-repo under `docs/` per
   `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md` (working docs →

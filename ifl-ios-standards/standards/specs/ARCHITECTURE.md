@@ -187,12 +187,9 @@ Never depend on `{Module}Plugins` from another module.
 
 ## Testing
 
-- Architecture itself is not testable — but its rules are enforceable via lint:
-  - `spec_doc_lint.swift` — every spec carries the 12-section contract
-  - `forbidden_imports.swift` (planned) — Domain doesn't import UIKit/Boardy/networking; consumers don't `import {Module}Plugins`
-  - `io_visibility.swift` (planned) — IO target types are `public`; Sources types are not
-  - `boardid_naming.swift` (planned) — `pub.mod.{Module}.{Board}` and `mod.{Module}.{Board}` prefixes
-- Spot-check that every new module follows the anatomy diagram (Files section).
+- Architecture itself is not a runtime behavior. The plan's final AI review checks the 12-section
+  spec contract, Domain/vendor boundaries, IO visibility, cross-module imports, BoardID naming, and
+  every new module's conformance to the anatomy diagram.
 
 ## Pitfalls
 

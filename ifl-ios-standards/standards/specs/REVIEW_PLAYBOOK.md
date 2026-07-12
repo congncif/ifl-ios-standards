@@ -116,8 +116,8 @@ Ref: BUS_PATTERNS.md §Round-trip identity-filtered, QUICK_REF.md rule 13.
 ```
 🛑 Blocker — IO public surface violation.
 
-Top-level types under `{Module}/IO/**` must be `public`. The lint
-(`io_visibility.swift`) flags this as `IO-missing-public`.
+Top-level types under `{Module}/IO/**` must be `public`. Record a missing modifier as
+`IO-missing-public` in the final review.
 
 Fix: prepend `public` to {type}. If the type is only used inside the module, move it
 to `Sources/Microboards/{Board}/` instead of marking it `public` in IO.

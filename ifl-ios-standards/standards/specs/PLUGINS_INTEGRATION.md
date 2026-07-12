@@ -37,7 +37,7 @@ When adding a new feature module to the app, or extending one with:
 └── {Module}{Feature}ProviderConfiguration.swift   ← public LauncherPlugin init args (optional)
 ```
 
-`Sources/Plugins/**` is the pack's **public-export zone**: LauncherPlugin + its construction wiring (provider configurations, options structs the App passes at init). The `io_visibility` lint allows `public` here. Everything else under `Sources/` (Microboards, Services, Domain) stays internal. See `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
+`Sources/Plugins/**` is the pack's **public-export zone**: LauncherPlugin + its construction wiring (provider configurations, options structs the App passes at init). Public symbols are permitted here. Everything else under `Sources/` (Microboards, Services, Domain) stays internal. See `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
 
 App Core:
 

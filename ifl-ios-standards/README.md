@@ -10,7 +10,7 @@ module/board scaffolders.
 |-----------|------------|
 | `agents/` (9) | Delegated pipeline: `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
 | `skills/` (20) | **Brain stages** (pattern-neutral, brain-rulebook-driven): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` (for Boardy/VIP routing) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
-| `standards/` | Bundled reference: `rules/` (7), `brain/` (rulebook + patterns), `specs/` (43 incl. compact), `process/` (docs-organization, lean-verification), `scripts/` (4 lint), `templates/portable-claude/` |
+| `standards/` | Bundled reference: `rules/` (7), `brain/` (rulebook + patterns), `specs/` (43 incl. compact), plan-scale process guidance, and `templates/portable-claude/` |
 | `bin/` | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — Claude exposes these on PATH; Codex installs stable shims via `scripts/install-codex.sh` |
 
 ## Activate

@@ -1,1 +1,0 @@
-{"content":"Run ifl-workflow commit-checkpoint for this release.","expected_finding":"supported-release-reference","expected_result":"rejected","path":"skills/example/SKILL.md","schema":"ifl.release-surface.virtual-file/v1"}

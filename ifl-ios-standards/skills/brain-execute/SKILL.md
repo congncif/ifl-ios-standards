@@ -1,92 +1,38 @@
 ---
 name: brain-execute
 description: >-
-  Use when implementing an approved plan or making a code change — the 6-step operating loop,
-  smallest correct change, real verification signal. Pattern-neutral: applies to any iOS project,
-  Boardy or not. Triggers: "implement this", "execute the plan", "make the change", "code it up".
+  Use when implementing an approved iOS plan or making an approved code or standards change in a
+  Boardy or pattern-neutral project.
 ---
 
-# Brain — Execute (operating loop, verify, report)
+# Brain — Execute
 
-Pattern-neutral execution stage of the brain rulebook. Runs an approved plan from
-`/ifl-ios-standards:brain-plan`; there is no planless small-change bypass. In `brain-flow`, an approved
-plan means `USER_APPROVED` in co-working mode or `AUTO_APPROVED` in auto mode.
+Execute the approved plan continuously until its Definition of Done is complete or a real blocker
+requires escalation. Read:
 
-## Read
-- `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md` — §1 operating loop, §2 the 10 hard rules, §4 pre-completion self-review.
-- `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/13-agentic-coding-rules.md` — read-before-write, local reasoning.
-- `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/C-verification-commands.md` — canonical verification commands (resolve actual values from project bindings).
-- `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md` — work-slice signals, semantic checkpoint cadence, evidence reuse, and gate ownership.
+- `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md`
+- `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/13-agentic-coding-rules.md`
+- `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`
 
-## The loop (every work slice)
-1. **Understand** → 2. **Locate** → 3. **Preserve** → 4. **Implement** → 5. **Causal proof** → 6. **Record**.
-The approved Definition of Done is the loop goal: keep iterating until each item is completed,
-explicitly deferred, or blocked with a reason.
-Skipping understanding → noise. Skipping verification → lies. Empty output ≠ success.
+## Operating loop
 
-A work slice is an implementation unit inside an approved semantic checkpoint. Run the cheapest
-causal signal for its changed behavior; Tier 1 must observe a behavioral RED → GREEN. Do not create a
-review, commit, user approval, full build, or full-suite cycle merely because a slice ended.
+For each work slice: **understand → locate → preserve → implement → code-test if applicable → record**.
 
-## Semantic checkpoint boundary
+- Keep changes inside the approved scope and preserve dependency direction and local conventions.
+- Use TDD for executable code only when required by behavior or regression risk. Documentation,
+  standards, templates, metadata, and documentation-only schemas do not need TDD.
+- Parallelize disjoint writers; serialize shared files and vocabulary through one integration owner.
+- Do not run a review, approval, full build, or verification cycle after each slice or finding.
+- Do not add plugin-owned verifier/lint/smoke scripts or custom state/evidence machinery.
+- Commit complete semantic tasks when separately authorized; never commit by file, finding, or agent
+  assignment.
 
-1. After the last planned slice, run the declared review-readiness proof, then freeze one candidate
-   fingerprint.
-2. Execute the owning-gate timing branch. Under `POST_JOIN_DEFAULT`, record the focused/owner proof as
-   pending and hand the immutable baseline to collect-all reviewers. Under `PRE_REVIEW_REQUIRED`, run
-   the owner to GREEN on that fingerprint before dispatch. Never run the checkpoint owner in parallel
-   with review; relevant mutation invalidates a pre-review receipt.
-3. Join findings through the aggregator: retain stable lane/finding IDs, root-cause key, severity,
-   obligation, evidence, and symptoms; use canonical remediation IDs and dispositions.
-4. Before mutation, classify each intake-`ACCEPTED` finding's materiality. Scope/contract divergence
-   reopens Requirement, Design, or Architecture as appropriate; owner/boundary/obligation/gate
-   divergence reopens Plan. Only findings classified `ACCEPTED_CURRENT_SCOPE` on the current approved
-   baseline enter its batch.
-5. Add causal regression tests only for behavioral defects at their applicable tier. For mechanical,
-   generated, schema, lint, or docs findings, use static/lint/schema/digest proof or Tier 3 as applicable.
-6. After the final mutation, run the affected focused proof and the pending checkpoint owning gate.
-   Evaluate any higher-gate subsumption before the lower gate would run; never apply it retroactively.
-7. Recompute the candidate fingerprint and immutable versioned manifest/diff after that final mutation
-   and owning proof, before issuing confirmation assignments.
-8. Confirm accepted dispositions and changed surfaces only. Any material finding observed during
-   confirmation reopens the appropriate gate, even outside the changed or assigned surface.
-9. Commit once only when the final staged manifest byte-matches the candidate fingerprint referenced
-   by owning-gate and final-review evidence **and** separate explicit Git authority covers this commit.
-   Plan/AUTO approval never supplies Git authority. A byte-identical commit does not require another
-   gate run.
+After the last planned mutation, hand the complete branch diff to one final AI consistency review.
+Collect all findings before editing and apply accepted in-scope findings in one corrective batch. Do
+not schedule routine re-review. A material scope, public-contract, architecture, or security change
+reopens planning instead of starting an ad-hoc loop.
 
-If the authoritative post-join initial-register decision is
-`DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`, skip remediation and confirmation only; do not infer
-that path before the join or after accepted findings become `resolved`. Do not skip a pending checkpoint
-owning gate merely because it equals the accumulated focused proof. `EQUAL` is plan metadata; require
-a current final-fingerprint receipt binding both labels or valid prospective subsumption.
-Apply the complete normative evidence contract in `lean-verification.md` §7: a candidate fingerprint
-identifies evaluated content/context, while each attempt/disposition gets a distinct append-only audit
-identity. Any relevant mutation to the declared closure invalidates affected evidence and requires a
-new candidate fingerprint.
+Report every Definition-of-Done item factually. Auto/Plan/review approval never grants Git authority;
+stage, commit, push, tag, publish, and release only under their own project-governed authority.
 
-## Post-commit wave failure
-
-Before any corrective mutation, capture the failed wave's complete diagnostics and cluster symptoms by
-root cause and affected checkpoint. Plan one coordinated corrective set, preserving mandatory splits
-for independent outcomes; execute its focused/checkpoint proofs after the final mutation, then rerun
-the failed wave once. Default to a separately traceable corrective checkpoint commit. Commit/amend
-requires explicit corrective Git authority; amend only the exact preauthorized unshared commit.
-
-## Guardrails
-- Execute only an approved plan. If the plan gate verdict is missing, `CHANGES_REQUIRED`, `USER_INPUT_REQUIRED`, or `BLOCKED`, stop and escalate instead of coding.
-- Smallest correct change. No drive-by edits, no speculative abstraction (hard rule 8).
-- Preserve naming, layering, dependency direction, access modifiers of surrounding code.
-- Keep atomic cascades and coupled rollback states inside one semantic checkpoint even when they need
-  many slices or reviewers.
-- Independent semantic outcomes stay separate when each boundary can regenerate a valid state. Every
-  boundary exception must pass the ordered rules and preserve atomic cascades.
-- Verify with real signals at their declared owners; do not multiply gates on an unchanged fingerprint.
-- Without scoped commit authority, stop before the commit operation and report the verified candidate;
-  do not invent a status or infer authority from plan approval.
-- Run the §4 pre-completion self-review and report the final status of every Definition of Done item before claiming done.
-
-## Pattern hook
-Project's `CLAUDE.md` binds Boardy+VIP → load the matching task skill for the change at hand:
-`/ifl-ios-standards:boardy-new-module`, `:boardy-new-board`, `:boardy-io-interface`,
-`:boardy-communication`, `:boardy-service-layer`, `:boardy-plugin-composition`.
+When Boardy+VIP is bound, load the matching `boardy-*` skill for the change being implemented.

@@ -29,7 +29,7 @@ The Interface module (`IO/`) exposes **domain meaning only**: what the module DO
 
 Test: ask "does a client module call this to USE the feature, or does App call this to BOOT the feature?" If boot-only → Sources/Plugins/. If use → IO/. Provider configurations fail the test: clients never reference them; only App-boot wiring does.
 
-This is why `Sources/Plugins/**` is the **public-export zone**: it's where LauncherPlugin and its construction inputs live, and the `io_visibility` lint allows `public` there.
+This is why `Sources/Plugins/**` is the **public-export zone**: it is where LauncherPlugin and its construction inputs live, so `public` is allowed there.
 
 ## Forces
 
@@ -142,7 +142,8 @@ IO declarations themselves are non-concurrent — they are `struct` / `enum` / `
 
 - `Input.init` stub factories live in test bundles per `compact/TESTING.compact.md`.
 - `Output` / `Command` enums are tested through Interactor / Presenter tests — they have no behavior of their own.
-- IO module itself has no unit tests; correctness is enforced by `forbidden_imports` + `io_visibility` lints (bundled lint scripts under `${CLAUDE_PLUGIN_ROOT}/standards/scripts/`).
+- IO declarations have no behavior-only unit tests; the final AI review checks dependency boundaries,
+  visibility, public consumers, and contract naming.
 
 ## Pitfalls
 

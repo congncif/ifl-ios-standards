@@ -69,7 +69,7 @@ Will any other module activate this Board?
     Spec     : MICROBOARD_NONUI.md, CONVENTIONS.md
 ```
 
-Lint enforces both shapes — see `standards/scripts/boardid_naming.swift`.
+The final AI review checks both shapes against the naming contract.
 
 ## 3. Communication channel — who talks to whom, how?
 
@@ -215,7 +215,7 @@ Direction of need
       Avoid creating a "Common" sink module — see LAYERING.md §Anti-patterns
 ```
 
-Lint enforces no `Sources/**` ever imports `{OtherModule}Plugins` (see `standards/scripts/forbidden_imports.swift` Rule 3).
+The final AI review treats any `Sources/**` import of `{OtherModule}Plugins` as a hard violation.
 
 ## 9. Migration: brownfield project — where to start?
 

@@ -122,7 +122,7 @@ Need new capability?
 - Adapter: unit test with vendor SDK in test mode OR with vendor mocked at adapter boundary; assert Domain protocol contract upheld.
 - IO surface: visually scan `IO/**/*.swift` for vendor imports — must be zero.
 - Podspec lint: `s.dependency` lines have no `:path` modifier (see `MODULE_CREATION.md`).
-- Architecture lint (planned `forbidden_imports.swift`): codify Domain/BA vendor-import bans.
+- Final architecture review: confirm Domain and Business Application layers contain no vendor imports.
 
 ## Pitfalls
 

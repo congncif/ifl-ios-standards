@@ -22,51 +22,51 @@
 
 ---
 
-## 1. Build / lint failures
+## 1. Build / architecture-review findings
 
-### 1.1 lint → `forbidden_imports`: `import UIKit` in Domain/
+### 1.1 review → `import UIKit` in Domain/
 
 **Cause**: Domain layer leaked a UIKit type — most often `UIImage`, `UIColor`, or `UIViewController` snuck into a Domain `Result` / value object.
 **Fix**: Move the UIKit-typed value to a Presenter ViewModel. Domain stays pure Swift.
-**Ref**: `LAYERING.md`, `SERVICE_LAYER.md`, `forbidden_imports.swift` rule 1.
+**Ref**: `LAYERING.md`, `SERVICE_LAYER.md`.
 
-### 1.2 lint → `forbidden_imports`: vendor SDK in Application/
+### 1.2 review → vendor SDK in Application/
 
 **Cause**: Application layer (UseCase / Repository protocols) imported `Alamofire` / `Moya` / `Firebase*` / `GoogleSignIn` / `GoogleMobileAds` directly.
 **Fix**: Application defines a protocol; Infra/ implements it against the vendor SDK. Inject via Builder.
-**Ref**: `LAYERING.md` §Application, `forbidden_imports.swift` rule 2.
+**Ref**: `LAYERING.md` §Application.
 
-### 1.3 lint → `forbidden_imports`: `import {Other}Plugins`
+### 1.3 review → `import {Other}Plugins`
 
 **Cause**: One module's `Sources/**` imported a sibling module's `Plugins` target. Cross-module access must flow through the IO target.
 **Fix**: Replace with `import {Other}` (the IO target). If you need a type that only exists in `{Other}Plugins`, the type is in the wrong target — either it's construction wiring (stays in `Plugins`, never cross-module) or it's domain (move to `{Other}/IO/`).
-**Ref**: `CROSS_MODULE_DI.md`, `forbidden_imports.swift` rule 3, `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
+**Ref**: `CROSS_MODULE_DI.md`, `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
 
-### 1.4 lint → `io_visibility`: `IO-missing-public`
+### 1.4 review → `IO-missing-public`
 
 **Cause**: Top-level type declared in `{Module}/IO/**` without `public`/`open`.
 **Fix**: Prepend `public` to the type. IO is the cross-module surface — everything top-level must be public. `extension` blocks are exempt (their members carry their own modifiers).
-**Ref**: `IO_INTERFACE.md` §Naming, `io_visibility.swift` rule 1.
+**Ref**: `IO_INTERFACE.md` §Naming.
 
-### 1.5 lint → `io_visibility`: `Sources-has-public`
+### 1.5 review → `Sources-has-public`
 
 **Cause**: Public symbol declared under `Sources/Microboards/**` or `Sources/Services/**` — these are internal.
 **Fix**: Drop the `public` modifier. If the symbol legitimately needs to be public (App constructs it for LauncherPlugin init), move it to `Sources/Plugins/**` — the pack's public-export zone.
-**Ref**: `IO_INTERFACE.md` §"Domain meaning vs construction wiring", `io_visibility.swift` rule 2.
+**Ref**: `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
 
-### 1.6 lint → `boardid_naming`: literal doesn't match pattern
+### 1.6 review → BoardID literal doesn't match pattern
 
 **Cause**: BoardID literal violates the naming contract. Two shapes:
 - Public (declared in `IO/`): MUST be `"pub.mod.{Module}.{Board}"`.
 - Internal (declared in `Sources/Microboards/`): MUST be `"mod.{Module}.{Board}"` or `"mod.{Module}.{X}Provider"`.
 
 **Fix**: Rename the literal to match. Note: literal renames are **breaking at runtime** for any cross-module caller — check callers before renaming a public ID.
-**Ref**: `IO_INTERFACE.md` §Naming, `boardid_naming.swift`.
+**Ref**: `IO_INTERFACE.md` §Naming.
 
-### 1.7 `spec_doc_lint` fails: spec missing required section
+### 1.7 review finds a spec missing a required section
 
 **Cause**: A new spec under `standards/specs/` doesn't conform to the 12-section `SPEC_CONTRACT.md` template.
-**Fix**: Either add the missing sections, or add the spec to the exemption list (only if it's a runbook / navigator / policy doc, not a pattern spec). Exemption lives in TWO places that must stay in sync: `SPEC_CONTRACT.md` exempt list AND `spec_doc_lint.swift` exempt set.
+**Fix**: Add the missing sections, or classify the document under `SPEC_CONTRACT.md` as a non-pattern document when that is genuinely its role.
 **Ref**: `SPEC_CONTRACT.md`, `SPEC_SYNC.md`.
 
 ### 1.8 Podspec lint: `s.dependency 'X', :path => '...'` rejected
@@ -225,7 +225,7 @@ Then `pod install`.
 ### 7.1 Module A needs a type from Module B — where does it import from?
 
 **Cause**: Decision: IO target (`B`) or Plugins target (`BPlugins`)?
-**Fix**: Always IO. If the type isn't in `B/IO/`, the type is in the wrong target — either it's domain (move to IO/) or it's construction wiring (stays in `Plugins/`, NEVER cross-module). Cross-module Plugins import is a hard violation flagged by `forbidden_imports`.
+**Fix**: Always IO. If the type isn't in `B/IO/`, the type is in the wrong target — either it's domain (move to IO/) or it's construction wiring (stays in `Plugins/`, NEVER cross-module). Cross-module Plugins import is a hard violation.
 **Ref**: `DECISION_TREES.md` Tree §8, `CROSS_MODULE_DI.md`.
 
 ### 7.2 Provider configuration is `public` but client module can't import it
@@ -288,7 +288,7 @@ If your symptom isn't here:
 
 1. Identify the pattern in play (Board type, communication channel, layer) via `DECISION_TREES.md`.
 2. Read that pattern's spec — every spec has a §Pitfalls section with the recurring traps.
-3. Run the bundled lint scripts (`${CLAUDE_PLUGIN_ROOT}/standards/scripts/*.swift`) — the lint output often pinpoints rule violations the eye missed.
+3. Inspect the affected paths against the architecture rules and include them in the plan's final AI review.
 4. Check `17-anti-patterns.md` (rulebook) for the wider anti-pattern catalog.
 
 If you've diagnosed a new symptom worth recording, add it here as a §X.Y entry following the symptom → cause → fix → ref shape. New entries belong in the section that matches the failure mode, not the affected module.

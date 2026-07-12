@@ -1,70 +1,28 @@
 ---
 name: brain-testing
 description: >-
-  Use when deciding test strategy — what to test, at which tier, with what signal. Pattern-neutral:
-  applies to any iOS project, Boardy or not. Triggers: "what should we test", "test strategy",
-  "which TDD tier", "is this worth a test".
+  Use when deciding or implementing test strategy for executable iOS code, including domain logic,
+  public contracts, adapters, concurrency, UI behavior, regressions, and integration seams.
 ---
 
-# Brain — Testing (strategy, tiers, signal)
+# Brain — Testing
 
-Pattern-neutral testing stage of the brain rulebook.
+Testing applies to executable code behavior. Read the project's test bindings and the relevant testing
+standard; in Boardy+VIP projects also use `boardy-testing`.
 
-## Read
-- `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/15-testing-philosophy.md` — test what matters, signal over coverage.
-- `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md` — risk-tiered TDD policy + checkpoint cadence.
+## Strategy
 
-## Tiering (per lean-verification)
-- **Tier 1 — strict test-first**: core business logic, public/wire APIs, algorithms, security/data
-  integrity, and bug fixes that could regress. Observe a behavioral and causal RED → GREEN.
-- **Tier 2 — test-after, batched**: glue, adapters, mappers, ordinary wiring, and composition without
-  business rules — within the semantic checkpoint.
-- **Tier 3 — no runtime test required**: config, type declarations, styling, docs, and explicit
-  throwaway prototypes.
-When unsure which tier applies, ask once.
+- Use strict RED → GREEN for domain behavior, algorithms, regressions, security/data-integrity logic,
+  concurrency invariants, and non-obvious public contracts.
+- Use focused test-after for ordinary adapters, mappers, and composition wiring.
+- Use integration or UI tests only for behavior that cannot be proven reliably below that boundary.
+- Test Interactors, Presenters, UseCases, repositories, and navigation contracts before View plumbing.
+- Run the smallest relevant code test while implementing, then the consuming project's applicable
+  code-test command once after the semantic task is complete.
 
-## Signal ladder and ownership
+Documentation, standards prose, templates, comments, metadata, examples used only for explanation,
+and documentation-only schemas do not require TDD or runtime tests. Review their consistency once in
+the plan's final AI review.
 
-- During a work slice, run only its causal/static/schema signal. A missing tool, stale cache, sandbox
-  failure, helper compile error, or invalid fixture is not a Tier-1 behavioral RED.
-- Before freezing a semantic checkpoint, run its declared review-readiness proof: the cheapest
-  sufficient causal/static/schema closure that makes the candidate meaningful to review. Do not
-  require the accumulated focused signal or checkpoint owner here under `POST_JOIN_DEFAULT`.
-- Treat the accumulated focused signal and checkpoint owning gate as separate plan fields. Execute one
-  receipt only when the plan declares them `EQUAL` and their command, obligations, and candidate
-  fingerprint still match; otherwise the checkpoint owner remains pending. Schedule the equal receipt
-  after the complete review join and final remediation mutation by default.
-- Treat `EQUAL` as plan metadata, never as proof of execution. After candidate freeze,
-  `POST_JOIN_DEFAULT` leaves the owner pending; `PRE_REVIEW_REQUIRED` must complete GREEN before review
-  dispatch. Never run the checkpoint owner in parallel with collect-all review. Any relevant mutation
-  invalidates a pre-review receipt.
-- Run full suite/build/integration at the one declared wave/release owner after the final relevant
-  mutation. Project bindings provide canonical commands and targets.
-- A higher gate may replace a lower one only when every gate-subsumption condition in
-  `lean-verification.md` holds. Evaluate before the lower gate would run, then record
-  `SUBSUMED_BY:<gate-id>`; never subsume retroactively. A higher green gate cannot replace an unobserved
-  Tier-1 RED.
-- Apply the complete normative evidence schema in `lean-verification.md` §7 without omitting fields.
-  Candidate fingerprints identify evaluated inputs/context/obligations; unique append-only audit-ledger
-  identities identify individual attempts and dispositions. Reuse a receipt only while every normative
-  field matches; invalidate affected evidence after a relevant change.
-
-## Guardrails
-- Test behavior through the public seam, not implementation details.
-- A test that can't fail is theater — watch new full-TDD tests fail first.
-- Add causal regression tests for behavioral defects only. Prove mechanical/generated/schema/lint/docs
-  corrections with static, lint, schema/digest signals, or Tier 3 as applicable.
-- Treat semantic checkpoints—not task/file/phase counts—as verification boundaries.
-- Do not add review, commit, or full build/test cycles after every work slice.
-- Map verification signals back to the approved Definition of Done checklist.
-- Run the accumulated checkpoint proof at its declared owner and each expensive gate once per current
-  fingerprint. Under `POST_JOIN_DEFAULT`, that is after the complete review join and final mutation;
-  a real failure or evidence invalidation is the only reason to rerun.
-- Zero review findings never closes a distinct pending checkpoint owner. Before commit/completion, the
-  staged candidate manifest must match the fingerprint referenced by current owning-gate and final
-  review/confirmation evidence.
-
-## Pattern hook
-Project's `CLAUDE.md` binds Boardy+VIP → load `/ifl-ios-standards:boardy-testing` for the
-mock/stub/interactor-test skeletons (`TESTING.compact.md`). For the delegated pipeline, the
-`ios-tester` agent owns this.
+Do not create plugin-owned verifier/lint/smoke scripts, checkpoint gates, receipts, manifests, or
+duplicate CI. Report only commands actually run and observed results.

@@ -10,6 +10,14 @@ This template follows [SemVer](https://semver.org/), versioned independently of 
 - **Minor (x.Y.0)** — new agent, new rule file, new setup step. Adopters confirm at next semi-annual review.
 - **Major (X.0.0)** — removed/renamed agent, breaking change to setup contract, brain major bump. Adopters re-audit + re-run setup.
 
+## [2.4.0] — 2026-07-13
+
+Simplified Brain-Flow for provider-native plan-scale delivery.
+
+- Uses host-native task/thread and subagent capabilities without a custom Kernel.
+- Executes one approved plan continuously and reviews consistency once at the end.
+- Keeps semantic task commits traceable without per-checkpoint gates or evidence machinery.
+
 ## [2.3.0] — 2026-07-11
 
 Added semantic-checkpoint and object-scoped Git-authority bindings for the optimized agent workflow.
