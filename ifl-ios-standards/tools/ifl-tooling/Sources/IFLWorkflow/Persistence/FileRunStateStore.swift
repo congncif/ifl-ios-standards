@@ -8,6 +8,7 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
     private let clock: @Sendable () -> Date
     private let trustedFact: TrustedRunFact?
     private let requiresAuthoritativeFact: Bool
+    private let allowsUnfencedTestingAccess: Bool
 
     public convenience init(paths: RunPaths) throws {
         try self.init(
@@ -16,7 +17,8 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
             faultInjector: .none,
             clock: Date.init,
             trustedFact: nil,
-            requiresAuthoritativeFact: true
+            requiresAuthoritativeFact: true,
+            allowsUnfencedTestingAccess: false
         )
     }
 
@@ -26,7 +28,8 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
         faultInjector: PersistenceFaultInjector,
         clock: @escaping @Sendable () -> Date,
         trustedFact: TrustedRunFact?,
-        requiresAuthoritativeFact: Bool
+        requiresAuthoritativeFact: Bool,
+        allowsUnfencedTestingAccess: Bool
     ) throws {
         self.paths = paths
         self.barrier = barrier
@@ -34,6 +37,7 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
         self.clock = clock
         self.trustedFact = trustedFact
         self.requiresAuthoritativeFact = requiresAuthoritativeFact
+        self.allowsUnfencedTestingAccess = allowsUnfencedTestingAccess
         let fileSystem = try validatedFileSystem(rootURL: paths.runRoot)
         if requiresAuthoritativeFact {
             try validateExactAbsence(fileSystem: fileSystem)
@@ -53,16 +57,69 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
             faultInjector: faultInjector,
             clock: clock,
             trustedFact: trustedFact,
-            requiresAuthoritativeFact: false
+            requiresAuthoritativeFact: false,
+            allowsUnfencedTestingAccess: true
+        )
+    }
+
+    static func authorized(
+        paths: RunPaths,
+        barrier: any WorkflowDurabilityBarrier,
+        faultInjector: PersistenceFaultInjector = .none,
+        clock: @escaping @Sendable () -> Date = Date.init
+    ) throws -> FileRunStateStore {
+        try FileRunStateStore(
+            paths: paths,
+            barrier: barrier,
+            faultInjector: faultInjector,
+            clock: clock,
+            trustedFact: nil,
+            requiresAuthoritativeFact: false,
+            allowsUnfencedTestingAccess: false
         )
     }
 
     public func load(runID: RunID, from runRoot: URL) throws -> PersistedRun {
+        guard allowsUnfencedTestingAccess else { throw PersistenceError.notFound }
+        return try loadCore(
+            runID: runID,
+            from: runRoot,
+            authority: nil
+        )
+    }
+
+    func load(
+        runID: RunID,
+        from runRoot: URL,
+        authority: RawStoreAuthority
+    ) throws -> PersistedRun {
+        try authority.validate(
+            paths: paths,
+            runID: runID,
+            runRoot: runRoot,
+            operation: .load
+        )
+        return try loadCore(runID: runID, from: runRoot, authority: authority)
+    }
+
+    private func loadCore(
+        runID: RunID,
+        from runRoot: URL,
+        authority: RawStoreAuthority?
+    ) throws -> PersistedRun {
         try paths.validate(runID: runID, runRoot: runRoot)
         let fileSystem = try validatedFileSystem(rootURL: runRoot)
         return try withFileLock(fileSystem) {
             if let journal = try loadJournal(fileSystem: fileSystem) {
-                _ = try recoverLocked(runID: runID, fileSystem: fileSystem, journal: journal)
+                let recovery = try recoverLocked(
+                    runID: runID,
+                    fileSystem: fileSystem,
+                    journal: journal,
+                    authority: authority
+                )
+                if let authority, authority.isHistoricalCompleted(journal) {
+                    return try require(recovery.persistedRun)
+                }
             }
             guard let journal = try loadJournal(fileSystem: fileSystem) else {
                 try validateExactAbsence(fileSystem: fileSystem)
@@ -86,12 +143,51 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
         _ transaction: StateTransaction,
         lease: WriterLease
     ) throws -> CommitReceipt {
+        guard allowsUnfencedTestingAccess else {
+            throw PersistenceError.fencingViolation
+        }
+        return try commitCore(
+            transaction,
+            lease: lease,
+            validationInstant: clock(),
+            authority: nil
+        )
+    }
+
+    func commit(
+        _ transaction: StateTransaction,
+        lease: WriterLease,
+        authority: RawStoreAuthority
+    ) throws -> CommitReceipt {
+        try authority.validate(
+            paths: paths,
+            runID: transaction.state.runID,
+            runRoot: transaction.runRoot,
+            operation: .commit,
+            suppliedLease: lease
+        )
+        return try commitCore(
+            transaction,
+            lease: lease,
+            validationInstant: nil,
+            authority: authority
+        )
+    }
+
+    private func commitCore(
+        _ transaction: StateTransaction,
+        lease: WriterLease,
+        validationInstant: Date?,
+        authority: RawStoreAuthority?
+    ) throws -> CommitReceipt {
         try paths.validate(runID: transaction.state.runID, runRoot: transaction.runRoot)
         let fileSystem = try validatedFileSystem(rootURL: paths.runRoot)
         if requiresAuthoritativeFact {
             try validateExactAbsence(fileSystem: fileSystem)
         }
-        try lease.validate(runID: transaction.state.runID, at: clock())
+        if let validationInstant {
+            try lease.validate(runID: transaction.state.runID, at: validationInstant)
+        }
         return try withFileLock(fileSystem) {
             try faultInjector.hit(.lockAcquired)
 
@@ -99,7 +195,8 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
                 _ = try recoverLocked(
                     runID: transaction.state.runID,
                     fileSystem: fileSystem,
-                    journal: journal
+                    journal: journal,
+                    authority: authority
                 )
             }
 
@@ -380,6 +477,47 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
     }
 
     public func recover(runID: RunID, from runRoot: URL) throws -> RecoveryResult {
+        guard allowsUnfencedTestingAccess else { throw PersistenceError.notFound }
+        return try recoverCore(
+            runID: runID,
+            from: runRoot,
+            authority: nil
+        )
+    }
+
+    func recover(
+        runID: RunID,
+        from runRoot: URL,
+        authority: RawStoreAuthority
+    ) throws -> RecoveryResult {
+        try authority.validate(
+            paths: paths,
+            runID: runID,
+            runRoot: runRoot,
+            operation: .recover
+        )
+        return try recoverCore(runID: runID, from: runRoot, authority: authority)
+    }
+
+    func settle(
+        runID: RunID,
+        from runRoot: URL,
+        authority: RawStoreAuthority
+    ) throws -> RecoveryResult {
+        try authority.validate(
+            paths: paths,
+            runID: runID,
+            runRoot: runRoot,
+            operation: .settlement
+        )
+        return try recoverCore(runID: runID, from: runRoot, authority: authority)
+    }
+
+    private func recoverCore(
+        runID: RunID,
+        from runRoot: URL,
+        authority: RawStoreAuthority?
+    ) throws -> RecoveryResult {
         try paths.validate(runID: runID, runRoot: runRoot)
         let fileSystem = try validatedFileSystem(rootURL: runRoot)
         return try withFileLock(fileSystem) {
@@ -387,17 +525,31 @@ public final class FileRunStateStore: RunStateStore, @unchecked Sendable {
                 try validateExactAbsence(fileSystem: fileSystem)
                 return RecoveryResult(disposition: .absent)
             }
-            return try recoverLocked(runID: runID, fileSystem: fileSystem, journal: journal)
+            return try recoverLocked(
+                runID: runID,
+                fileSystem: fileSystem,
+                journal: journal,
+                authority: authority
+            )
         }
     }
 
     private func recoverLocked(
         runID: RunID,
         fileSystem: DescriptorRelativeFileSystem,
-        journal: CommitJournalRecord
+        journal: CommitJournalRecord,
+        authority: RawStoreAuthority? = nil
     ) throws -> RecoveryResult {
         try journal.validate()
         guard journal.runID == runID else { throw PersistenceError.integrityViolation }
+        if let authority, try authority.validateJournal(journal) {
+            let historical = try loadComplete(
+                runID: runID,
+                journal: journal,
+                fileSystem: fileSystem
+            )
+            return RecoveryResult(disposition: .unchanged, persistedRun: historical)
+        }
         let completionWasUnproven = try reconcileJournalPublication(
             journal,
             fileSystem: fileSystem
