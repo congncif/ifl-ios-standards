@@ -116,10 +116,11 @@ combine independent outcomes.
   A separately sealed audit-ledger manifest may accompany the same commit only when governance and
   object-scoped authority require it; it does not create an evidence-only commit or runtime rerun.
   A byte-identical commit does not require another test run.
-- Plan approval, including `AUTO_APPROVED`, is engineering approval only. Commit, amend, history
-  rewrite, push, and corrective-commit actions require separate explicit authority scoped to that Git
-  action and repository. Without commit authority, stop before the commit operation and report the
-  verified candidate; never invent a status or infer authority from the checkpoint map.
+- Plan approval, including `AUTO_APPROVED`, is engineering approval only. `git.stage`, `git.commit`,
+  amend, history rewrite, push, and corrective actions each require a distinct one-shot authority
+  record naming exactly that native Git operation, repository, and object. Authority never bundles or
+  implies another operation; without the needed record, stop before that operation and report the
+  verified candidate. Workflow cadence is not standing authority.
 
 ## 4. Plan Gate checkpoint map
 
@@ -149,7 +150,8 @@ separate fields:
 - capability/preflight failure policy that never misclassifies infrastructure as product behavior;
 - post-commit wave/release failure policy covering complete capture, clustering, corrective boundaries,
   authority, and one rerun;
-- commit boundary plus the separate scoped Git-authority reference, or `NONE`; and
+- commit boundary plus distinct one-shot `git.stage` and `git.commit` authority references, or
+  `NONE`; and
 - every pre-approved boundary exception with its ordered-rule and atomic-cascade proof.
 
 The approval applies to the map, not to every work slice, and never grants Git authority. A materially
@@ -290,14 +292,13 @@ At the Plan Gate, map:
 - Freeze one immutable checkpoint baseline and collect all findings non-fail-fast before mutation.
 - Each finding MUST carry a stable lane ID, lane-local finding ID, root-cause key, severity, mapped
   obligation, evidence, and all observed symptoms. The aggregator assigns a canonical remediation ID
-  and one intake disposition: `ACCEPTED`, `DEFERRED`, `REJECTED`, or
-  `DUPLICATE_OF:<remediation-id>`. Kernel-bound records map terminal forms to
-  `deferred_by_policy`, `rejected_with_evidence`, and `duplicate` respectively.
+  and one host-neutral intake disposition: `ACCEPTED`, `DEFERRED`, `REJECTED`, or
+  `DUPLICATE_OF:<remediation-id>`.
 - Plans declare a root-cause grammar/vocabulary. The aggregator normalizes declared aliases before
   grouping, records every provisional alias, and keeps uncertain equivalence separate until ownership
   and materiality are resolved; it never relies on independently worded exact strings alone.
 - Before mutation, classify every `ACCEPTED` finding's materiality. An in-scope finding becomes
-  `ACCEPTED_CURRENT_SCOPE` (Kernel wire value `accepted_current_scope`). Scope/contract divergence
+  `ACCEPTED_CURRENT_SCOPE`. Scope/contract divergence
   becomes `REOPEN_REQUIRED` for Requirement, Design, or Architecture as appropriate;
   owner/boundary/obligation/gate divergence becomes `REOPEN_REQUIRED` for Plan. A finding cannot
   remain generically `ACCEPTED` at the mutation boundary; mutate only after any required gate is
@@ -350,9 +351,9 @@ If a wave/release gate fails after earlier checkpoint commits:
 5. rerun the failed wave/release gate once on the resulting candidate fingerprint.
 
 The default is a separately traceable corrective semantic-checkpoint commit for each independent
-outcome. Commit/amend still requires explicit corrective Git authority. Amend only when that separate
-authority preauthorizes the exact unshared commit; never rewrite shared history or merge unrelated
-repairs to hide the failure.
+outcome. Staging, commit, and amend each still require their own one-shot corrective Git authority
+record naming the exact operation and object. Amend only when its distinct record authorizes the exact
+unshared commit; never rewrite shared history or merge unrelated repairs to hide the failure.
 
 ## 10. Completion checklist
 

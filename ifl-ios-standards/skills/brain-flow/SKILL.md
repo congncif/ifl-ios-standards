@@ -259,14 +259,11 @@ proof and pending owner once after the batch's last relevant mutation.
 - Under commit-by-task governance, the approved semantic checkpoint is the traceable task/commit;
   internal subtasks and work slices do not create extra commits. A commit still requires separate,
   explicit, object-scoped Git authority; Plan or AUTO approval never supplies it.
-- In a Kernel-bound flow, consume `ready_for_commit` only through the bound launcher:
-  `ifl-workflow commit-checkpoint --run-receipt <receipt> --checkpoint-id <id> --message <message>`.
-  The command derives the exact reviewed path/tree set from authenticated checkpoint state; callers
-  supply no paths, directories, globs, or pathspecs. Never route `vcs.git-commit` through generic
-  `authorize-effect`. Without matching authority, retain `ready_for_commit` as a resumable wait. After
-  the typed commit receipt is recorded, call `resume`/`next`; do not manufacture a new workflow stage.
-  A Plan-declared bootstrap adapter may stand in only before this command exists and must enforce the
-  same object scope and receipt contract.
+- At `ready_for_commit`, retain the directive as a resumable wait until the provider receives separate
+  one-shot, object-scoped authority for `git.stage` and `git.commit`. Stage only the reviewed literal
+  path set, prove staged path/tree equality, and never infer commit authority from stage authority or
+  route either operation through generic effect authorization. After the provider records the commit
+  result, call `resume`/`next`; do not manufacture a new workflow stage.
 - Only after the complete frozen-roster join and materiality classification may the authoritative
   initial register return `DIRECT_CONVERGENCE_NO_ACCEPTED_CURRENT_SCOPE`. Consume that recorded
   decision—not a transient empty set or later `resolved` state—to skip remediation and confirmation

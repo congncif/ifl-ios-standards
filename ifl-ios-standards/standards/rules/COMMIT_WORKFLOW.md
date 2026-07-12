@@ -11,14 +11,15 @@ layer, file group, generated artifact, or evidence artifact is not a commit boun
 
 ## Git authority record
 
-Before committing, record all of:
+Before any Git mutation, create one authority record and record all of:
 
 - grant source: explicit user instruction or a project policy the user placed in scope;
-- operation: `commit` only, or an explicit list of additional separately authorized operations;
+- operation: exactly one native Git operation, such as `git.stage` or `git.commit`; one record never
+  bundles operations and authority for either operation never implies the other;
 - repository/worktree and approved checkpoint IDs;
 - allowed candidate-closure paths or reviewed candidate fingerprint;
 - expected base/parent, or the approved parent chain for sequential checkpoint commits;
-- cadence (`per-checkpoint` or scoped blanket), lifetime/expiry, and any message convention.
+- one-shot lifetime/expiry, consumption state, and any operation-specific convention.
 
 An AI gate cannot grant authority to itself. Ambiguous phrases, a different parent/tree, new paths,
 corrective checkpoints, or material scope/contract/boundary changes require a new or amended record.
@@ -44,24 +45,23 @@ corrective checkpoints, or material scope/contract/boundary changes require a ne
   runtime proof or creating an evidence-only commit.
 
 ### 3. Approval check
-- If no current Git authority record covers this exact commit, show the checkpoint outcome, candidate
-  fingerprint, evidence, findings/dispositions, and spec-sync triggers, then wait for explicit authority.
-- In `brain-flow`, an explicit instruction such as “commit after each task/checkpoint” may be recorded
-  as scoped blanket commit authority. Plan approval alone is not enough. Do not ask again after routine
-  work slices while the recorded scope and parent chain still match.
+- If the checkpoint requires staging and committing, show the checkpoint outcome, candidate
+  fingerprint, evidence, findings/dispositions, and spec-sync triggers, then wait until distinct
+  one-shot `git.stage` and `git.commit` authority records cover their exact objects. A request to commit
+  does not authorize staging, and a request to stage does not authorize committing.
+- Plan approval and workflow cadence are never standing Git authority. Each authority record is
+  consumed by its one named native operation.
 - Material scope, checkpoint-boundary, public-contract, authority, or risk-owner divergence invalidates
   the scoped approval and returns to the relevant gate.
 
 ### 4. Commit phase (ONLY after the approval check passes)
-- In a Kernel-bound flow, a `ready_for_commit` directive is consumed only by
-  `ifl-workflow commit-checkpoint --run-receipt <receipt> --checkpoint-id <id> --message <message>`.
-  The command derives the reviewed literal path set and staged tree from authenticated checkpoint
-  state. It accepts no caller path, directory, glob, or pathspec and never delegates `vcs.git-commit`
-  to generic `authorize-effect`.
-- If the product command does not exist yet, only an adapter explicitly declared by the approved Plan
-  may bootstrap the same E2 contract: show `git status --short`, stage only the recorded literal paths,
-  prove cached path/tree equality, commit, and record the typed-equivalent receipt. Never use
-  `git add -A` or `git add .` for that adapter.
+- Hold `ready_for_commit` as a resumable wait until the provider receives separate one-shot,
+  object-scoped authority for `git.stage` and `git.commit`. Stage authority never implies commit
+  authority, and neither operation is delegated through generic effect authorization.
+- Under `git.stage` authority, show `git status --short`, stage only the reviewed literal paths, and
+  prove cached path/tree equality. Never use `git add -A` or `git add .`.
+- Under the distinct `git.commit` authority, commit the already-proven staged tree once and record the
+  provider's native operation result.
 - Confirm the resulting staged/committed candidate manifest matches the reviewed/verified fingerprint
   and Git authority record. Staging and a byte-identical commit do not require another verification
   run. Record and show the commit result, then resume the same workflow through `resume`/`next`.
@@ -73,16 +73,21 @@ corrective checkpoints, or material scope/contract/boundary changes require a ne
 
 ## What Counts as Approval
 
-✅ **Commit-only authority when the immediate repository/checkpoint referent is unambiguous:**
+✅ **Stage-only authority (record as one `git.stage` grant):**
+- "stage the reviewed paths for CP-2"
+
+✅ **Commit-only authority for an already-staged, proven tree (record as one `git.commit` grant):**
 - "commit this checkpoint"
 - "looks good, commit CP-2"
-- "commit after each approved checkpoint in this task"
 
 ✅ **Push-only authority:**
 - "push the current branch" — authorizes no commit.
 
-✅ **Combined authority only when both operations and object are explicit:**
-- "commit CP-2 and push the current branch"
+✅ **One instruction may issue multiple grants only when each operation and object is explicit:**
+- "stage and commit CP-2" — record and consume one `git.stage` grant, then one distinct `git.commit`
+  grant.
+- "commit CP-2 and push the current branch" — record distinct one-shot `git.commit` and `git.push`
+  grants; it authorizes no staging.
 
 ❌ **NOT approval:**
 - "continue" (this means continue working, NOT commit)
@@ -95,21 +100,20 @@ corrective checkpoints, or material scope/contract/boundary changes require a ne
 ## Red Flags - STOP and ASK
 
 If you find yourself about to commit, check:
-1. Is there a current commit-authority record from the user/project policy, not an AI gate?
-2. Does repository, checkpoint, parent chain, operation, lifetime, and candidate closure still match?
+1. Was the staged tree produced under a consumed one-shot `git.stage` record, and is there a distinct
+   current one-shot `git.commit` record from the user/project policy, not an AI gate?
+2. Does repository, checkpoint, parent chain, exact single operation, lifetime, and candidate closure
+   still match each record?
 3. Is the joined review verdict approved and every required owning-gate receipt current?
 4. Does the staged candidate manifest byte-match the reviewed/verified fingerprint and allowed paths?
 
 If ANY answer is NO → **DO NOT COMMIT**
 
-## Exception
+## No standing-authority exception
 
-The ONLY exception to per-commit approval is an object-scoped blanket grant for a specific workflow,
-for example: "commit each approved semantic checkpoint in this task on the current repository and
-parent chain, limited to its reviewed candidate manifest."
-
-Confirm or record its scope at the Requirement/Plan Gate. It never authorizes push, branch, PR, release,
-history rewrite, corrective checkpoints, or unrelated files.
+Cadence instructions such as "commit after each checkpoint" describe desired workflow timing but do
+not create reusable Git authority. Every mutation still consumes a distinct one-shot record naming
+exactly one operation and object. There is no blanket, scoped-standing, or implied exception.
 
 ## Penalty for Violation
 

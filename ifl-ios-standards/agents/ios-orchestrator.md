@@ -131,12 +131,12 @@ reuse the original assignment.
      owning gate. Review approval and owning-gate proof are independent obligations.
    - **Commit.** Commit only when candidate identity matches the approved review and gate receipts and a
      separately recorded, object-scoped authority names checkpoint ID, candidate fingerprint, exact
-     paths, and commit action. In a Kernel-bound run, consume `ready_for_commit` only through
-     `ifl-workflow commit-checkpoint --run-receipt <receipt> --checkpoint-id <id> --message <message>`;
-     never route `vcs.git-commit` through generic effect authorization or pass caller path inputs. A
-     Plan-declared pre-Kernel bootstrap adapter must enforce the same object scope. If governance also
-     commits a sealed audit ledger, bind its separate manifest in the same authority and commit; do not
-     manufacture an evidence-only commit.
+     paths, and commit action. Hold `ready_for_commit` as a resumable wait until the provider receives
+     separate one-shot, object-scoped authority for `git.stage` and `git.commit`. The provider stages
+     only the reviewed literal path set, proves staged path/tree equality, and never infers commit
+     authority from stage authority or routes either operation through generic effect authorization.
+     If governance also commits a sealed audit ledger, bind its separate manifest in the same authority
+     and commit; do not manufacture an evidence-only commit.
 5. **Wave/final owner.** Run each full-suite/build/integration obligation once, after the final relevant
    mutation, at its declared owner. A full wave failure is one failure set: collect all failures,
    cluster them by provisional root cause, classify materiality, obtain authority for one joined
