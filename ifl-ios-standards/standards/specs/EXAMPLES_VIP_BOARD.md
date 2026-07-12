@@ -1,9 +1,13 @@
 <!-- Created by claude-opus-4-7 on 2026-05-09 -->
-# EXAMPLES: Full VIP UI Board
+# EXAMPLES: Full VIP UI Board — UIKit adapter
 
-All 6 files for one UI microboard (Protocols + Board + Interactor + Presenter + ViewController + Builder).
+All 6 files for one UIKit UI microboard (Protocols + Board + Interactor + Presenter + ViewController + Builder).
 Placeholders: `{Name}` = board name, `{Module}` = module name.
 All files live in `Sources/Microboards/{Name}/`.
+
+For SwiftUI, keep the same Board, Interactor, Presenter, typed intents, and display-ready state; replace
+the rendering adapter with the MainActor presentation-store + View + hosting shape in
+`MICROBOARD_UI.md` or the `ifl-new-board ... swiftui` scaffold.
 
 ---
 
@@ -28,10 +32,8 @@ protocol {Name}ControlDelegate: AnyObject {
 // Board conforms to this combined delegate
 protocol {Name}Delegate: {Name}ActionDelegate, {Name}ControlDelegate {}
 
-protocol {Name}UserInterface: UIViewController {}
-
 struct {Name}Interface {
-    let userInterface: {Name}UserInterface
+    let userInterface: UIViewController
     let controller: {Name}Controllable
 }
 
@@ -110,6 +112,7 @@ private extension {Name}Board {
 import Foundation
 
 // Interactor -> Presenter (defined here, in Interactor file)
+@MainActor
 protocol {Name}Presentable: AnyObject {
     func presentData(_ data: {DomainModel})
     func presentOverlayLoading()
@@ -179,9 +182,9 @@ extension {Name}Interactor: {Name}Controllable {}
 ```swift
 // {Name}Presenter.swift
 import Foundation
-import UIKit
 
 // Presenter -> ViewController (defined here, in Presenter file)
+@MainActor
 protocol {Name}Viewable: AnyObject {
     func setState(_ state: {Name}State)
     func showHUDLoading()
@@ -202,6 +205,7 @@ struct {Name}ViewModel {
     // Add display-ready fields here
 }
 
+@MainActor
 final class {Name}Presenter {
     weak var view: {Name}Viewable!
 }
@@ -234,7 +238,7 @@ protocol {Name}Interactable {
     func userDidConfirm()
 }
 
-final class {Name}ViewController: UIViewController, {Name}UserInterface {
+final class {Name}ViewController: UIViewController {
 
     weak var actionDelegate: {Name}ActionDelegate!
     var interactor: {Name}Interactable!

@@ -4,7 +4,6 @@
 # SPEC: Microboard with UI (Full VIP Board)
 
 > Reference: *Modern large-scale iOS app development* — Micro-services Composable pillar.
-> Template: `.ai/templates/module-template/Templates/Full UI Board.xctemplate/VIP`
 > Companion specs: `VIP_COMPONENTS.md` (per-component rules), `EXAMPLES_VIP_BOARD.md` (full skeleton), `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded cheatsheet).
 
 ## When to use
@@ -31,6 +30,11 @@ plus its Interactor and Presenter, presented through the motherboard's navigatio
 
 ## Files
 
+The architectural shape is independent of the rendering framework. The bundled `ui` CLI currently
+emits the UIKit adapter files. For SwiftUI, keep the same IO, Board, Interactor, Presenter, and
+display-port boundaries, then adapt the presentation state through a MainActor store and a hosting
+controller at the Boardy navigation boundary.
+
 | Path | Role |
 |------|------|
 | `IO/{Board}/{Board}IOInterface.swift` | Public `BoardID` + factory typealias + motherboard extension |
@@ -50,10 +54,34 @@ plus its Interactor and Presenter, presented through the motherboard's navigatio
 
 See `QUICK_REF.md` §2 (Module naming) and `BOARDY_CHEATSHEET.compact.md` Naming table. Quick rules:
 
-- BoardID (`BRD-ID-001`): public `"pub.mod.{Module}.{Board}"` / internal `"mod.{Module}.{Board}"`.
-- VIP class names are **never** prefixed even when the module is prefixed (e.g. `DADProfile` module → `ProfileDetailBoard`, not `DADProfileDetailBoard`).
+- A scaffolded public BoardID (`BRD-ID-001`) is exactly `"pub.mod.{Module}.{Board}"`. The
+  implementation may use an internal alias to that public ID; it must not invent a second literal.
+- VIP class names are **never** prefixed even when the consuming repository prefixes modules (for
+  example, `ORGProfile` module → `ProfileDetailBoard`, not `ORGProfileDetailBoard`).
 
 ## Communication
+
+### Scaffold boundary
+
+```bash
+ifl-new-board <Module> <Board> <ui|swiftui> \
+  --root=. --module-root=<repo-owned-module-root>
+```
+
+The command also accepts `--dry-run`; `--root` defaults to the current directory. Module and Board
+names must match `[A-Z][A-Za-z0-9]*`. The CLI refuses to write when either
+`IO/{Board}/` or `Sources/Microboards/{Board}/` already exists. This is a safe bootstrap, not an
+overwrite or merge operation.
+
+The `ui` selector emits public IO, implementation aliases, the Board/Builder/VIP protocol stack, and
+a UIKit `UIViewController`. The `swiftui` selector emits the same semantic core plus a MainActor
+presentation store, SwiftUI humble View, and hosting controller at the Boardy boundary. Build labels,
+dependencies, deployment targets, destinations, and verification commands remain owned by the
+consuming repository.
+
+After generation, the author must define real InOut types, implement the TODO behavior, register the
+Board in `{Module}ModulePlugin`, reconcile any new IO dependency with the repository's build system,
+and complete the selected rendering adapter. The generated skeleton is not feature completion.
 
 ```swift
 final class {FeatureName}Board: ModernContinuableBoard, GuaranteedBoard,
@@ -137,7 +165,7 @@ business navigation; fetch/persist business data; or construct business dependen
 
 - **UIKit** (`UIKIT-RENDER-001`): Presenter calls a display port with display-ready state; the
   `UIViewController` renders it and forwards typed intent.
-- **SwiftUI** (`UIKIT-RENDER-001`): a MainActor presentation store conforms to the same display port
+- **SwiftUI**: a MainActor presentation store conforms to the same display port
   and publishes that state. The SwiftUI View observes it and keeps `@State` UX-only. Domain/product
   state does not move into the View or store merely because SwiftUI is used.
 - **Parity**: identical domain input yields equivalent semantic display state for both adapters.
@@ -173,6 +201,13 @@ Board lifecycle stay unchanged.
 - `Presenter` tests verify domain → ViewModel mapping.
 - The Board class itself is rarely unit-tested directly; behavior is exercised through Interactor + integration if needed.
 - Mock the `Delegate` and `Buildable`, not the whole board.
+- Do not add a fake placeholder test for generated files. Add tests only for observable behavior with
+  meaningful assertions.
+- If executable scaffold code changes, run one targeted native signal from the consuming repository
+  that exercises the generated target or affected behavior. Documentation-only changes require no
+  build or test.
+- Do not create verifier scripts, receipts, manifests, or custom workflow-state files for scaffold
+  verification; report the direct native result when one is required.
 
 ## Pitfalls
 
@@ -205,6 +240,9 @@ Board lifecycle stay unchanged.
 - [ ] `registerFlows()` called in `init`, not `activate()`
 - [ ] Board conforms to `{Board}Delegate`
 - [ ] Registered in `ModulePlugin`'s `internalContinuousRegistrations`
+- [ ] Public BoardID literal is exactly `pub.mod.{Module}.{Board}`
 - [ ] Presenter prepares display-ready state; neither UIKit nor SwiftUI View formats raw/domain values or derives product meaning
 - [ ] View conditionals select presenter-encoded presentation state only; View-owned state is UX-local
 - [ ] SwiftUI presentation-store mutation is MainActor-isolated and semantically equivalent to the UIKit display port
+- [ ] Repository-owned build/dependency values are reconciled after generation
+- [ ] No placeholder-only test or scaffold-specific evidence sidecar was added

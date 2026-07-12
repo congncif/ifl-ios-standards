@@ -1,90 +1,104 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# new-module.sh <ModuleName> [--root=PATH] [--module-root=PATH] [--author=NAME] [--email=ADDR] [--dry-run]
+# ifl-new-module <ModuleName> [--root=PATH] [--module-root=PATH] [--dry-run]
 #
-# vinone Bazel fork of ifl-ios-pack bin/new-module.sh.
-# Scaffolds a two-target Boardy-VIP module at {ModuleRoot}/{ModuleName}/:
-#   BUILD.bazel                                          (Bazel — 2 swift_library + test + coverage)
-#   {ModuleName}.podspec                                 (Interface target — IO/**/*.swift) [CocoaPods fallback]
-#   {ModuleName}Plugins.podspec                          (Implementation target — Sources/**/*.swift) [fallback]
-#   IO/{ModuleName}ServiceMap.swift                      (public final class — single entry)
-#   Sources/Plugins/{ModuleName}PluginsServiceMap.swift  (internal final class)
-#   Sources/Plugins/{ModuleName}ModulePlugin.swift       (ModuleBuilderPlugin stub)
-#   Tests/{ModuleName}Tests.swift                        (XCTest stub — keeps Tests/** glob non-empty)
+# Creates only the Boardy module source boundary:
+#   IO/{ModuleName}ServiceMap.swift
+#   Sources/Plugins/{ModuleName}PluginsServiceMap.swift
+#   Sources/Plugins/{ModuleName}ModulePlugin.swift
 #
-# Bazel note: the swift_library targets glob IO/**/*.swift + Sources/**/*.swift, identical to
-# the podspec source_files. So bin/new-board.sh can drop new .swift under those trees and Bazel
-# picks them up automatically — no per-board BUILD edit needed.
-#
-# Resolves {ModuleRoot} in this priority:
-#   1. --module-root=PATH flag.
-#   2. `Module root` row in .claude/project/PROJECT_CONFIG.md (markdown table).
-#   3. Defaults to `Features`.
-#
-# Refuses to overwrite an existing module directory.
+# Build-system files and tests stay owned by the consuming repository. The command never guesses
+# organization-specific Bazel labels, package versions, deployment targets, licenses, or vendors.
+# It refuses to overwrite an existing module directory.
 
-usage() { sed -n '4,30p' "$0"; }
+usage() { sed -n '4,15p' "$0"; }
 
 [ $# -ge 1 ] || { usage; exit 64; }
 
-MODULE="$1"; shift
+MODULE="$1"
+shift
 ROOT="$PWD"
 MROOT=""
-AUTHOR="Team"
-EMAIL="team@example.com"
 DRY=0
 
 case "$MODULE" in
   -h|--help) usage; exit 0 ;;
-  [A-Z]*) : ;;
-  *) echo "new-module.sh: module name must start with uppercase letter (got '$MODULE')" >&2; exit 64 ;;
 esac
 
-for a in "$@"; do
-  case "$a" in
-    --root=*)         ROOT="${a#--root=}" ;;
-    --module-root=*)  MROOT="${a#--module-root=}" ;;
-    --author=*)       AUTHOR="${a#--author=}" ;;
-    --email=*)        EMAIL="${a#--email=}" ;;
-    --dry-run)        DRY=1 ;;
-    -h|--help)        usage; exit 0 ;;
-    *) echo "new-module.sh: unknown arg '$a'" >&2; exit 64 ;;
+if ! [[ "$MODULE" =~ ^[A-Z][A-Za-z0-9]*$ ]]; then
+  echo "ifl-new-module: module name must match [A-Z][A-Za-z0-9]* (got '$MODULE')" >&2
+  exit 64
+fi
+
+for argument in "$@"; do
+  case "$argument" in
+    --root=*)        ROOT="${argument#--root=}" ;;
+    --module-root=*) MROOT="${argument#--module-root=}" ;;
+    --dry-run)       DRY=1 ;;
+    -h|--help)       usage; exit 0 ;;
+    *) echo "ifl-new-module: unknown argument '$argument'" >&2; exit 64 ;;
   esac
 done
 
-[ -d "$ROOT" ] || { echo "new-module.sh: root '$ROOT' not a directory" >&2; exit 65; }
+[ -d "$ROOT" ] || { echo "ifl-new-module: root '$ROOT' is not a directory" >&2; exit 65; }
 ROOT="$(cd "$ROOT" && pwd)"
 
+module_root_from() {
+  local file="$1"
+  [ -f "$file" ] || return 0
+  grep -E '^\|[[:space:]]*Module root[[:space:]]*\|' "$file" \
+    | head -1 \
+    | sed -E 's/.*\|[[:space:]]*`?([^`|]+)`?[[:space:]]*\|.*/\1/' \
+    | sed -E 's/[[:space:]]+$//' \
+    || true
+}
+
 resolve_module_root() {
-  if [ -n "$MROOT" ]; then echo "$MROOT"; return; fi
-  local cfg="$ROOT/.claude/project/PROJECT_CONFIG.md"
-  if [ -f "$cfg" ]; then
-    local hit
-    hit="$(grep -E '^\|[[:space:]]*Module root[[:space:]]*\|' "$cfg" \
-            | head -1 \
-            | sed -E 's/.*\|[[:space:]]*`?([^`|]+)`?[[:space:]]*\|.*/\1/' \
-            | sed -E 's/[[:space:]].*$//' \
-            | sed -E 's/[[:space:]]+$//')"
-    if [ -n "$hit" ]; then echo "${hit%/}"; return; fi
+  if [ -n "$MROOT" ]; then
+    printf '%s\n' "$MROOT"
+    return
   fi
-  echo "Features"
+
+  local file value
+  for file in \
+    "$ROOT/CLAUDE.md" \
+    "$ROOT/AGENTS.md" \
+    "$ROOT/.claude/project/PROJECT_CONFIG.md"; do
+    value="$(module_root_from "$file")"
+    if [ -n "$value" ] && [[ "$value" != \{* ]]; then
+      printf '%s\n' "${value%/}"
+      return
+    fi
+  done
+
+  echo "ifl-new-module: module root is not configured; pass --module-root=PATH or set the Module root row in CLAUDE.md/AGENTS.md" >&2
+  exit 64
 }
 
 MROOT="$(resolve_module_root)"
-MDIR="$ROOT/$MROOT/$MODULE"
+if ! [[ "$MROOT" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+  echo "ifl-new-module: module root must be a repository-relative path token (got '$MROOT')" >&2
+  exit 64
+fi
+case "$MROOT" in
+  ..|../*|*/..|*/../*|./*|*/.|*/./*) echo "ifl-new-module: module root must not contain traversal components (got '$MROOT')" >&2; exit 64 ;;
+esac
+case "$MROOT" in
+  /*) echo "ifl-new-module: module root must be repository-relative (got '$MROOT')" >&2; exit 64 ;;
+esac
 
+MDIR="$ROOT/$MROOT/$MODULE"
 if [ -e "$MDIR" ]; then
-  echo "new-module.sh: destination exists — $MDIR" >&2
-  echo "  (remove it or pick another module name)" >&2
+  echo "ifl-new-module: destination exists — $MDIR" >&2
   exit 1
 fi
 
-YEAR_DATE="$(date +%Y-%m-%d)"
+CREATED_ON="$(date +%Y-%m-%d)"
 
 emit() {
-  local path="$1"; shift
-  local content="$1"
+  local path="$1"
+  local content="$2"
   if [ "$DRY" = 1 ]; then
     echo "DRY  write $path  (${#content} bytes)"
     return
@@ -94,159 +108,16 @@ emit() {
   echo "  WRITE  ${path#$ROOT/}"
 }
 
-echo "new-module.sh — scaffolding Bazel module $MODULE"
+echo "ifl-new-module — scaffolding Boardy source boundary for $MODULE"
 echo "  root:        $ROOT"
 echo "  module-root: $MROOT"
-echo "  dest:        $MDIR"
+echo "  destination: $MDIR"
 echo "  dry:         $DRY"
 echo
 
-# ── BUILD.bazel (primary build file — mirrors Features/DynamicContentWidget) ──
-
-emit "$MDIR/BUILD.bazel" "package(default_visibility = [\"//visibility:public\"])
-
-MODULE_NAME = \"$MODULE\"
-
-SOURCE_PATH = \"$MROOT\"
-
-# Interface deps (IO target) — public surface only.
-DEPENDENCIES = [
-    \"@boardy//:Boardy\",
-    \"@si_f_utilities//:SiFUtilities\",
-]
-
-# Implementation deps (Plugins target). Add real deps as the module grows:
-# DesignSystem, VinIDCrowdin, IDAssets, NavigationKit, etc. See a neighbour module's BUILD.bazel.
-PLUGINS_DEPENDENCIES = DEPENDENCIES + [
-    \"@mn_service_registry//:MNServiceRegistry\",
-    # TODO: add real implementation dependencies here.
-    \":%s\" % MODULE_NAME,
-]
-
-load(
-    \"@vinone_ios//bazel/app:swift.bzl\",
-    \"SWIFT_VERSION\",
-    \"swift_library\",
-)
-
-swift_library(
-    name = MODULE_NAME,
-    srcs = glob(
-        [
-            \"IO/**/*.swift\",
-        ],
-    ),
-    copts = [
-        \"-swift-version\",
-        SWIFT_VERSION,
-        \"-DSWIFT_PACKAGE\",
-    ],
-    module_name = MODULE_NAME,
-    deps = DEPENDENCIES,
-    alwayslink = 1,
-)
-
-swift_library(
-    name = \"%sPlugins\" % MODULE_NAME,
-    srcs = glob(
-        [
-            \"Sources/**/*.swift\",
-        ],
-    ),
-    copts = [
-        \"-swift-version\",
-        SWIFT_VERSION,
-        \"-DSWIFT_PACKAGE\",
-    ],
-    data = glob([
-        \"Sources/**/*.xib\",
-        \"Sources/**/*.storyboard\",
-        \"Sources/Resources/**/*.xcassets/**/*\",
-    ]),
-    module_name = \"%sPlugins\" % MODULE_NAME,
-    deps = PLUGINS_DEPENDENCIES,
-    alwayslink = 1,
-)
-
-# Unit test
-
-load(
-    \"@vinone_ios//bazel/app:configuration.bzl\",
-    \"APP\",
-)
-
-DEPENDENCIES_TESTS = []
-
-swift_library(
-    name = \"%s-TestsLib\" % MODULE_NAME,
-    srcs = glob([\"Tests/**/*.swift\"]),
-    deps = [\":%s\" % MODULE_NAME, \":%sPlugins\" % MODULE_NAME] + DEPENDENCIES_TESTS,
-    alwayslink = 1,
-)
-
-load(
-    \"@build_bazel_rules_apple//apple:ios.bzl\",
-    \"ios_unit_test\",
-)
-
-ios_unit_test(
-    name = \"%s-Tests\" % MODULE_NAME,
-    timeout = \"short\",
-    minimum_os_version = APP[\"MINIMUM_IOS_TARGET\"],
-    runner = \"@vinone_ios//:ios_x86_64_sim_runner\",
-    deps = [\":%s-TestsLib\" % MODULE_NAME],
-)
-
-# coverage
-
-load(
-    \"@vinone_ios//bazel/app:coverage.bzl\",
-    \"ios_unit_test_coverage\",
-)
-
-ios_unit_test_coverage(
-    test = \":%s-Tests\" % MODULE_NAME,
-    minimum_os_version = APP[\"MINIMUM_IOS_TARGET\"],
-    runner = \"@vinone_ios//:ios_x86_64_sim_runner\",
-    coverage_filter_regex = \".*/%s/.*.swift\" % MODULE_NAME,
-)"
-
-# ── Podspecs (CocoaPods fallback — kept per project decision) ────────────────
-
-emit "$MDIR/$MODULE.podspec" "Pod::Spec.new do |s|
-  s.name             = '$MODULE'
-  s.version          = '0.1.0'
-  s.summary          = '$MODULE interface module.'
-  s.description      = 'Public interface: BoardIDs, InOut models, ServiceMap.'
-  s.license          = { :type => 'MIT' }
-  s.author           = { '$AUTHOR' => '$EMAIL' }
-  s.source           = { :path => '.' }
-  s.ios.deployment_target = '14.0'
-  s.swift_version    = '5.9'
-  s.source_files     = 'IO/**/*.swift'
-  s.dependency 'Boardy'
-end"
-
-emit "$MDIR/${MODULE}Plugins.podspec" "Pod::Spec.new do |s|
-  s.name             = '${MODULE}Plugins'
-  s.version          = '0.1.0'
-  s.summary          = '$MODULE implementation module.'
-  s.license          = { :type => 'MIT' }
-  s.author           = { '$AUTHOR' => '$EMAIL' }
-  s.source           = { :path => '.' }
-  s.ios.deployment_target = '14.0'
-  s.swift_version    = '5.9'
-  s.source_files     = 'Sources/**/*.swift'
-  s.dependency '$MODULE'
-  s.dependency 'Boardy'
-end"
-
-# ── Boardy stubs (interface + implementation service maps + module plugin) ───
-
-emit "$MDIR/IO/${MODULE}ServiceMap.swift" "// Created on $YEAR_DATE by ifl-scaffold new-module.sh
+emit "$MDIR/IO/${MODULE}ServiceMap.swift" "// Created on $CREATED_ON by ifl-new-module
 
 import Boardy
-import Foundation
 
 public final class ${MODULE}ServiceMap: ServiceMap {}
 
@@ -254,10 +125,9 @@ public extension ServiceMap {
     var mod${MODULE}: ${MODULE}ServiceMap { link() }
 }"
 
-emit "$MDIR/Sources/Plugins/${MODULE}PluginsServiceMap.swift" "// Created on $YEAR_DATE by ifl-scaffold new-module.sh
+emit "$MDIR/Sources/Plugins/${MODULE}PluginsServiceMap.swift" "// Created on $CREATED_ON by ifl-new-module
 
 import Boardy
-import Foundation
 
 final class ${MODULE}PluginsServiceMap: ServiceMap {}
 
@@ -265,48 +135,20 @@ extension ServiceMap {
     var mod${MODULE}Plugins: ${MODULE}PluginsServiceMap { link() }
 }"
 
-emit "$MDIR/Sources/Plugins/${MODULE}ModulePlugin.swift" "// Created on $YEAR_DATE by ifl-scaffold new-module.sh
+emit "$MDIR/Sources/Plugins/${MODULE}ModulePlugin.swift" "// Created on $CREATED_ON by ifl-new-module
 
 import Boardy
-import Foundation
 import $MODULE
 
-struct ${MODULE}ModulePlugin: ModuleBuilderPlugin {
-
-    enum ServiceType: CaseIterable {
-        // case <yourBoard>
-
-        var identifier: BoardID {
-            switch self {
-            // TODO: map cases → BoardID constants from IO/
-            }
-        }
-    }
-
-    func build(motherboard: FlowMotherboard) {
-        // TODO: register boards. See .ai/specs EXAMPLES_PLUGIN.md.
-    }
-}"
-
-# ── Tests stub (keeps Tests/** glob non-empty so test targets build) ─────────
-
-emit "$MDIR/Tests/${MODULE}Tests.swift" "// Created on $YEAR_DATE by ifl-scaffold new-module.sh
-
-import XCTest
-@testable import $MODULE
-
-final class ${MODULE}Tests: XCTestCase {
-    func testModuleLinks() {
-        // TODO: replace with real tests.
-        XCTAssertTrue(true)
-    }
-}"
+// Add ModuleBuilderPlugin after the first public entry Board exists. Its ServiceType, identifier,
+// build(with:sharedComponent:internalContinuousProducer:), and registrations must be derived from
+// real Board contracts; the scaffolder does not invent a fake entry or silently green behavior."
 
 if [ "$DRY" != 1 ]; then
   echo
   echo "Done. Next steps:"
-  echo "  1. Add a board:   tools/ifl-scaffold/new-board.sh $MODULE <Board> <ui|viewless|flow|blocktask>"
-  echo "  2. Fill PLUGINS_DEPENDENCIES in $MROOT/$MODULE/BUILD.bazel with real deps."
-  echo "  3. Wire the module into the app target / xcodeproj top_level_targets as needed."
-  echo "  4. Verify:        bazel build //$MROOT/$MODULE:${MODULE}Plugins"
+  echo "  1. Add $MROOT/$MODULE to the consuming repository's build/package configuration."
+  echo "  2. Add a board: ifl-new-board $MODULE <Board> <ui|swiftui|viewless|flow|blocktask> --root=$ROOT"
+  echo "  3. Complete ${MODULE}ModulePlugin from the canonical plugin spec using real Board IDs."
+  echo "  4. Add executable tests only for real behavior, then run one repository-owned signal."
 fi

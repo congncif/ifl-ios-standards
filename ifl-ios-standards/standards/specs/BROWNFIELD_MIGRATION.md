@@ -1,262 +1,179 @@
-# BROWNFIELD_MIGRATION — adopt Boardy+VIP into an existing iOS app
+# BROWNFIELD_MIGRATION — adopt Standards 1.0 incrementally
 
-> **Purpose**: step-by-step procedure for moving a legacy UIKit (or mixed UIKit/SwiftUI) iOS app to the Boardy+VIP architecture this pack codifies. Optimized for incremental adoption — never big-bang.
->
-> **Not a pattern spec.** Exempt from the 12-section `SPEC_CONTRACT.md` template; this is a procedural runbook, same as `DECISION_TREES.md` / `ADOPTION.md`.
->
-> **Read first**: `BOARDY_FOUNDATIONS.md`, `DECISION_TREES.md`, `ARCHITECTURE.md`.
+Use this runbook for an existing UIKit, SwiftUI, mixed, RIBs, or earlier Boardy app. Migration is a
+strangler process: move one complete semantic slice behind a stable typed boundary, cut traffic over,
+and retain a slice-level rollback until the replacement is proven.
 
----
-
-## When this guide applies
-
-You have an existing iOS app that:
-
-- Is not built on Boardy yet (or uses Boardy ad-hoc without the IO/Plugins split).
-- Has UIKit code, possibly mixed with SwiftUI, possibly with Storyboards/segues.
-- Has feature code organized by file-type folders (`Views/`, `Controllers/`, `Services/`) rather than by feature module.
-- You want to migrate without halting shipping.
-
-If you're starting a greenfield app, use `GREENFIELD_SETUP.md` instead — it has the new-app version of the same phases (workspace shell → bootstrap → first module → app entry → CI → release).
+Read `ADOPTION.md`, `ARCHITECTURE.md`, `DECISION_TREES.md`, and `IO_INTERFACE.md` first.
 
 ---
 
-## Preconditions — verify before starting
+## 1. Establish the baseline
 
-| Check | How |
-|-------|-----|
-| Git repo with clean working tree | `git status` — commit or stash before touching pack files |
-| Dependency manager identified | Look for `Podfile` / `Package.swift` / `Project.swift` (Tuist) / `BUILD` (Bazel). Pack is CocoaPods-pinned today — see `PACKAGE_MANAGER.md` |
-| Workspace builds green | `xcodebuild build ... | grep BUILD` — don't start migrating on a broken main |
-| Boardy version pinned | The pack assumes the Boardy pin documented in `BOARDY_FOUNDATIONS.md`. If the project already uses a different Boardy version, decide upgrade-first vs adopt-at-current — *do not migrate while the pin is in flux* |
-| Team alignment | The migration touches ownership boundaries. Confirm whoever maintains the legacy screens is aware before porting them |
+Use the consuming repository's own configuration and commands to record:
 
-If any check fails, stop and resolve first. Migrating onto an unstable base is the most common cause of "pack feels wrong" reports.
+- current dependency and Boardy pins;
+- app composition entry point and navigation ownership;
+- module/target graph, especially IO-to-implementation leaks;
+- canonical build/test/launch signals and the last known-good revision;
+- each candidate flow's entry points, outputs, data writes, external effects, and callers.
 
----
+Choose a first slice with low fan-in, bounded dependencies, a visible outcome, and a reversible route.
+Avoid the app root, authentication root, shared navigator, or a flow already scheduled for deletion.
 
-## Phase 0 — inventory + first-screen pick
-
-Goal: pick exactly ONE screen to port first. The wrong first pick (too complex, too central, too coupled) will sour the team on the pack.
-
-### Inventory
-
-Walk the project and tag each screen / feature flow with three numbers:
-
-| Dimension | Score 1 (good first pick) | Score 5 (avoid) |
-|-----------|---------------------------|------------------|
-| Fan-in    | One entry point | Many call sites across the app |
-| Fan-out   | Calls 0–1 services | Calls 4+ services / SDKs / global state |
-| Coupling  | No shared mutable state | Reads/writes `AppDelegate` / global singletons |
-
-Total ≤ 5 → great first candidate. Total ≥ 10 → migrate this last.
-
-### Best first-screen archetypes
-
-- Settings sub-screens (low fan-in, mostly local state)
-- One-off prompts/dialogs (rate-app, force-update banner) — port as `viewless` Board
-- A self-contained onboarding step (e.g. "pick grade")
-- A modal that returns one value (date picker wrapper, image picker delegate)
-
-### Worst first-screen archetypes
-
-- Home / Dashboard / Tab roots (high fan-in, often own navigation)
-- Anything that owns `UINavigationController` for the rest of the app
-- Anything with Storyboard segues to N other screens
-- Login flow (high coupling to global auth state)
+A good slice is not merely one screen file. It includes the intent entering the feature, the business
+behavior, its display/output, and the integration route needed to observe it.
 
 ---
 
-## Phase 1 — install the standard + write bindings
+## 2. Transition from 0.18.x
 
-Install the `ifl-ios-standards` plugin (once per machine):
+Treat 0.18.x as a working source architecture, not as scaffolding to regenerate wholesale.
 
-```bash
-# Claude Code
-claude plugin marketplace add congncif/ifl-ios-standards && claude plugin install ifl-ios-standards@ifl-ios-standards
-# Codex
-codex plugin marketplace add  congncif/ifl-ios-standards && codex plugin add     ifl-ios-standards@ifl-ios-standards
-```
+1. Keep the app building on its existing pins while Standards 1.0 guidance is introduced.
+2. Move project-specific values and commands into the consuming repository's `CLAUDE.md` /
+   `AGENTS.md` and normal project configuration.
+3. Inventory existing Boards as: conforming; public-boundary defect; View-ownership defect; or legacy
+   feature without a Boardy boundary.
+4. Preserve compatible public BoardIDs and `Input`/`Output`/`Command`/`Action` types. Change a public
+   contract only for a product or architecture need, not to make the migration look uniform.
+5. Replace old tool-specific process instructions with provider-native Brain Flow. Do not carry
+   forward pack-owned verifier scripts, receipts/manifests, evidence ledgers, or custom runtime state.
+6. Migrate and remove compatibility code slice by slice. Delete obsolete copied guidance only after
+   all active references point at Standards 1.0.
 
-Then seed the repo's bindings (the standard reads these for everything project-specific):
+Do not combine a Standards 1.0 adoption with an unrelated Boardy upgrade. If a pin must change, make
+its compatibility and rollback a separately owned semantic task.
 
-1. Copy the starter from `${CLAUDE_PLUGIN_ROOT}/standards/templates/portable-claude/CLAUDE.md` to your repo root as `CLAUDE.md` (+ twin `AGENTS.md`).
-2. Fill in identity (`{ProjectName}`, `{Workspace}`, `{MainScheme}`, `{Simulator}`, `{Destination}`), `Module root` (your modules' actual path — `Features/` for Bazel, `submodules`/`Modules` for CocoaPods), and the build/test commands.
-3. Daily routing entry-point: the `/ifl-ios-standards:boardy-vip` router skill.
-4. "Which pattern do I need" navigator: `/ifl-ios-standards:boardy-vip` → `${CLAUDE_PLUGIN_ROOT}/standards/specs/DECISION_TREES.md`.
+Scaffolder changes from 0.18.x apply only to new destinations; never regenerate an existing module:
 
-Verify the plugin is live: `claude plugin list` (or `codex plugin list`) shows `ifl-ios-standards`;
-`/agents` lists the `ios-*` agents.
-
----
-
-## Phase 2 — first module + first Board
-
-Goal: prove the pack works in your project before touching more than one screen.
-
-### Step 1 — Decide the module shape
-
-Use Tree §1 in `DECISION_TREES.md`: typical answers per archetype:
-
-| Archetype | Board type | Module |
-|-----------|-----------|--------|
-| Settings sub-screen | `ui` | `Settings` |
-| Rate-app prompt | `viewless` | `AppRating` |
-| Onboarding step | `ui` (if has screen) or `viewless` | `Onboarding` |
-| Force-update banner | `flow` orchestrating a child `ui` Board | `AppUpdate` |
-
-### Step 2 — Scaffold
-
-```bash
-ifl-new-module <Module> --module-root=<your-module-root>   # on PATH when the plugin is enabled
-ifl-new-board  <Module> <Board> <ui|viewless|flow|blocktask>
-# or the skills: /ifl-ios-standards:boardy-new-module , /ifl-ios-standards:boardy-new-board
-```
-
-This produces:
-- Two podspecs: `{Module}.podspec` (interface) + `{Module}Plugins.podspec` (impl).
-- IO trio for the Board (`IO/{Board}/`).
-- Sources skeleton for the chosen type (`Sources/Microboards/{Board}/`).
-- `Sources/Plugins/{Module}ModulePlugin.swift` with a `ServiceType` enum + `build(motherboard:)` stub.
-
-### Step 3 — Wire the podspecs
-
-Add to `Podfile`:
-
-```ruby
-pod '{Module}',        :path => '{module-root}/{Module}'
-pod '{Module}Plugins', :path => '{module-root}/{Module}'
-```
-
-Then `pod install`. If the build breaks, fix it before continuing — don't pile on more modules on a broken base.
-
-### Step 4 — Port the legacy screen INTO the Board
-
-The mechanical part:
-
-| Legacy artifact | New home |
-|-----------------|----------|
-| `UIViewController` subclass body | `{Board}ViewController.swift` (keep view code intact at first) |
-| Methods that fire actions ("user tapped X") | Extract to `{Board}Interactable` protocol; route via `interactor.didTapX(...)` |
-| Methods that render state | Extract to `{Board}Viewable` protocol; render via `view.setState(...)` |
-| Business logic in the VC | Move to `{Board}Interactor` |
-| Network/service calls | Inject through Builder; call from Interactor |
-| Navigation pushes | Become `sendOutput(...)` / `flowAction(...)` from the Board |
-
-**Critical**: at this stage, do NOT also refactor the view code. Get the VIP cut working with the *same* views and *same* business logic — then optimize.
-
-### Step 5 — Activate the Board from legacy code
-
-Until the whole app is on Boardy, you need a bridge. Two options:
-
-**Option A — Adapter VC (recommended first)**
-Wrap activation in a free function returning a UIViewController:
-
-```swift
-// In your legacy navigation code:
-let vc = AppDelegate.shared.serviceMap
-    .mod{Module}Plugins
-    .io{Board}
-    .activation
-    .makeAdapterViewController(with: {Board}Input(...))
-navigationController.pushViewController(vc, animated: true)
-```
-
-This lets legacy `UINavigationController` keep ownership while the screen content runs through Boardy. See `EXAMPLES_VIP_BOARD.md` for the adapter pattern.
-
-**Option B — Full motherboard activation**
-Replace the legacy screen's host with a Boardy motherboard. Bigger lift; only do this once you have 3+ screens migrated and the legacy navigator is shrinking anyway.
-
-### Step 6 — Check the migrated behavior
-
-Use the consuming project's canonical build/test command for executable code. In the plan's final AI
-review, inspect the migrated module for IO visibility, vendor/dependency boundaries, cross-module
-imports, and BoardID naming.
-
-Smoke-test the migrated screen end-to-end in the simulator before merging.
+- `ifl-new-module` now emits only the three IO/Plugins source-boundary files. It no longer writes
+  organization-specific Bazel/CocoaPods settings, fixed platform values, coverage targets, or fake
+  tests. Add the sources through the consuming repository's build/package configuration.
+- Module root must resolve from `CLAUDE.md` / `AGENTS.md`, the legacy project binding, or an explicit
+  `--module-root`; there is no guessed `Features` fallback. Obsolete author/email flags are removed.
+- `ifl-new-board ... ui` selects UIKit; `... swiftui` selects the equivalent SwiftUI hosting adapter.
+- `... blocktask` emits `BlockTaskParameter` IO and a `BlockTaskBoard` factory, not the old
+  flow-shaped placeholder. Replace its fail-fast body with owned async behavior before activation.
 
 ---
 
-## Phase 3 — wire the LauncherPlugin
+## 3. Define the slice boundary and rollback
 
-Once 1–2 modules exist, register them with the app's plugin host.
+Before editing production code, write down:
 
-Find your app's plugin host (per `PROJECT_CONFIG.md` row "App plugin host" — typically `SceneDelegate.scene(_:willConnectTo:)` or `AppDelegate`).
+- entry intent and caller;
+- observable success, empty, loading, and failure behavior;
+- typed public IO and owning module;
+- dependencies and side effects;
+- old route, new route, cutover mechanism, and removal condition;
+- rollback action and any data compatibility constraint.
 
-```swift
-let mainboard = FlowMotherboard(plugins: [
-    {Module}LauncherPlugin(...),
-    // future: AnotherModuleLauncherPlugin(...),
-])
-```
+Prefer a route switch, composition choice, or feature flag already owned by the app. A compatibility
+bridge belongs in implementation/composition, not public IO. Give it one owner and a deletion
+condition.
 
-The `LauncherPlugin` for the module wires the `ModulePlugin` + any per-app-lifetime resources (analytics, repository singletons). See `EXAMPLES_PLUGIN.md`.
-
----
-
-## Phase 4 — iterate
-
-Now the boring part. For each subsequent screen:
-
-1. Pick from inventory (lowest score first).
-2. `new-board.sh` inside the module if it fits; else `new-module.sh` for a new module.
-3. Port — same Phase 2 step 4 mechanics.
-4. Update legacy callers to go through the new ServiceMap.
-5. Delete the legacy code when no callers remain.
-6. Include the migrated surface in the plan's final AI consistency review before merge.
-
-Aim for one screen per PR. Stack PRs against `main`; don't run a parallel "migration branch" that diverges for weeks.
+Rollback restores the complete semantic slice to its previous route. Do not selectively revert only
+the View, Interactor, or module wiring while leaving incompatible contracts or writes behind. For
+schema or durable-data changes, define backward compatibility or explicit forward recovery before
+cutover.
 
 ---
 
-## Common blockers and how to defuse them
+## 4. Migrate one slice
 
-| Blocker | Defusion |
-|---------|----------|
-| Storyboard segues | Replace the segue with a programmatic push/present from the Board's flow callback. Keep the storyboard for the VIEW XML only; load it via `UIStoryboard(name:bundle:).instantiateViewController(...)` inside the ViewController's setup |
-| Global singletons read inside VC | Inject them through the Builder. Singleton stays — just stop touching it from the VC body |
-| `UINavigationController` ownership | Until that screen migrates, keep the legacy navigator. The Board returns a `UIViewController` adapter; the legacy navigator pushes it |
-| NSCoding-required objects | NSCoding survives. The pack only restructures *who calls whom*, not how objects serialize |
-| Mixed UIKit + SwiftUI | SwiftUI views can live inside a `UIHostingController` returned by the Builder. The VIP cut sits *above* the hosting controller |
-| Combine/RxSwift pipelines | Keep them inside the Interactor. The Board doesn't see them. Just be sure the `cancellables` / `disposeBag` releases when the Interactor releases (attachObject from the Board handles this) |
-| Tests are coupled to the legacy VC | Add new tests at Interactor/Presenter level (see `TESTING.md`) and let the legacy tests die when the VC is deleted |
+### A. Preserve or introduce typed IO
+
+Define `Input`, `Output`, `Command`, `Action`, display ports, and typed bus/delegate payloads at the
+feature boundary. Keep the IO target public and minimal; keep concrete services, providers, adapters,
+and Board construction in the implementation target. Other features import IO only.
+
+Wrap legacy callbacks or routes behind an implementation adapter when needed. Do not expose strings,
+dictionaries, `Any`, or legacy controller types as the new long-term contract.
+
+### B. Move policy behind the boundary
+
+Move business decisions into the Interactor/use case/domain path. Inject legacy services through
+capability interfaces or implementation adapters. The Builder/composition root constructs concrete
+dependencies; the View does not locate services or mutate shared business state.
+
+### C. Apply one humble-View contract
+
+The Presenter or equivalent mapper prepares display-ready semantic state, including user-facing
+formatting. Views forward typed intent and render that state.
+
+- **UIKit** — a `UIViewController` conforms to the display port and renders immutable state.
+- **SwiftUI** — a MainActor presentation store conforms to the same display port; the `View` observes
+  it and keeps `@State` limited to UX-local concerns.
+- **Mixed UI** — adapt SwiftUI at the Boardy navigation boundary (for example with a hosting adapter)
+  while retaining the same semantic state and intent types.
+
+Views may select an already encoded presentation case and calculate geometry or visual interpolation.
+They do not format raw/domain values, decide product policy, construct business dependencies, or turn
+gesture details into untyped business events.
+
+### D. Cut over one caller
+
+Route one real legacy entry through the new IO. Translate the new output back to the old coordinator
+only at the bridge while the surrounding flow remains legacy. Keep navigation ownership stable until
+its own slice is migrated; do not make the root navigator the first conversion.
+
+### E. Verify and retire
+
+For executable changes, use the consuming repository's canonical checks plus a focused exercise of
+the slice's entry, success, failure, output, and rollback route. Add code tests where behavior or risk
+warrants them. Standards 1.0 does not supply a parallel verifier or CI gate.
+
+After the new route is accepted and rollback conditions are met, remove dead callers, adapters, and
+legacy implementation for that slice. Keep shared legacy infrastructure until its final consumer
+moves.
 
 ---
 
-## Anti-patterns — what NOT to do
+## 5. Continue by dependency order
 
-- **Don't big-bang.** Migrating all screens in one PR is the most common failure mode. Ship one screen, learn, then continue.
-- **Don't refactor while porting.** Phase 2 step 4 is mechanical extraction. Refactoring the view code mid-port doubles the diff size and the review cost.
-- **Don't create a "Common" module.** Cross-cutting types belong in the owning feature module's `IO/`. A `Common`/`Shared` sink module always grows into a god module. See `LAYERING.md` §Anti-patterns.
-- **Don't import `{Other}Plugins` cross-module.** The boundary is `{Other}` (IO target) only.
-- **Don't migrate the navigator first.** Migrating `AppDelegate` / root navigation early creates a chicken-and-egg between "Boardy works" and "every screen on Boardy". Let the navigator be the LAST migration.
-- **Don't migrate code you're about to delete.** If a screen is scheduled for removal in the next quarter, leave it alone.
-- **Don't migrate without a known target test.** If you can't smoke-test the migrated screen, you can't verify the port. Add a manual QA pass at minimum.
+Migrate leaf flows before shared roots. A practical order is:
+
+1. bounded modal/sub-screen;
+2. feature-local services and child flows;
+3. parent feature coordinator;
+4. shared navigation and app composition root last.
+
+Commit and release cadence are consuming-repository decisions. Keep each change reviewable and
+reversible at a semantic boundary; do not maintain a long-lived all-or-nothing migration branch.
+
+---
+
+## 6. Brain Flow operation
+
+Use provider-native Brain Flow in co-working mode when the team wants requirements and plan approval,
+or auto mode when AI may make those gates. Both modes plan all semantic slices and their rollback,
+execute continuously, and use one joined final AI consistency review for the complete plan.
+
+Track progress in the approved plan or provider-native task state. Do not create migration receipts,
+manifests, fingerprints, custom state machines, or per-slice review gates. The repository owns build,
+test, configuration, CI, rollout, and operational observation.
 
 ---
 
-## Verification checklist (per migrated screen)
+## Slice completion checklist
 
-Before merging a port PR:
-
-- [ ] The final AI review reports no dependency, visibility, or BoardID contract violation for the touched module
-- [ ] `xcodebuild build` reports `BUILD SUCCEEDED` for `{MainScheme}` AND the module's own scheme if one exists
-- [ ] The migrated screen renders identically (or intentionally better) compared to pre-port
-- [ ] All legacy entry points to the screen now go through `ServiceMap.mod{Module}Plugins.io{Board}` — no direct `{Board}ViewController()` calls
-- [ ] If applicable: tests at Interactor / Presenter level for new logic
-- [ ] PR description records "Migrated {Screen} from legacy {OldHost} to {Module}.{Board}" and lists deleted legacy files
-
----
+- [ ] Entry, outcome, side effects, cutover, and rollback are explicit.
+- [ ] Public IO and BoardIDs remain typed and intentionally compatible.
+- [ ] Cross-module consumers import IO, never Plugins/implementation.
+- [ ] UIKit/SwiftUI adapters render the same display-ready semantic state.
+- [ ] Formatting and business decisions are outside the View; View state is UX-local only.
+- [ ] One real caller uses the new route and the old path remains safely reversible until retirement.
+- [ ] Repository-owned executable checks cover the risk; no pack-owned verifier or duplicate CI was
+      introduced.
+- [ ] Legacy code is removed only when no caller or rollback obligation still needs it.
 
 ## References
 
-- `BOARDY_FOUNDATIONS.md` — mental model required before touching any Board code.
-- `DECISION_TREES.md` — pick-a-pattern navigator. Tree §1 (Board type), §9 (brownfield first-step) most relevant here.
-- `ADOPTION.md` — generic adoption checklist (covers greenfield too).
-- `MODULE_CREATION.md`, `IO_INTERFACE.md` — module shape.
-- `MICROBOARD_UI.md`, `MICROBOARD_NONUI.md` — Board shapes.
-- `PLUGINS_INTEGRATION.md` — LauncherPlugin wiring.
-- `EXAMPLES_VIP_BOARD.md`, `EXAMPLES_VIEWLESS_BOARD.md`, `EXAMPLES_NONUI_BOARDS.md` — code skeletons.
-- `TESTING.md` — where to add tests during a port.
-- `REVIEWER_CHECKLIST.md` — what reviewers look for on port PRs.
-- `.claude/project/PROJECT_CONFIG.md` — project-specific values (workspace, module root, scheme).
+- `ADOPTION.md` — shared Standards 1.0 adoption contract.
+- `GREENFIELD_SETUP.md` — new-app counterpart.
+- `MICROBOARD_UI.md` — UIKit/SwiftUI adapter contract.
+- `MODULE_CREATION.md`, `IO_INTERFACE.md` — module and public boundary shape.
+- `COMMUNICATION.md`, `BUS_PATTERNS.md` — typed cross-board communication.
+- `REFACTOR_PLAYBOOK.md` — structural moves after behavior is stable.
+- `process/lean-verification.md` — semantic tasks and one final review.

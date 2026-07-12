@@ -1,29 +1,44 @@
 ---
 name: boardy-adopt
 description: >-
-  Use when bringing the Boardy+VIP standard into a project — migrating an existing UIKit/RIBs
-  codebase incrementally, or standing up a new app greenfield on the pattern. Triggers: "adopt
-  Boardy", "migrate to VIP", "brownfield migration", "greenfield setup", "introduce the standard".
+  Use when bringing Standards 1.0 and Boardy+VIP into an existing iOS app, incrementally migrating
+  from 0.18.x, or standing up a greenfield app with UIKit and/or SwiftUI rendering adapters.
 ---
 
-# Adopt the Boardy+VIP standard
+# Adopt Standards 1.0 with Boardy+VIP
 
 ## Read by scenario
-- Existing app (incremental) → `${CLAUDE_PLUGIN_ROOT}/standards/specs/BROWNFIELD_MIGRATION.md`
-- New app from scratch → `${CLAUDE_PLUGIN_ROOT}/standards/specs/GREENFIELD_SETUP.md`
-- General adoption overview → `${CLAUDE_PLUGIN_ROOT}/standards/specs/ADOPTION.md`
-- Architecture context → `${CLAUDE_PLUGIN_ROOT}/standards/specs/ARCHITECTURE.md`
 
-## Project setup that stays in the consuming repo
-This pack ships the **generic** standard only. Per-project values (scheme, simulator, module
-roots, build/test commands, base branch, git remote, naming prefix, ADR/decisions location) go in
-the consuming repo's `CLAUDE.md`. A copyable starter lives at
-`${CLAUDE_PLUGIN_ROOT}/standards/templates/portable-claude/` — copy the relevant bits into your
-`CLAUDE.md`, fill in the values.
+- Shared contract → `${CLAUDE_PLUGIN_ROOT}/standards/specs/ADOPTION.md`
+- Existing app or 0.18.x transition →
+  `${CLAUDE_PLUGIN_ROOT}/standards/specs/BROWNFIELD_MIGRATION.md`
+- New app → `${CLAUDE_PLUGIN_ROOT}/standards/specs/GREENFIELD_SETUP.md`
+- Architecture and rendering → `${CLAUDE_PLUGIN_ROOT}/standards/specs/ARCHITECTURE.md` and
+  `${CLAUDE_PLUGIN_ROOT}/standards/specs/MICROBOARD_UI.md`
 
-The multi-agent pipeline's work-item workspace (in-repo under `docs/02-working-docs/work-items/` per
-`${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`) is **optional** — used only by the
-delegated `ios-orchestrator` flow.
+## Operating sequence
 
-## First module
-Once `CLAUDE.md` is wired, scaffold with `/ifl-ios-standards:boardy-new-module`.
+1. Read the consuming repository's `CLAUDE.md` / `AGENTS.md` for project commands, configuration,
+   module roots, dependency pins, CI ownership, and exceptions. Ask only for a missing value that
+   materially changes the adoption.
+2. Select greenfield or brownfield guidance. For brownfield, inventory the current routes and plan a
+   strangler migration in complete semantic slices with explicit cutover and rollback.
+3. Preserve the IO/implementation split and typed `Input`/`Output`/`Command`/`Action` intent. Cross-
+   module consumers import IO only; compatibility bridges stay in implementation/composition.
+4. Preserve one humble-View contract for UIKit and SwiftUI. Presenter/equivalent code prepares
+   display-ready semantic state and formatting. Views render and forward typed intent; only transient
+   UX-local state and geometry/visual interpolation remain in the View.
+5. Use provider-native `/ifl-ios-standards:brain-flow` in the repository's configured mode:
+   co-working for user requirement/plan approval, or auto for AI gates with material escalation only.
+6. Route module, Board, IO, communication, service, composition, and testing work through the matching
+   `boardy-*` skills. Use repository-owned executable signals when code changes.
+
+## Boundary
+
+The consuming repository owns project generation, build/test/format commands, configuration, CI,
+rollout, and release. Documentation-only work has no build/test gate.
+
+Do not introduce pack-owned verifier/lint/smoke scripts, receipts/manifests, fingerprints, evidence
+ledgers, a custom workflow kernel, or provider-independent runtime state. Track progress in the
+approved plan or provider-native task state and use one joined final AI consistency review after the
+complete plan.

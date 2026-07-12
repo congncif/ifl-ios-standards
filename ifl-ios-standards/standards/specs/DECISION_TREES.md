@@ -11,9 +11,11 @@
 ```
 What does this Board produce or coordinate?
 │
-├─ Renders a UIViewController the user interacts with
+├─ Renders a UIKit screen or a SwiftUI screen hosted at the Boardy UIViewController boundary
 │   → ui Board
-│     Files: Board + Builder + Interactor + Presenter + ViewController + Protocols
+│     Core: Board + Builder + Interactor + Presenter + Protocols
+│     Adapter: UIKit ViewController OR SwiftUI View + MainActor store + hosting controller
+│     Semantics: same Boardy+VIP flow and humble-View boundary for both adapters
 │     Spec : MICROBOARD_UI.md
 │     Example: EXAMPLES_VIP_BOARD.md
 │
@@ -32,7 +34,7 @@ What does this Board produce or coordinate?
 │     Example: EXAMPLES_NONUI_BOARDS.md
 │
 ├─ Single async operation that must complete before something else activates
-│   → blocktask Board  (semantic alias of flow; pure-Board shape)
+│   → BlockTaskBoard with a per-activation parameter/factory
 │     Spec : MICROBOARD_NONUI.md  §"BlockTask"
 │     Use this when a *barrier* needs the work done — see Tree §3.
 │     Example: EXAMPLES_NONUI_BOARDS.md
@@ -48,6 +50,12 @@ What does this Board produce or coordinate?
       Example: EXAMPLES_COMPOSABLE_BOARD.md
       ⚠ Children must activate via composableBoard.serviceMap, NOT motherboard.serviceMap
 ```
+
+The bundled `ifl-new-board` command scaffolds `ui`, `swiftui`, `viewless`, `flow`, and `blocktask`.
+Barrier and composable boards require their owning specs rather than pretending another generated
+shape is equivalent. The command is additive and refuses existing IO or implementation destinations.
+`ui` selects UIKit and `swiftui` selects the hosting adapter; both preserve one Boardy+VIP and
+humble-View architecture.
 
 ## 2. Public or internal BoardID?
 
@@ -69,16 +77,18 @@ Will any other module activate this Board?
     Spec     : MICROBOARD_NONUI.md, CONVENTIONS.md
 ```
 
-The final AI review checks both shapes against the naming contract.
+`ifl-new-board` currently creates public IO for every supported selector. If the board is genuinely
+internal, hand-author the smaller internal surface or deliberately remove the public surface; do not
+leave unused public IO by accident.
 
 ## 3. Communication channel — who talks to whom, how?
 
 ```
 Source → Destination
 │
-├─ Board → Controller / Interactor / Presenter
-│   → direct method call (Board holds reference attached via attachObject)
-│     Spec: MICROBOARD_UI.md §Inward, MICROBOARD_NONUI.md §Inward
+├─ Board → Controller / Interactor
+│   → Bus<T> connected to the weak target; do not retrieve or retain controller references
+│     Spec: MICROBOARD_UI.md, MICROBOARD_NONUI.md, BUS_PATTERNS.md
 │
 ├─ Interactor / Controller → Board
 │   → delegate protocol ({Board}ControlDelegate) — weak ref, set in Builder
@@ -154,17 +164,17 @@ What's the scope of "one activation"?
 ## 6. Attach context — which `AnyObject` owns the Controller?
 
 ```
-Does the Controller need to outlive the Board?
+Which existing object should own the Controller's attached lifetime?
 │
-├─ No, and an explicit owner was passed in input
+├─ An explicit owner was passed in input
 │   → input.context  (highest priority)
 │
-├─ No, but there's a UI surface
-│   → rootViewController  (when SiFUtilities show(_:) embeds it)
+├─ No explicit owner, but the flow belongs to the root UI lifetime
+│   → rootViewController
 │
 └─ No suitable owner exists
-    → the Board itself  (last resort — Controller dies with Board)
-      ⚠ Means the Controller cannot survive complete() — confirm that's intended
+    → Board context  (last resort; release with complete()/detachObject)
+      ⚠ Board lifecycle remains independent of Controller lifecycle
       Spec: MICROBOARD_NONUI.md §Attach context
 ```
 
@@ -215,7 +225,7 @@ Direction of need
       Avoid creating a "Common" sink module — see LAYERING.md §Anti-patterns
 ```
 
-The final AI review treats any `Sources/**` import of `{OtherModule}Plugins` as a hard violation.
+Any `Sources/**` import of `{OtherModule}Plugins` is a hard violation.
 
 ## 9. Migration: brownfield project — where to start?
 
@@ -226,12 +236,19 @@ Existing screen with UIKit-only code, no Boardy
 │
 ├─ Read ADOPTION.md
 ├─ Pick one self-contained screen (low fan-in, low fan-out)
-├─ new-module.sh {ModuleName}                       → 2-podspec skeleton
-├─ new-board.sh {ModuleName} {Screen} ui             → VIP scaffold for that screen
-├─ Move UIViewController code → ViewController.swift; introduce Interactor + Presenter
+├─ Resolve the module root and build values from the consuming repository
+├─ ifl-new-module {ModuleName} --root=. --module-root={ModuleRoot}
+├─ ifl-new-board {ModuleName} {Screen} <ui|swiftui> --root=. --module-root={ModuleRoot}
+├─ Keep the generated Interactor + Presenter boundary for either adapter
 ├─ Wire LauncherPlugin in AppDelegate/SceneDelegate
 └─ Iterate: next screen, this time using the ServiceMap you just established
 ```
+
+Scaffold generation never chooses repository-specific dependencies, target labels, project wiring,
+deployment values, simulator destinations, or verification commands. Reconcile those after
+generation. Do not create fake placeholder tests. Executable scaffold changes get one targeted
+native signal from the consuming repository; documentation-only changes get no build/test. Neither
+path needs verifier scripts, receipts, manifests, or custom workflow-state files.
 
 ## References
 

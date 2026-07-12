@@ -1,6 +1,6 @@
 # REFACTOR_PLAYBOOK — procedural runbook for restructuring modules and Boards
 
-> **Purpose**: step-by-step procedure for the five high-stakes structural refactors in a Boardy+VIP codebase — split a module, merge two modules, extract a Board, move a Board across modules, rename a public symbol. Each has a known mechanical sequence; doing them in the wrong order silently leaves callers broken or BoardIDs unreachable.
+> **Purpose**: impact-first procedure for the five high-stakes structural refactors in a Boardy+VIP codebase — split a module, merge two modules, extract a Board, move a Board across modules, rename a public symbol. Each has a safe semantic sequence; doing it in the wrong order can leave callers broken, BoardIDs unreachable, or UIKit and SwiftUI adapters semantically inconsistent.
 >
 > **Not a pattern spec.** Exempt from the 12-section `SPEC_CONTRACT.md` template; this is a procedural runbook, same as `DECISION_TREES.md` / `BROWNFIELD_MIGRATION.md` / `GREENFIELD_SETUP.md` / `TROUBLESHOOTING.md` / `REVIEW_PLAYBOOK.md`.
 >
@@ -24,18 +24,59 @@ Each section below covers ONE of these. They're independent — read the section
 
 ---
 
-## Universal preconditions — verify before ANY refactor
+## Universal preconditions — map impact before ANY refactor
 
 | Check | How |
 |-------|-----|
 | `git status` clean | Refactors generate large diffs; mix with feature work = unreviewable PR |
 | Working tree builds + tests green | Don't refactor on top of failing tests; you won't know which failures the refactor introduced |
-| Affected architecture rules understood | Know the dependency, visibility, and BoardID constraints before moving code |
-| Identify ALL callers of the surface you're about to change | `git grep` for the public BoardID literal, the IO ServiceMap accessor, the module name in imports |
+| Affected architecture rules understood | Know the dependency, visibility, humble-View, and BoardID constraints before moving code |
+| Definition and all consumers mapped | Trace the symbol or Board from its definition through registrations, ServiceMap accessors, imports, build/package edges, tests, App composition, and runtime callers before editing |
+| UI semantics frozen | If a UI Board or presentation seam moves, record its display-ready state and typed intents; UIKit and SwiftUI adapters must keep the same product semantics |
+| Rollback boundary chosen | Define the last known working state and whether the slice rolls back by reverting, restoring an alias, or restoring the old registration/caller route |
 | Confirm no in-flight PRs touch the same files | Merge conflicts on a refactor are painful; coordinate timing |
 | Pack version pinned in `PROJECT_CONFIG.md` | If the pack itself just bumped, rebase the pack version first — don't conflate pack + refactor diffs |
 
 If any check fails, stop and resolve. Refactors compound mistakes — the cleanup is exponentially more expensive than the prep.
+
+### Standards 1.0 invariants to preserve
+
+- Public BoardIDs use exactly `pub.mod.<Module>.<Board>`; internal BoardIDs use
+  `mod.<Module>.<Board>`. A public literal change is a runtime contract change, not a file rename.
+- `IO/**` exports public domain contracts. `Sources/**` remains internal except the minimum App-boot
+  construction surface under `Sources/Plugins/**` (for example LauncherPlugin init arguments and
+  provider configurations). That exception never permits sibling modules to import another module's
+  Plugins target.
+- UIKit and SwiftUI are equivalent humble rendering adapters. The Presenter or equivalent mapper owns
+  display-ready product state and typed intents; Views own only rendering mechanics and transient UX-local
+  state. A hosting or interoperability bridge must not reinterpret business, navigation, accessibility,
+  analytics, or formatting semantics.
+
+## Safe execution and verification contract
+
+Plan the refactor as dependency-ordered **semantic slices**, not file moves or agent assignments. A slice
+leaves one coherent contract usable: introduce a destination or compatibility bridge, move its definition
+and registration, migrate all known callers, then remove the old route only after its impact set is empty.
+Do not leave both registrations active unless the compatibility design explicitly requires that state.
+
+For each slice:
+
+1. Reconfirm the affected definitions, callers, package edges, registrations, tests, and UI adapters.
+2. Make the smallest complete change that preserves the public/runtime contract or introduces the planned
+   bridge before caller cutover.
+3. Inspect the complete slice for dependency direction, visibility, BoardID ownership, lifecycle, and
+   UIKit/SwiftUI semantic parity.
+4. For executable changes, run the one consuming-repository native build/test signal assigned to that
+   slice or distinct risk boundary. Read the command from the consuming repo's project instructions; this
+   pack does not define a substitute command.
+5. If the signal fails or the impact grows beyond the planned slice, stop, restore the chosen rollback
+   boundary, and re-plan before continuing.
+
+Do not build after every rename, move, or file edit. Do not repeat an unchanged green signal, create
+plugin-owned verifier/lint/smoke scripts, or add receipts, evidence ledgers, manifests, fingerprints, and
+custom workflow state. Documentation-only work has no runtime build/test gate; after all planned mutations,
+it waits for the plan's one final joined AI consistency review. Executable changes keep their observed
+consuming-repo signal and then join that same final review; the review is not a replacement for code tests.
 
 ---
 
@@ -58,51 +99,50 @@ If two halves of the proposed split call each other ≥ 3 times after the cut, y
 
 ### Mechanical sequence
 
-1. **Create the new module** with `new-module.sh`:
+1. **Create the new source boundary** with `ifl-new-module`:
    ```bash
    ifl-new-module OnboardingTutorial
    ```
-   Emits the canonical 5-file skeleton. Don't hand-create — you'll miss the ServiceMap accessor or the podspec naming.
+   It emits the three canonical IO/Plugins source files and refuses an existing destination. Add
+   those sources to the consuming repository's build/package configuration explicitly.
 
-2. **Move Boards one at a time**. For each Board to relocate, use Refactor 4 (Move a Board across modules) below. Do NOT batch — one Board per commit. Reason: each move is reviewable; a multi-Board move is a flood of renamed-import noise that hides real mistakes.
+2. **Move Boards in dependency order**. For each Board to relocate, use Refactor 4 (Move a Board across modules) below. Keep each semantic slice coherent: destination contract and registration, Board implementation, all callers, and applicable tests move together. Commit only complete semantic tasks when separately authorized; a Board, file, or mechanical step is not automatically a commit or gate boundary.
 
-3. **Decide cross-deps direction**. After moves, ONE of the two modules will end up depending on the other (via `s.dependency '{Other}'`). If BOTH need to depend on each other, you cut wrong — back out and re-cut.
+3. **Decide cross-dependency direction**. After moves, at most one module depends on the other's IO
+   target. If both require each other, back out the slice and choose a different cut.
 
-4. **Update podspecs**:
-   - Old module's `*.podspec`: remove `source_files` references that no longer exist.
-   - New module's `*.podspec`: add cross-dep on old module via `s.dependency '{OldModule}'` (IO target only, never `{OldModule}Plugins`).
+4. **Update the repository-owned build/package graph**. Add the new IO and Plugins targets or
+   source sets using current neighbouring configuration. Feature modules depend only on the other
+   module's IO; only the app composition root may import Plugins.
 
-5. **Update Podfile** in the App + any other consumer:
-   ```ruby
-   pod 'OnboardingTutorial',        :path => 'submodules/OnboardingTutorial'
-   pod 'OnboardingTutorialPlugins', :path => 'submodules/OnboardingTutorial'
-   ```
-
-6. **Update LauncherPlugin install list**:
+5. **Update the app composition install list**:
    ```swift
    // App/ServiceRegistry+Modules.swift
    launcher.install(OnboardingTutorialLauncherPlugin())
    ```
 
-7. **Run `pod install`** — this regenerates the workspace's Pods project.
-
-8. **Build + smoke-test** — at minimum, activate one Board from each side of the split and confirm it renders.
+6. **Run repository-owned dependency/project generation if required**, then run the split slice's
+   owned native signal once. It should exercise activation from both sides and, for UI Boards, the
+   affected UIKit and/or SwiftUI adapter semantics.
 
 ### Verification
 
-- [ ] Both modules have IO + Plugins podspecs + ServiceMaps.
-- [ ] Cross-deps acyclic: `grep -E "s\\.dependency '{(Old|New)Module}'" submodules/*/*.podspec` shows at most one direction.
+- [ ] Both modules have distinct IO + Plugins build surfaces and ServiceMaps.
+- [ ] Cross-dependencies are acyclic and target IO only.
 - [ ] No public BoardID renamed (rename is a separate refactor — see Refactor 5).
-- [ ] The final AI review finds no dependency, visibility, or BoardID contract violation.
+- [ ] The one final joined AI review finds no dependency, visibility, or BoardID contract violation.
 - [ ] App still launches; first Board on each side activates without `BoardID not registered` crash.
 
 ### Rollback
 
-If the split goes wrong (cross-deps become cyclic, or callers can't find symbols):
+If the split goes wrong (cross-deps become cyclic, or callers can't find symbols), roll back the current
+semantic slice to its chosen working boundary before attempting a different cut:
 
-1. Don't `git reset --hard` — you'll lose mid-flight work in unrelated files.
-2. `git revert {commit}` the new-module commit + each move commit, in reverse order.
-3. Re-cut from scratch with a different cut line.
+1. Don't `git reset --hard` — you'll lose unrelated work.
+2. Restore the last complete semantic boundary: revert complete refactor commits in reverse dependency
+   order when they exist, or reverse the planned caller/registration/file changes without discarding
+   unrelated edits.
+3. Confirm the old registrations and callers are again coherent before re-cutting with a different line.
 
 ---
 
@@ -166,18 +206,20 @@ Pick a survivor module (`{Keeper}`) and an absorbed module (`{Absorbed}`). The K
 
 10. **Run `pod install`**.
 
-11. **Build + smoke-test** — every flow that previously crossed the boundary should still work, now via in-module calls.
+11. **Run the merge slice's owned signal once** — use the consuming repository's native command after all executable cutover work is complete. It should exercise the flows that previously crossed the boundary.
 
 ### Verification
 
 - [ ] `git grep "{Absorbed}"` returns nothing (other than the changelog entry documenting the merge).
-- [ ] The final AI review finds no dependency, visibility, or BoardID contract violation.
+- [ ] The one final joined AI review finds no dependency, visibility, or BoardID contract violation.
 - [ ] No `BoardID not registered` crashes on the formerly-cross-module flows.
 - [ ] Module count in `submodules/` decreased by exactly one.
 
 ### Rollback
 
-Merges are HARD to roll back partially. Either complete it or revert the entire branch. Don't ship a half-merged state.
+Merges are hard to roll back partially. Restore the pre-merge contract, registrations, package edges, and
+callers as one coordinated rollback slice (or revert the complete merge commit when one exists). Do not
+ship or continue from a half-merged state.
 
 ---
 
@@ -231,7 +273,7 @@ Don't extract because the file is long. Long files with a single coherent respon
    - For internal: no LauncherPlugin change needed.
    - For public: add the case to the LauncherPlugin's exposed map.
 
-7. **Test both Boards independently**. The new Board should be testable in isolation; that's the point of the extraction.
+7. **Complete the extraction slice's executable coverage**. Add or update tests where the behavior and regression risk warrant them, then run the consuming repository's assigned native signal once for the complete slice. The new Board's behavior should be isolatable at the Interactor, use-case, or public seam; do not invent a plugin-side gate.
 
 ### Verification
 
@@ -239,11 +281,14 @@ Don't extract because the file is long. Long files with a single coherent respon
 - [ ] New Board activates from the old Board's flow without crashes.
 - [ ] If new Board is internal, no `public` modifiers leaked out.
 - [ ] If new Board is public, BoardID matches `pub.mod.{Module}.{NewBoard}`.
-- [ ] Old Board's tests still pass; new Board has its own tests at Interactor level.
+- [ ] Applicable executable behavior is covered at the cheapest meaningful seam and the slice's owned consuming-repo signal passed.
 
 ### Rollback
 
-Extractions are usually safe to roll back — they're additive. `git revert` the extraction commit; the old Board returns to its original state. If you've already shipped activations via the new Board from OTHER call sites, you can't roll back without converting those too.
+Extractions are usually safe to roll back while they are additive. Restore the old Board's behavior and
+call route, then remove the new registration and files as one slice; revert the complete extraction commit
+when one exists. If other call sites have already shipped against the new Board, preserve a bridge or
+migrate those callers before removing it.
 
 ---
 
@@ -286,7 +331,8 @@ Internal Boards have no cross-module callers by definition. The move is mechanic
    git grep "mod{Source}Plugins.io{Board}"
    ```
 
-6. **Inspect every changed BoardID literal and caller** before completing the move.
+6. **Inspect every changed BoardID literal and caller** before completing the move, then run the move
+   slice's assigned consuming-repo signal once if executable behavior changed.
 
 ### Mechanical sequence — public Board (lives in `IO/`)
 
@@ -296,7 +342,7 @@ Public Boards have external callers; the BoardID literal change is a runtime-bre
 
 1-6 same as internal-Board sequence, but ALSO update every cross-module caller's `import` + ServiceMap accessor (similar to Refactor 2 steps 1-2 scoped to this one Board).
 
-7. Run `git grep` for the OLD literal — must return zero hits before commit.
+7. Run `git grep` for the OLD literal — it must return zero hits before completing the coordinated cutover.
 
 **Option B — bridge alias** (callers are external — other repos, published SDKs, anything beyond your control):
 
@@ -315,12 +361,15 @@ Public Boards have external callers; the BoardID literal change is a runtime-bre
 
 - [ ] `git grep "{Board}"` (the literal old BoardID) returns zero (Option A) or only the bridge alias (Option B).
 - [ ] The moved Board's literal matches its new home pattern.
-- [ ] Smoke test: activate the Board from a Destination-module caller; observe it works.
-- [ ] If public + Option A: smoke test from every (former Source-module, now Destination-module) caller path.
+- [ ] The move slice's owned signal activates the Board from a Destination-module caller.
+- [ ] If public + Option A: the assigned signal covers every affected former Source-module caller path, or the plan names the distinct risk boundary and its owner.
 
 ### Rollback
 
-Internal-Board moves are safe to revert. Public-Board moves with Option A are safe if you catch the issue before merge. Public-Board moves with Option B that have already shipped require removing the bridge in a future release; rollback is a separate refactor at that point.
+Internal-Board moves are safe to reverse by restoring the old registration, callers, BoardID, and files as
+one slice. Public Option A moves require the same coordinated caller rollback. A shipped Option B bridge is
+already compatibility state: keep it active and plan its later removal rather than deleting it during an
+incident.
 
 ---
 
@@ -386,7 +435,8 @@ If the rename is just "I like Y better than X", don't do it. Drift between name 
 
 7. **For external callers (different repos / published SDKs)**: ship the new constant alongside the old one for one release. Mark old as `@available(*, deprecated)`. Remove in the next major version.
 
-8. **Inspect the renamed public surface and every caller** before completing the rename.
+8. **Inspect the renamed public surface and every caller** before completing the rename, then run the
+   rename slice's assigned consuming-repo signal once if executable behavior changed.
 
 ### Mechanical sequence — module rename
 
@@ -396,11 +446,14 @@ This is essentially Refactor 2 (Merge) where the absorbed module is "empty" and 
 
 - [ ] `git grep "{OldName}"` returns zero non-deprecated references (or only the bridge with `@available(*, deprecated)`).
 - [ ] Every BoardID literal matches its owning module and visibility pattern.
-- [ ] Smoke test every former call site.
+- [ ] The rename slice's owned consuming-repo signal covers every affected public call path.
 
 ### Rollback
 
-If the rename is caught pre-merge: `git revert` the rename commit. Post-merge: you can roll forward to re-rename, but you can't safely roll back without a coordinated revert across every caller.
+Before release, restore the prior public surface and all callers as one rollback slice (or revert the
+complete rename commit). After release, keep or reintroduce the compatibility alias and roll forward with a
+coordinated migration; never restore only the Swift name while leaving runtime literals or registrations on
+the new contract.
 
 ---
 
@@ -419,31 +472,35 @@ If the rename is caught pre-merge: `git revert` the rename commit. Post-merge: y
 
 ## Anti-patterns
 
-- ❌ **Mass-rename in a single commit** — even with a clean rename, the diff is unreviewable. One refactor = one commit, ideally one PR per file family.
+- ❌ **Unbounded mass-rename** — changing names before mapping definitions, runtime literals, registrations, package edges, and callers hides real breakage. Keep a complete semantic task reviewable; file families are not artificial commit or gate boundaries.
 - ❌ **Refactor + feature in the same PR** — reviewers can't distinguish rename noise from real changes. Land the refactor on its own; then the feature.
-- ❌ **Refactor without test coverage** — if the touched paths aren't exercised by tests, the refactor's correctness is unverified. Add tests first, then refactor.
+- ❌ **Executable refactor without an applicable owned signal** — choose the consuming repository's cheapest native build/test signal that can falsify the slice. Documentation-only changes wait for the final joined AI review instead of receiving fake runtime coverage.
 - ❌ **Splitting because the directory is "too big"** — file count is a symptom, not a cause. Find the conceptual cut line; if there isn't one, the module is correctly sized.
 - ❌ **Merging because two modules share a service** — extract the service to a third module instead. Merging is the wrong response to a shared dependency.
 - ❌ **Renaming a public BoardID literal without a bridge** — external callers will hit `BoardID not registered` at runtime, silently. Always check for external callers; if any exist, bridge before removal.
 - ❌ **"While I'm in here..." cleanup** — refactor is already high-stakes. Don't compound it with unrelated improvements. Open a separate PR for each.
-- ❌ **Creating intermediate plugin gates between steps** — complete the semantic refactor, use its code tests, then include the full change in the plan's one final AI review.
+- ❌ **Creating intermediate plugin gates between steps** — complete the semantic refactor, use its owned consuming-repo code signal, then include the full change in the plan's one final joined AI review.
 
 ---
 
-## Per-refactor verification checklist
+## Per-refactor final-state checklist
 
-Tick before opening the PR:
+Evaluate this once over the completed refactor candidate. These are final-state obligations, not per-step
+gates, receipts, or requests to rerun unchanged signals.
 
 ### Split / Merge / Move
-- [ ] The final AI review finds no dependency, visibility, or BoardID contract violation.
+- [ ] The one final joined AI review finds no dependency, visibility, or BoardID contract violation.
+- [ ] Public domain contracts remain in `IO/**`; only the minimum App-boot construction surface is public under `Sources/Plugins/**`, and no sibling module imports Plugins.
 - [ ] Cross-deps acyclic (`grep -E "s\\.dependency" submodules/*/*.podspec` review).
-- [ ] App launches; affected flows smoke-tested.
+- [ ] The assigned native signal covers launch/activation and the affected flows at the planned risk boundary.
 - [ ] No leftover `import {Old}` / `mod{Old}` / `pub.mod.{Old}` references unless intentional (bridge alias).
+- [ ] Affected UIKit and SwiftUI adapters still consume equivalent display-ready semantics and forward the same typed intents.
 
 ### Extract
-- [ ] Both Boards have isolated tests.
+- [ ] Applicable executable behavior is covered at the cheapest meaningful isolated seam.
 - [ ] Old Board's responsibility statement is now shorter / clearer.
 - [ ] New Board's visibility (internal vs. public) chosen deliberately, not by default.
+- [ ] A UI extraction leaves formatting and product decisions in the Presenter/equivalent mapper, not either rendering adapter.
 
 ### Rename
 - [ ] `git grep "{OldName}"` returns only deprecated-bridge references.
@@ -454,7 +511,7 @@ Tick before opening the PR:
 
 ## References
 
-- `MODULE_CREATION.md` — what `new-module.sh` produces; baseline for split + merge targets.
+- `MODULE_CREATION.md` — what `ifl-new-module` produces; baseline for split + merge targets.
 - `IO_INTERFACE.md` — public surface contract; touched by every public refactor.
 - `IO_INTERFACE.md` §"Domain meaning vs construction wiring" — decides where to land a moved provider config.
 - `DECISION_TREES.md` — pattern selection when extracting a Board (Tree §1) or deciding public vs internal (Tree §2) or cross-module dep direction (Tree §8).

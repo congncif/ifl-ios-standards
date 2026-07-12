@@ -1,106 +1,114 @@
-<!-- Created by claude-opus-4-7 on 2026-05-09 -->
-# Boardy+VIP Rules Pack Adoption Guide
+# ADOPTION — bring Standards 1.0 into an iOS repository
 
-Use this checklist when installing the generic rules and agents into a new iOS project.
+Use this guide to bind the generic Boardy+VIP standard to a consuming repository. Use
+`GREENFIELD_SETUP.md` for a new app and `BROWNFIELD_MIGRATION.md` for an existing app, including an
+app already using the 0.18.x pack.
 
----
-
-## 1. Copy Pack
-
-- [ ] Copy `.ai/specs/` into the target project.
-- [ ] Copy `@.claude/agents/` into the target project.
-- [ ] Keep rule files generic; remove app names, domain names, concrete schemes, concrete simulators, and private URLs from copied docs.
+The standard is provider-neutral. The consuming repository owns its project files, dependency pins,
+build and test commands, configuration, CI, release policy, and exceptions.
 
 ---
 
-## 2. Configure Project Values
+## Adoption contract
 
-- [ ] Fill `.claude/project/PROJECT_CONFIG.md`.
-- [ ] Set `{ProjectName}`.
-- [ ] Set `{Workspace}` or equivalent build container.
-- [ ] Set `{MainScheme}`.
-- [ ] Set `{ModuleRoot}` if modules do not live under `submodules/`.
-- [ ] Set `{BaseBranch}` and `{GitRemote}`.
-- [ ] Set `{Simulator}` and `{Destination}` after running destination discovery.
-- [ ] Set app entry file / plugin host location.
-- [ ] Set module prefix policy.
-- [ ] Point to canonical build/test docs.
+Every adopted slice preserves these boundaries:
 
----
+1. **Module boundary** — public IO and implementation remain separate. A feature imports another
+   feature's IO target, never its Plugins/implementation target.
+2. **Typed intent** — `Input`, `Output`, `Command`, `Action`, display ports, delegates, and typed buses
+   carry intent. Do not replace them with string routes, dictionaries, notifications, or untyped
+   callback payloads.
+3. **One humble-View contract** — a Presenter or equivalent mapper prepares immutable, display-ready
+   semantic state. UIKit and SwiftUI are rendering adapters over that state, not owners of product
+   policy.
+4. **View ownership** — a View may render presenter-encoded state and own transient UX-local state
+   such as focus, selection highlight, gesture progress, disclosure, animation, and scroll position.
+   Formatting raw/domain values, deriving product meaning, eligibility, pricing, retry, analytics, or
+   navigation policy stays outside the View.
+5. **Dependency direction** — domain and application policy remain independent of Boardy, UIKit,
+   SwiftUI, networking, and persistence. Concrete dependencies are composed at an implementation or
+   app composition boundary.
 
-## 3. Update Project CLAUDE.md
-
-- [ ] Require loading `.claude/rules/QUICK_REF.md` first.
-- [ ] Route task-specific work through `.claude/rules/QUICK_REF.md`.
-- [ ] Document project-only exceptions in `@CLAUDE.md`, not generic specs.
-- [ ] Document package manager commands and build commands in project docs.
-- [ ] Document commit/push policy.
-
----
-
-## 4. Validate Runtime Architecture
-
-- [ ] App has a plugin host that installs `LauncherPlugin`s before launching the first board.
-- [ ] App has a `Motherboard` gateway and `BoardProducer` registry through Boardy.
-- [ ] Each feature module has Interface Module and Implementation Module separation.
-- [ ] Cross-module consumers import Interface Modules only.
-- [ ] Implementation Modules are leaf nodes and not imported by other feature modules.
+UIKit and SwiftUI may coexist board by board. Equivalent domain input must produce equivalent
+semantic display state in either adapter.
 
 ---
 
-## 5. Validate Module Template
+## Bind the consuming repository
 
-- [ ] Module template creates `{ModuleName}.podspec` or package target for Interface Module.
-- [ ] Module template creates `{ModuleName}Plugins.podspec` or package target for Implementation Module.
-- [ ] Interface target includes `IO/**/*.swift` only.
-- [ ] Implementation target includes `Sources/**/*.swift` only.
-- [ ] Local paths live in app-level dependency configuration, not target dependency declarations.
-- [ ] New Swift files are included by package/project generation.
+Record project-specific values in the repository's `CLAUDE.md` / `AGENTS.md` and ordinary project
+configuration:
 
----
+- workspace or project, schemes/targets, destinations, and module roots;
+- package manager and dependency pins;
+- naming prefix, app composition entry point, base branch, and remote;
+- canonical build, test, format, generation, and launch commands;
+- CI/release ownership and project-specific architecture exceptions.
 
-## 6. Validate First Module
-
-- [ ] Create one small module using `.ai/specs/MODULE_CREATION.md`.
-- [ ] Add one public board IO using `.ai/specs/IO_INTERFACE.md`.
-- [ ] Add one UI board or BlockTask board.
-- [ ] Register ModulePlugin and LauncherPlugin.
-- [ ] Run dependency install/project generation if needed.
-- [ ] Build target succeeds.
+Do not put those values in this pack. Do not make the pack invent a second command layer or CI policy.
 
 ---
 
-## 7. Validate Rules With Grep
+## Adopt by semantic slice
 
-Run equivalent checks for your project:
+A semantic slice is one complete observable behavior: one intent enters, policy runs, display and/or
+output is produced, and ownership is clear. A file, layer, agent assignment, or generated artifact is
+not a slice.
 
-```bash
-grep -RInE '{OldProjectName}|{OldWorkspace}|{OldScheme}|{OldSimulator}|{OldRemoteURL}' .claude/rules .claude/agents
-```
+For each slice:
 
-- [ ] No old project tokens remain outside `.claude/project/PROJECT_CONFIG.md` or intentional project-local docs.
-- [ ] `lastAvailableWatchedContent` does not appear as communication guidance.
-- [ ] `git add -A` / `git add .` appears only as a warning, not as a recommended command.
+1. Describe its current entry, user-visible behavior, outputs, dependencies, and failure behavior.
+2. Define the public typed IO and module ownership before changing implementation.
+3. Choose a UIKit or SwiftUI rendering adapter and keep the shared humble-View contract.
+4. Compose the implementation behind the IO boundary.
+5. Route one real caller through the new slice while retaining a practical rollback path.
+6. For executable changes, run the consuming repository's ordinary commands appropriate to the
+   risk. Documentation-only changes do not require a build or test gate.
+7. Remove the replaced path only after callers and outputs have moved and rollback conditions are
+   satisfied.
+
+Brownfield work uses a strangler migration: legacy and Standards 1.0 paths coexist only as long as a
+specific slice needs the bridge. Greenfield work starts with one vertical slice and grows by the same
+contract.
 
 ---
 
-## 8. Validate Agent Handoffs
+## Delivery mode
 
-- [ ] `ios-planner` writes phased plans only.
-- [ ] `ios-orchestrator` coordinates and does not write production Swift itself.
-- [ ] `ios-architect` creates IO contracts before implementation.
-- [ ] `ios-coder` implements after IO exists.
-- [ ] `ios-tester` reads `.claude/rules/QUICK_REF.md` and `.ai/specs/TESTING.md` before tests.
-- [ ] `ios-reviewer` is read-only and uses `.ai/specs/REVIEWER_CHECKLIST.md`.
+Use provider-native Brain Flow in either mode:
+
+- **Co-working** — the user approves requirements and the complete plan before continuous execution.
+- **Auto** — AI makes those gates and asks the user only for material ambiguity, missing authority, or
+  a real blocker.
+
+Both modes use the provider's native task/thread, delegation, approval, and continuity features. Keep
+progress in the approved plan or provider-native task state, then perform one final joined AI
+consistency review after the complete plan.
+
+Do not add verifier/lint/smoke scripts to this pack, receipt or manifest systems, fingerprints,
+evidence ledgers, custom workflow kernels, or provider-independent runtime state. The consuming
+repository's existing commands and CI remain the executable signal.
 
 ---
 
-## 9. Acceptance
+## Adoption is complete when
 
-- [ ] `.claude/rules/QUICK_REF.md` routes every common task.
-- [ ] `.ai/specs/ARCHITECTURE.md` explains the five pillars.
-- [ ] `.ai/specs/SDK_FIRST.md` governs dependency choices.
-- [ ] `.ai/specs/LAYERING.md` separates Domain, Business Application, and Infrastructure & UI.
-- [ ] `.ai/specs/COMMUNICATION.md` preserves event-bus Board → Controller communication.
-- [ ] `.ai/specs/REVIEWER_CHECKLIST.md` can review a PR without loading every spec.
-- [ ] Project builds after first generated module or board.
+- [ ] Project bindings and canonical commands live in the consuming repository.
+- [ ] Each migrated or new feature exposes typed IO and hides implementation.
+- [ ] Cross-feature imports stop at IO targets.
+- [ ] UIKit and SwiftUI Views receive display-ready state and forward typed intent.
+- [ ] Business formatting and decisions remain outside Views; View-owned state is UX-local only.
+- [ ] Every brownfield slice has an explicit cutover and rollback decision.
+- [ ] Executable changes were checked with repository-owned signals; docs-only work did not invent a
+      build/test gate.
+- [ ] No obsolete tool-specific adoption process or parallel workflow-state system remains active.
+
+## References
+
+- `BROWNFIELD_MIGRATION.md` — strangler migration and 0.18.x transition.
+- `GREENFIELD_SETUP.md` — first vertical slice in a new app.
+- `ARCHITECTURE.md` — runtime composition and humble-View rules.
+- `IO_INTERFACE.md` — public typed contracts.
+- `MICROBOARD_UI.md` — UIKit/SwiftUI rendering adapters.
+- `LAYERING.md` — dependency direction and module ownership.
+- `process/lean-verification.md` — provider-native plan-scale execution.

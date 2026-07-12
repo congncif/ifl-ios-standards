@@ -83,46 +83,40 @@ private extension {Name}Board {
 
 Use when: one discrete async operation, then done. No UI, no child boards.
 
+Public IO declares
+`typealias {Name}Parameter = BlockTaskParameter<{Name}Input, {Name}Output>` and uses that parameter
+as the destination input. The implementation is a factory, not a flow-shaped Board subclass:
+
 ```swift
-// Sources/Microboards/{Name}/{Name}Board.swift
+// Sources/Microboards/{Name}/{Name}BoardFactory.swift
 import Boardy
-import Foundation
 
-final class {Name}Board: ModernContinuableBoard, GuaranteedBoard,
-    GuaranteedOutputSendingBoard, GuaranteedActionSendingBoard, GuaranteedCommandBoard {
-
-    typealias InputType = {Name}Input
-    typealias OutputType = {Name}Output
-    typealias FlowActionType = {Name}Action
-    typealias CommandType = {Name}Command
-
-    private let useCase: {Action}UseCase
-
-    init(identifier: BoardID, useCase: {Action}UseCase, producer: ActivatableBoardProducer) {
-        self.useCase = useCase
-        super.init(identifier: identifier, boardProducer: producer)
-    }
-
-    func activate(withGuaranteedInput input: InputType) {
-        Task { [weak self] in
-            guard let self else { return }
-            do {
-                let result = try await useCase.execute(input)
-                await MainActor.run { [weak self] in
-                    self?.sendOutput(.completed(result))
-                }
-            } catch {
-                await MainActor.run { [weak self] in
-                    self?.sendOutput(.failed(error))
+enum {Name}BoardFactory {
+    static func make(
+        identifier: BoardID,
+        useCase: {Action}UseCase,
+        executingType: ExecutingType = .concurrent
+    ) -> ActivatableBoard {
+        BlockTaskBoard<{Name}Input, {Name}Output>(
+            identifier: identifier,
+            executingType: executingType
+        ) { _, input, completion in
+            Task {
+                do {
+                    let output = try await useCase.execute(input)
+                    await MainActor.run { completion(.success(output)) }
+                } catch {
+                    await MainActor.run { completion(.failure(error)) }
                 }
             }
+            return .none
         }
     }
-
-    func activationBarrier(withGuaranteedInput input: InputType) -> ActivationBarrier? { nil }
-    func interact(guaranteedCommand: CommandType) {}
 }
 ```
+
+With `.concurrent`, callers attach `onSuccess` / `onError` to their own parameter. Do not listen on
+the shared flow to recover a per-caller result, and do not call `complete()` manually.
 
 ---
 

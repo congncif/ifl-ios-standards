@@ -2,282 +2,187 @@
 
 # SPEC: Module Creation
 
-> Reference: *Modern large-scale iOS app development* — Modular + Interface Module pillar.
-> Companion specs: `IO_INTERFACE.md` (IO target layout), `PLUGINS_INTEGRATION.md` (LauncherPlugin wiring), `LAYERING.md` (folder split), `.claude/project/PROJECT_CONFIG.md` (project-specific values).
+> Companion specs: `IO_INTERFACE.md` (public IO), `PLUGINS_INTEGRATION.md` (composition),
+> `LAYERING.md` (implementation folders), and the consuming repository's project bindings
+> (module root, build system, commands, platform versions, naming, and app integration).
 
 ## When to use
 
-When scaffolding a new top-level feature module. Specifically:
+Use this procedure when a product area needs an independently consumable Boardy+VIP module, or
+when an approved refactor extracts one. The canonical module has two dependency surfaces:
 
-- New product area / domain → new module (`Profile`, `Payment`, `Onboarding`).
-- Splitting a too-large module into sibling modules.
-- Promoting a feature embedded in App Core into a reusable module.
+- `{Module}`: the public IO contract.
+- `{Module}Plugins`: the implementation and composition surface.
+
+Adding a board to an existing module does not require a new module; use `MICROBOARD_UI.md` or
+`MICROBOARD_NONUI.md` instead.
 
 ## When NOT to use
 
-- Adding a screen / Board to an existing module → just add files; no new podspec.
-- One-off App Core composition file → belongs in App, not its own module.
-- A pure SDK adapter shared across modules → may be a single-target pod, not the 2-target IO+Plugins split.
-- A nested sub-feature of an existing module → keep inside; module placement rule forbids nesting.
+- A screen or coordinator belongs to an existing module.
+- The code is an app-level composition root rather than a reusable feature.
+- A small infrastructure adapter does not need the IO + Plugins split.
+- The proposed module would be nested under another module. Feature modules remain siblings under
+  the module root chosen by the consuming repository.
 
 ## Forces
 
-- 2-target split (IO public + Plugins internal) keeps cross-module imports honest — consumers import only `{ModuleName}` and physically cannot reach impl types.
-- Podfile uses Ruby hash-rocket `:path =>` for local pods; keyword syntax (`path:`) is silently invalid in the Podfile DSL.
-- `s.dependency` in podspec takes pod NAME only — never `:path`; path resolution is Podfile's job. Lint will reject `:path` there.
-- `pod install` must run after any Podfile/podspec/source-files change; skipping it leaves Xcode blind to new files.
-- `xcodebuild -quiet` hides errors and produces silent failures; filter with `grep -E` instead. Empty grep output ≠ success — it means the command crashed.
-- `init-module.sh` default prefix is `DAD`; always pass PREFIX explicitly or omit cleanly to avoid misnaming.
+- The IO/Plugins split prevents consumers from reaching implementation types.
+- A portable standard cannot choose a module root, build system, target labels, deployment target,
+  simulator, package manager, prefix, author, or dependency list for a consuming repository.
+- A scaffolder can safely create a small compile-shaped starting point; it cannot infer product IO,
+  domain behavior, dependencies, registration, app wiring, or useful tests.
+- Generation must be additive. Existing destinations are a hard failure, never an overwrite or
+  merge target.
 
 ## Files
 
-Target layout produced by the init script (after rename of template defaults):
+A minimal module starts with this shape:
 
-```
-{ModuleRoot}/{ModuleName}/
-├── {ModuleName}.podspec                        ← IO target podspec
-├── {ModuleNamePlugins}.podspec                 ← Plugins target podspec
+```text
+{ModuleRoot}/{Module}/
 ├── IO/
-│   ├── {ModuleName}ServiceMap.swift            ← public IO ServiceMap class
-│   └── {NoPrefixName}/                         ← one folder per public board
-│       ├── {NoPrefixName}IOInterface.swift
-│       ├── {NoPrefixName}InOut.swift
-│       └── ServiceMap+{NoPrefixName}.swift
+│   └── {Module}ServiceMap.swift
 └── Sources/
-    ├── Plugins/
-    │   ├── {ModuleName}PluginsServiceMap.swift ← internal Plugins ServiceMap
-    │   └── {NoPrefixName}ModulePlugin.swift    ← ModuleBuilderPlugin + LauncherPlugin
-    ├── Shared/
-    │   ├── Extensions/                         ← UIViewController++, UIView++
-    │   └── UIComponents/                       ← Shared views/cells within module
-    ├── Microboards/                            ← empty, ready for boards
-    └── Services/                               ← see SERVICE_LAYER.md
-        ├── Domain/{Models,Repositories,Services}/
-        ├── Application/
-        ├── Infra/
-        └── Tracking/
+    └── Plugins/
+        ├── {Module}PluginsServiceMap.swift
+        └── {Module}ModulePlugin.swift
 ```
 
-Template emits `Sources/Components/` + `Sources/Integration/` — rename to `Sources/Plugins/`.
+The bundled CLI deliberately emits no build-system, dependency, platform, package-manager, license,
+or test configuration. The consuming repository decides whether it uses Bazel, CocoaPods, Swift
+Package Manager, Xcode project targets, or another supported setup, and owns every label,
+dependency, platform version, resource glob, and test target.
 
-Module placement rule: every module sits directly under `{ModuleRoot}/{ModuleName}/` as a sibling. Never nest `{ModuleRoot}/{ModuleA}/{ModuleB}/`.
+Boards add their public files under `IO/{Board}/` and implementation files under
+`Sources/Microboards/{Board}/`. Service, shared UI, and resource folders are added only when the
+module actually needs them; empty architecture folders are not a completion signal.
+
+Do not generate a `Tests/` directory merely to satisfy a glob. In particular, an
+`XCTAssertTrue(true)` test is not evidence and must not be retained. Add a test target and test files
+when there is observable behavior to test.
 
 ## Naming
 
-| Concept | No Prefix | With Prefix `DAD` |
-|---|---|---|
-| Full module name | `Profile` | `DADProfile` |
-| IO podspec | `Profile` | `DADProfile` |
-| Plugins podspec | `ProfilePlugins` | `DADProfilePlugins` |
-| No-prefix name (VIP classes) | `Profile` | `Profile` |
-| IO ServiceMap class | `ProfileServiceMap` | `DADProfileServiceMap` |
-| IO ServiceMap property | `modProfile` | `modDADProfile` |
-| Plugins ServiceMap class | `ProfilePluginsServiceMap` | `DADProfilePluginsServiceMap` |
-| Plugins ServiceMap property | `modProfilePlugins` | `modDADProfilePlugins` |
+`{Module}` is the complete module name selected by the consuming repository. An organization prefix
+is optional and must come from that repository's binding or an explicit user choice; the pack does
+not supply one.
 
-Prefix is optional — only use when explicitly specified. No-prefix name drives Swift VIP class names.
-
-## Communication
-
-### Step 1 — module name decision
-
-| Scenario | Module name | No-prefix name |
-|---|---|---|
-| No prefix | `Profile` | `Profile` |
-| With prefix `DAD` | `DADProfile` | `Profile` |
-| With prefix `MOD` | `MODPayment` | `Payment` |
-
-### Step 2 — create module directory
-
-```bash
-mkdir -p {ModuleRoot}/{ModuleName}
-cd {ModuleRoot}/{ModuleName}
-```
-
-### Step 3 — run init script
-
-```bash
-# No prefix:
-sh ../../scripts/init-module.sh Profile
-
-# With explicit prefix:
-sh ../../scripts/init-module.sh DADProfile DAD
-```
-
-### Step 4 — verify generated structure → see Files section. Rename `Components/`+`Integration/` → `Plugins/`.
-
-### Step 5 — Podfile entries
-
-```ruby
-# Podfile — always use :path => (hash-rocket), NOT path: (keyword syntax)
-pod '{ModuleName}',        :path => '{ModuleRoot}/{ModuleName}'
-pod '{ModuleNamePlugins}', :path => '{ModuleRoot}/{ModuleName}'
-```
-
-### Step 5a — pod install
-
-```bash
-pod install
-```
-
-Trigger after: new module added, dep added/removed, `source_files`/`resources` glob changed, new `.swift` files created outside Xcode.
-
-### Step 6 — xcodebuild workflow
-
-```bash
-# 1) list destinations
-xcodebuild -workspace {Workspace} -list
-xcodebuild build -workspace {Workspace} -scheme {MainScheme} -showdestinations
-
-# 2) build filtered
-xcodebuild build -workspace {Workspace} -scheme {MainScheme} \
-  -destination '{Destination}' 2>&1 \
-  | grep -E "(error:|warning:|BUILD SUCCEEDED|BUILD FAILED)"
-
-# 2) test filtered
-xcodebuild test -workspace {Workspace} -scheme {MainScheme} \
-  -destination '{Destination}' 2>&1 \
-  | grep -E "(error:|warning:|FAILED|PASSED|TEST SUCCEEDED|TEST FAILED|BUILD SUCCEEDED|BUILD FAILED)"
-```
-
-Empty output → command failed; re-run without grep. For error context: `2>&1 | grep -B 2 -A 5 "error:"`.
-
-### Step 7 — wire LauncherPlugin
+Public boards in the module use the canonical literal:
 
 ```swift
-// AppEntry (SceneDelegate / AppDelegate)
-import Boardy
-import {ModuleNamePlugins}   // ← Plugins target, ONLY in app entry
-import UIKit
-
-func scene(_ scene: UIScene, willConnectTo session: UISceneSession,
-           options connectionOptions: UIScene.ConnectionOptions) {
-    guard let windowScene = (scene as? UIWindowScene) else { return }
-    let window = UIWindow(windowScene: windowScene); self.window = window
-
-    PluginLauncher.with(options: .default)
-        .install(launcherPlugin: {NoPrefixName}LauncherPlugin())
-        .initialize()
-        .launch(in: window) { motherboard in
-            motherboard.serviceMap.mod{ModuleName}
-                .io{EntryBoardName}.activation.activate(with: {EntryBoardName}Input())
-        }
+public extension BoardID {
+    static let pub{Board}: BoardID = "pub.mod.{Module}.{Board}"
 }
 ```
 
-Add new module to existing PluginLauncher:
+The IO target and its declarations are `public`. `Sources/**` declarations are `internal` by default.
+`Sources/Plugins/**` is the sole implementation-side exception: types needed by app-level
+`LauncherPlugin` composition may be `public`, but visibility is promoted only for that real consumer.
 
-```swift
-PluginLauncher.with(options: .default)
-    .install(launcherPlugin: ExistingLauncherPlugin())
-    .install(launcherPlugin: {NoPrefixName}LauncherPlugin())   // ← add here
-    .initialize()
-    .launch(in: window) { ... }
+## Communication
+
+### Run the bundled CLI
+
+From the consuming repository root:
+
+```bash
+ifl-new-module <Module> --root=. --module-root=<repo-owned-module-root>
 ```
 
-Rules → import `{ModuleNamePlugins}` ONLY in app entry; never from another module. Initial activation uses IO ServiceMap.
+Current options are:
 
-### podspec templates
-
-```ruby
-# {ModuleName}.podspec — IO
-Pod::Spec.new do |s|
-  s.name             = '{ModuleName}'
-  s.version          = '0.1.0'
-  s.summary          = '{ModuleName} interface module.'
-  s.source           = { :path => '.' }
-  s.ios.deployment_target = '13.0'
-  s.swift_version    = '5.9'
-  s.source_files     = 'IO/**/*.swift'
-  s.dependency 'Boardy'
-end
+```text
+ifl-new-module <Module>
+  [--root=PATH]
+  [--module-root=PATH]
+  [--dry-run]
 ```
 
-```ruby
-# {ModuleNamePlugins}.podspec — Plugins
-Pod::Spec.new do |s|
-  s.name             = '{ModuleNamePlugins}'
-  s.version          = '0.1.0'
-  s.source           = { :path => '.' }
-  s.ios.deployment_target = '13.0'
-  s.swift_version    = '5.9'
-  s.source_files     = 'Sources/**/*.swift'
-  s.resources        = 'Sources/Resources/**/*'
-  s.dependency '{ModuleName}'
-  s.dependency 'Boardy'
-  s.dependency 'SiFUtilities'
-end
-```
+The module name must match `[A-Z][A-Za-z0-9]*`. `--root` defaults to the current directory. The
+executable resolves the module root from `--module-root`, then the `Module root` row in `CLAUDE.md`,
+then `AGENTS.md`; `.claude/project/PROJECT_CONFIG.md` remains a legacy binding source. It fails
+instead of guessing when none resolves. The module root must be a repository-relative path token and
+must not contain traversal components.
 
-`s.dependency` rule → NAME only. `s.dependency '{OtherModule}'` ✅. `s.dependency '{OtherModule}', :path => '.'` ❌.
+The command refuses to run when `{root}/{module-root}/{Module}` already exists. `--dry-run` prints the
+destinations without writing them. A successful run creates a starting skeleton only; it does not
+mean the module is integrated or behaviorally complete.
 
-### init-module.sh reference
+### Post-generation responsibilities
 
-Script at `scripts/init-module.sh`:
-1. Clones template repo (`{ModuleTemplateURL}` from PROJECT_CONFIG).
-2. Replaces `__DAD__` → `{ModuleName}`.
-3. Replaces `___VARIABLE_moduleName___` → `{NoPrefixName}`.
-4. Sets ServiceMap properties `mod{ModuleName}` + `mod{ModuleNamePlugins}`.
-5. Renames files.
+1. Add the generated sources to the build/package configuration using a current neighbouring module
+   and the consuming repository's labels, dependencies, platform values, resources, and targets.
+2. Define the real public IO. Keep it minimal and vendor-free.
+3. Add boards with `ifl-new-board`, then register them in `{Module}ModulePlugin`.
+4. Store shared repositories and other module-lifetime dependencies on the composition object; do
+   not create them inside board-registration closures.
+5. Wire the Plugins target at the app composition root. Other feature modules import `{Module}` IO,
+   never `{Module}Plugins`.
+6. Add real tests for real behavior. Remove any placeholder-only test emitted by an older scaffold
+   version instead of treating it as coverage.
 
 ## Concurrency
 
-- Module creation is a one-shot scaffolding action; no runtime concurrency concerns at this layer.
-- `pod install`, `xcodebuild`, `init-module.sh` are synchronous CLI steps; run sequentially, not in parallel.
+Scaffolding is a one-shot filesystem operation. Run dependency or project-generation steps only
+after the generated files and consuming-repository configuration agree. Runtime concurrency belongs
+to the boards and services added later.
 
 ## Composition
 
-- Sibling modules compose via `ServiceRegistry`-registered `LauncherPlugin`s (see `PLUGINS_INTEGRATION.md`).
-- Cross-module wiring through IO pod only (see `CROSS_MODULE_DI.md`).
-- Module's own internal layering follows `LAYERING.md` (Domain / BA / Infra & UI).
+- Cross-module consumers depend on `{Module}` only.
+- The app composition root may import `{Module}Plugins` to construct and install public plugin types.
+- Provider configuration and launcher inputs that must be public live under `Sources/Plugins/`, not
+  in IO; they describe construction, not domain meaning.
+- The generated `ModulePlugin` is intentionally incomplete. Board registration, dependencies, and
+  shared object lifetimes are post-generation design decisions.
 
 ## Lifecycle
 
-- IO target — public ABI; bump podspec version when changing it (consumer-visible break).
-- Plugins target — implementation; version-bump for `s.dependency` changes only.
-- `init-module.sh` is a one-time bootstrap; subsequent file additions don't re-run it.
-- `pod install` rebuilds the Pods project deterministically; no per-developer state.
+The scaffolder is not a migration or regeneration engine. Run it once for a new destination. After
+creation, the files are normal repository-owned source files and evolve through ordinary changes.
+Never rerun a scaffold over an existing module.
 
 ## Testing
 
-Verification after scaffold:
+Verification is proportional to the change:
 
-- [ ] `{ModuleRoot}/{ModuleName}/` sits as a sibling, not nested in another module
-- [ ] Both podspecs present (`{ModuleName}.podspec` + `{ModuleNamePlugins}.podspec`)
-- [ ] IO folder contains `{ModuleName}ServiceMap.swift` + at least one entry-board folder
-- [ ] Sources folder contains `Plugins/`, `Shared/`, `Microboards/`, `Services/`
-- [ ] No `Components/` or `Integration/` remain after rename step
-- [ ] Podfile entries use `:path =>` not `path:`
-- [ ] `s.dependency` lines have no `:path` modifier
-- [ ] `pod install` exits 0 and updates `Podfile.lock`
-- [ ] `xcodebuild -showdestinations` lists the workspace
-- [ ] Filtered build prints `** BUILD SUCCEEDED **`
-- [ ] App entry imports `{ModuleNamePlugins}` and installs `{NoPrefixName}LauncherPlugin()`
-- [ ] No other module imports `{ModuleNamePlugins}`
+- After an executable scaffold change, run one targeted native signal owned by the consuming
+  repository (for example, the generated target's canonical build or a focused test with meaningful
+  assertions). Do not hard-code that command in this pack.
+- For documentation-only changes, do not run a build or test merely to manufacture evidence.
+- A generated placeholder test is forbidden. Absence of behavior means no behavior test yet.
+- Do not add verifier scripts, receipts, manifests, or custom workflow-state files. Report the
+  command and observed result directly when an executable signal was required.
+
+Structural checks after generation:
+
+- [ ] Destination was new and is a sibling beneath the repository-owned module root.
+- [ ] IO is public; `Sources/**` remains internal except justified `Sources/Plugins/**` exports.
+- [ ] Generated sources were added to the consuming repository's build/package configuration.
+- [ ] Other modules depend on IO, not Plugins.
+- [ ] App composition and board registration are explicitly completed.
+- [ ] Tests, when present, assert observable behavior rather than scaffold existence.
 
 ## Pitfalls
 
-| Mistake | Fix |
+| Mistake | Correction |
 |---|---|
-| Importing `{ModuleNamePlugins}` from another module | Import `{ModuleName}` (IO) only |
-| Making internal boards `public` | Internal boards live in Sources; no `public` |
-| Forgetting `public init() { /**/ }` on LauncherPlugin | Always add it |
-| `sharedRepository` created inside `build()` / `BoardRegistration` | Declare as stored property on `ModulePlugin` |
-| `path:` keyword in Podfile | Use `:path =>` hash-rocket |
-| `s.dependency '{X}', :path => '.'` | NAME only — drop `:path` |
-| Skipping `pod install` after Podfile change | Always re-run; Xcode won't see new files |
-| `xcodebuild ... -quiet` | Hides errors; use `grep -E` filter instead |
-| Empty grep output treated as success | Re-run without grep — likely a silent crash |
-| Nesting `{ModuleA}/{ModuleB}/` | Place as siblings under `{ModuleRoot}/` |
-| Running init-module.sh without PREFIX when one exists | Pass PREFIX explicitly to avoid `DAD` default |
+| Inventing build values because the source scaffold emits none | Resolve every value from the consuming repository |
+| Running against an existing destination | Stop; choose a new name or make an explicit hand-authored change |
+| Exporting all implementation types | Keep `Sources/**` internal; promote only required `Sources/Plugins/**` composition types |
+| Importing `{Module}Plugins` from another feature | Import `{Module}` IO only |
+| Creating shared repositories in registration closures | Store them at module/plugin lifetime |
+| Keeping `XCTAssertTrue(true)` to satisfy a test glob | Remove the fake test; add meaningful tests with behavior |
+| Adding a universal build or simulator command here | Use the consuming repository's native command |
+| Creating evidence sidecars for a scaffold | Use the repository's normal source and direct command output |
 
 ## References
 
-- `IO_INTERFACE.md` (IO target detail)
-- `PLUGINS_INTEGRATION.md` (LauncherPlugin + ModulePlugin)
-- `LAYERING.md` (folder responsibility)
-- `SERVICE_LAYER.md` (Services/ folder split)
-- `CROSS_MODULE_DI.md` (cross-module wiring)
-- `.claude/project/PROJECT_CONFIG.md` (workspace / scheme / destination)
-- `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded)
-- `QUICK_REF.md` §4 rules 1, 2, 3
+- `IO_INTERFACE.md`
+- `PLUGINS_INTEGRATION.md`
+- `LAYERING.md`
+- `SERVICE_LAYER.md`
+- `CROSS_MODULE_DI.md`
+- `compact/BOARDY_CHEATSHEET.compact.md`
+- `QUICK_REF.md` §4 rules 1–3

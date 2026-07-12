@@ -2,7 +2,7 @@
 
 A Claude Code plugin packaging reusable **iOS engineering standards**: specialist agents,
 provider-native brain workflows, Boardy/VIP and enterprise-iOS task routing, bundled architecture
-references, and Bazel module/board scaffolders.
+references, and thin build-system-neutral module/board source scaffolders.
 
 ## What's inside
 

@@ -94,7 +94,9 @@ ownership. File count alone does not select a workflow or checkpoint. Model-tier
 ## 4. Scaffolders (on PATH when this plugin is enabled)
 
 - `ifl-init` — seed a project's `CLAUDE.md` + `AGENTS.md` bindings (detects git/manager/module-root). See `/ifl-ios-standards:init`.
-- `ifl-new-module <Name>` — scaffold a Bazel Boardy-VIP module (two `swift_library` targets).
-- `ifl-new-board <Module> <Board> <ui|viewless|flow|blocktask>` — scaffold a board.
+- `ifl-new-module <Name>` — scaffold the Boardy public-IO and Plugins source boundary; the consuming
+  repository owns build/package configuration.
+- `ifl-new-board <Module> <Board> <ui|swiftui|viewless|flow|blocktask>` — scaffold a board source
+  skeleton with UIKit or SwiftUI selected explicitly.
 
 See `/ifl-ios-standards:init`, `:boardy-new-module`, `:boardy-new-board`.

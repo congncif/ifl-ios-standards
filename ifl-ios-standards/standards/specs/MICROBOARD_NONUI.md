@@ -50,45 +50,84 @@ Fully custom?                                    → Empty Board.
 
 ## Files
 
-### Flow Board (stateless coordinator)
-```
+The bundled CLI creates the public contract separately from the implementation:
+
+```text
+IO/{Board}/
+├── {Board}IOInterface.swift            ← public BoardID + destination/factory
+├── {Board}InOut.swift                  ← public Input/Output/Command/Action
+└── ServiceMap+{Board}.swift            ← public module ServiceMap accessor
+
 Sources/Microboards/{Board}/
-├── {Board}IOInterface.swift
-├── {Board}InOut.swift
-├── {Board}Board.swift                  ← only stored property: finishBus
-└── ServiceMap+{Board}.swift
+├── {Board}BoardIOInterface.swift       ← internal alias to the public ID
+├── {Board}BoardInOut.swift             ← internal aliases to public InOut
+└── ServiceMap+{Board}.swift            ← Plugins ServiceMap accessor
+```
+
+`IO/**` is public. `Sources/**` stays internal, except for an explicitly justified public
+composition type under `Sources/Plugins/**`.
+
+### Flow Board (stateless coordinator)
+
+```text
+Sources/Microboards/{Board}/
+└── {Board}Board.swift                  ← orchestration shell; no per-activation state
 ```
 
 ### Viewless Board (stateful coordinator)
-```
+```text
 Sources/Microboards/{Board}/
-├── {Board}IOInterface.swift
-├── {Board}InOut.swift
 ├── {Board}Protocols.swift              ← Controllable / ControlDelegate / Delegate / Interface / Buildable
 ├── {Board}Controller.swift             ← NSObject; owns input + UseCases + state
 ├── {Board}Builder.swift                ← creates Controller, injects deps
-├── {Board}Board.swift                  ← thin shell; registers flows; attaches Controller
-└── ServiceMap+{Board}.swift
+└── {Board}Board.swift                  ← thin shell; registers flows; attaches Controller
 ```
 
 ### BlockTaskBoard / TaskBoard / ResultTaskBoard
-```
+```text
 Sources/Microboards/{Board}/
-├── {Board}IOInterface.swift            ← MainDestination uses Parameter for BlockTask
-├── {Board}InOut.swift                  ← {Board}Parameter typealias for BlockTask
-├── {Board}BoardFactory.swift           ← enum factory; no class
-└── ServiceMap+{Board}.swift
+└── {Board}BoardFactory.swift           ← enum factory returning the appropriate task Board
 ```
 
 ### BarrierBoard / Empty Board — minimal subset of the above as required.
 
 ## Naming
 
-- Internal BoardID: `static let mod{Board}: BoardID = "mod.{Module}.{Board}"` or alias the public ID when implementing one: `.mod{Board} = .pub{PublicBoard}`.
+- A scaffolded public BoardID is exactly `"pub.mod.{Module}.{Board}"` and lives in `IO/{Board}/`.
+  The implementation aliases that public ID instead of creating a competing internal literal.
+- A genuinely module-private board may use `"mod.{Module}.{Board}"`, but the current CLI always
+  creates public IO and therefore is not the tool for silently making an internal-only contract.
 - Factory pattern: `enum {Board}BoardFactory { static func make(...) -> ActivatableBoard }` — never a class with `init`.
 - Buses: `private let {action}Bus = Bus<{Type}>()`. Default name `finishBus` for the input-completion bus.
 
 ## Communication
+
+### Scaffold boundary
+
+```bash
+ifl-new-board <Module> <Board> <viewless|flow|blocktask> \
+  --root=. --module-root=<repo-owned-module-root>
+```
+
+The command also accepts `--dry-run`; `--root` defaults to the current directory. Module and Board
+names must start uppercase. It requires the module directory to exist and refuses to write when
+either `IO/{Board}/` or `Sources/Microboards/{Board}/` already exists.
+
+The CLI creates public IO and a type-specific implementation starter. It does not infer domain
+behavior, child flows, attachment ownership, dependencies, registration, or tests. After generation,
+define real InOut types, fill the TODOs, register the Board in `{Module}ModulePlugin`, and reconcile
+new IO dependencies with the consuming repository's build system.
+
+The `blocktask` selector emits `BlockTaskParameter` public IO and a `BlockTaskBoard` factory with a
+fail-fast execution placeholder. Replace that placeholder with project-owned async behavior and
+MainActor completion before activation; never replace per-activation callbacks with shared flow
+listeners when concurrency is allowed.
+
+For a generated Viewless board, the skeleton applies input context → root context. Use board context
+only as an explicit last-resort product decision; the generator does not silently choose it.
+
+All paths, target labels, dependencies, destinations, and verification commands are consuming-repo
+values; do not copy a product-specific scaffold default into the design.
 
 ### Flow Board
 ```swift
@@ -346,6 +385,11 @@ extension BoardID { static let mod{Board}: BoardID = .pub{PublicBoard} }
 - BlockTask / Task / ResultTask: test the executor closure with a fake `completion` handler; assert MainActor hop happens (use `await Task.yield()` and check completion fires on main).
 - BarrierBoard: test `.wait` / `.overcome` / `.cancel` paths through the motherboard.
 - See `compact/TESTING.compact.md`.
+- Never add a placeholder-only test to make a scaffold or test glob look complete.
+- An executable scaffold change gets one targeted native signal from the consuming repository.
+  Documentation-only changes get no build or test.
+- Do not add verifier scripts, receipts, manifests, or custom workflow-state files. Report the direct
+  native command result when an executable signal is required.
 
 ## Pitfalls
 
@@ -374,20 +418,25 @@ extension BoardID { static let mod{Board}: BoardID = .pub{PublicBoard} }
 ## IO snippets
 
 ```swift
-// Sources/Microboards/{Board}/{Board}IOInterface.swift
-extension BoardID { static let mod{Board}: BoardID = .pub{PublicBoard} }   // or "mod.{Module}.{Board}"
+// IO/{Board}/{Board}IOInterface.swift
+public extension BoardID {
+    static let pub{Board}: BoardID = "pub.mod.{Module}.{Board}"
+}
 
-typealias {Board}MainDestination = MainboardGenericDestination<
-    {Board}Input, {Board}Output, {Board}Command, {Board}Action
+public typealias {Board}MainDestination = MainboardGenericDestination<
+    {Board}Input, {Board}Output, {Board}Command, {Board}Action // BlockTask uses {Board}Parameter first
 >
 
-extension MotherboardType where Self: FlowManageable {
-    func io{Board}(_ identifier: BoardID = .mod{Board}) -> {Board}MainDestination {
+public extension MotherboardType where Self: FlowManageable {
+    func io{Board}(_ identifier: BoardID = .pub{Board}) -> {Board}MainDestination {
         {Board}MainDestination(destinationID: identifier, mainboard: self)
     }
 }
 
-// Sources/Microboards/{Board}/{Board}InOut.swift  (alias public types)
+// Sources/Microboards/{Board}/{Board}BoardIOInterface.swift
+extension BoardID { static let mod{Board}Board: BoardID = .pub{Board} }
+
+// Sources/Microboards/{Board}/{Board}BoardInOut.swift
 typealias {Board}Input = {PublicBoard}Input
 typealias {Board}Parameter = BlockTaskParameter<{Board}Input, {Board}Output>
 typealias {Board}Output = {PublicBoard}Output

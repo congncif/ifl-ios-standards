@@ -220,7 +220,7 @@ struct {FeatureName}Builder: {FeatureName}Buildable {
 - ❌ Interactor referencing `ActionDelegate` — Interactor only emits domain events via `ControlDelegate`.
 - ❌ Pure-navigation intents routed through the Interactor — go `VC → ActionDelegate` directly.
 - ❌ ViewModels declared in their own file — they live inside the Presenter file (private to the board).
-- ❌ Storyboard-only VCs without a programmatic init — every VC must support `init()` for tests and the `new-board.sh` template.
+- ❌ Storyboard-only VCs without a programmatic init — every VC must support `init()` for tests and the `ifl-new-board` template.
 - ❌ Strong `delegate` / `view` / `actionDelegate` — retain cycles, leaked boards.
 - ❌ Business logic in `setState` — that's Presenter's job.
 

@@ -4,13 +4,41 @@
 >
 > **Not a pattern spec.** Exempt from the 12-section `SPEC_CONTRACT.md` template; this is a procedural runbook, same as `DECISION_TREES.md` / `BROWNFIELD_MIGRATION.md` / `ADOPTION.md`.
 >
-> **How to use**: Ctrl-F for a phrase from your error message, log line, or symptom. Each entry is symptom → cause → fix → reference. If your symptom isn't here, search `DECISION_TREES.md` for the relevant pattern and re-read its spec's §Pitfalls.
+> **How to use**: bound impact first, then Ctrl-F for a phrase from the error, log, or symptom. Each entry is symptom → cause → fix → reference. If the symptom isn't here, use `DECISION_TREES.md` to identify the relevant pattern and re-read its spec's §Pitfalls.
+
+---
+
+## Impact-first investigation contract
+
+Before changing code, establish the blast radius: affected user journey and severity, reproducibility,
+first known bad boundary, modules and package edges, public IO/BoardID contracts, registrations and callers,
+lifecycle/concurrency owners, stored or transmitted data, and affected UIKit/SwiftUI adapters. For a public
+Board, the canonical runtime ID is exactly `pub.mod.<Module>.<Board>`; a literal mismatch or rename is a
+runtime contract issue.
+
+Then trace backward from the symptom to the first violated invariant. Inspect the definition and its
+callers together; for activation failures, include BoardID, ServiceMap accessor, ModulePlugin registration,
+LauncherPlugin/App installation, and any compatibility alias. For UI failures, compare the Presenter or
+equivalent display-ready state and typed intents before inspecting rendering mechanics.
+
+Make the fix as one smallest complete semantic slice and choose its rollback boundary before editing. A
+rollback restores the last coherent contract, registration, caller route, and lifecycle ownership; it does
+not discard unrelated work. If the impact expands or the assigned signal regresses, restore that boundary
+and re-plan instead of stacking speculative fixes.
+
+For executable changes, use only the consuming repository's native build/test commands. Assign one primary
+signal and owner to each semantic slice or distinct risk boundary, run it after the complete slice, and do
+not repeat unchanged green signals after mechanical steps. Documentation-only changes receive no runtime
+gate; after all planned mutations, they wait for the plan's one final joined AI consistency review. Do not
+create plugin-owned verifier/lint/smoke scripts, receipts, evidence ledgers, manifests, fingerprints, or
+custom workflow state. The final joined review covers the complete candidate once and does not replace
+required executable-code tests.
 
 ---
 
 ## Index
 
-1. [Build / lint failures](#1-build--lint-failures)
+1. [Build / architecture-review findings](#1-build--architecture-review-findings)
 2. [Runtime crashes & assertions](#2-runtime-crashes--assertions)
 3. [Board lifecycle issues](#3-board-lifecycle-issues)
 4. [Communication & bus issues](#4-communication--bus-issues)
@@ -45,22 +73,22 @@
 ### 1.4 review → `IO-missing-public`
 
 **Cause**: Top-level type declared in `{Module}/IO/**` without `public`/`open`.
-**Fix**: Prepend `public` to the type. IO is the cross-module surface — everything top-level must be public. `extension` blocks are exempt (their members carry their own modifiers).
+**Fix**: Make the IO domain contract public. IO is the cross-module usage surface, so its top-level contract types must be public; `extension` blocks carry visibility on their members. Do not move App-boot provider configuration into IO merely because it must be public — that narrow construction surface belongs under `Sources/Plugins/**`.
 **Ref**: `IO_INTERFACE.md` §Naming.
 
 ### 1.5 review → `Sources-has-public`
 
 **Cause**: Public symbol declared under `Sources/Microboards/**` or `Sources/Services/**` — these are internal.
-**Fix**: Drop the `public` modifier. If the symbol legitimately needs to be public (App constructs it for LauncherPlugin init), move it to `Sources/Plugins/**` — the pack's public-export zone.
+**Fix**: Drop the `public` modifier. `Sources/**` stays internal except the minimum App-boot construction surface under `Sources/Plugins/**`, such as LauncherPlugin init arguments and provider configurations. Keep that exception narrow: App composition may construct it, but sibling feature modules still import only IO and never another module's Plugins target.
 **Ref**: `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
 
 ### 1.6 review → BoardID literal doesn't match pattern
 
 **Cause**: BoardID literal violates the naming contract. Two shapes:
-- Public (declared in `IO/`): MUST be `"pub.mod.{Module}.{Board}"`.
-- Internal (declared in `Sources/Microboards/`): MUST be `"mod.{Module}.{Board}"` or `"mod.{Module}.{X}Provider"`.
+- Public (declared in `IO/`): MUST be `pub.mod.<Module>.<Board>`.
+- Internal (declared in `Sources/Microboards/`): MUST be `mod.<Module>.<Board>` or `mod.<Module>.<X>Provider`.
 
-**Fix**: Rename the literal to match. Note: literal renames are **breaking at runtime** for any cross-module caller — check callers before renaming a public ID.
+**Fix**: First map the literal's registrations, ServiceMap accessors, and all callers. Correct the owning module/Board segments and migrate the complete semantic slice. A public literal rename is **breaking at runtime**; coordinate all callers or preserve an intentional compatibility alias before removing the old route.
 **Ref**: `IO_INTERFACE.md` §Naming.
 
 ### 1.7 review finds a spec missing a required section
@@ -74,6 +102,12 @@
 **Cause**: `s.dependency` line includes `:path =>` — CocoaPods rejects this in podspecs.
 **Fix**: Drop `:path =>` from podspec dependencies. Path resolution happens in the **Podfile**, never in podspecs. Podspec carries name + optional version only.
 **Ref**: `MODULE_CREATION.md`, `PACKAGE_MANAGER.md`.
+
+### 1.9 review → View derives product meaning / UIKit and SwiftUI disagree
+
+**Cause**: Formatting, eligibility, retry, navigation, analytics, accessibility meaning, or error mapping moved into a `UIViewController`/`UIView` or SwiftUI `View`; or a hosting/interoperability adapter remapped the same feature differently per framework.
+**Fix**: Restore the humble-View boundary. The Presenter or equivalent mapper produces one display-ready semantic state and typed intents. UIKit consumes it through its display port; SwiftUI consumes the same semantics through a `MainActor` presentation store. Views may own rendering mechanics and transient UX-local state only. Compare both adapters against the same input and remove semantic remapping from the bridge.
+**Ref**: `ARCHITECTURE.md` §VIP, `VIP_COMPONENTS.md`, `MICROBOARD_UI.md`, `enterprise/swiftui-production.md`.
 
 ---
 
@@ -91,16 +125,16 @@
 **Fix**: Guard at-most-once. Either set a `hasCompleted` flag and early-return, or release the source of duplicate signals (unsubscribe / `detachObject`) on first completion. `BlockTaskBoard` never needs `complete()` — remove it if you added one.
 **Ref**: `BOARDY_FOUNDATIONS.md` §Non-negotiable #5, `QUICK_REF.md` rule 12.
 
-### 2.3 `BoardID not registered: pub.mod.{Module}.{Board}`
+### 2.3 `BoardID not registered: pub.mod.<Module>.<Board>`
 
-**Cause**: App tried to activate a Board whose `LauncherPlugin` was never installed (or the ServiceType case didn't map to this BoardID).
-**Fix**: Check `App/ServiceRegistry+Modules.swift` — `{Module}LauncherPlugin()` must appear in the launch list. Then check `{Module}ModulePlugin` — every `ServiceType` case's `identifier` must return a valid BoardID.
+**Cause**: App tried to activate a Board whose canonical ID, `pub.mod.<Module>.<Board>`, is not registered. The LauncherPlugin may be absent, the ServiceType case may map to another ID, a move/rename may have left callers on the old literal, or a planned bridge may be missing.
+**Fix**: Trace the full activation path before editing: caller literal/accessor → IO ServiceMap → `{Module}ModulePlugin` case and identifier → `{Module}LauncherPlugin` → App install list. Correct the smallest complete path; for a public move/rename, migrate all controlled callers or restore the compatibility alias. Then run the consuming repo's assigned activation signal once for the completed fix slice.
 **Ref**: `PLUGINS_INTEGRATION.md` §ModulePlugin.
 
 ### 2.4 `Could not find module {Module}` (Swift compile error)
 
 **Cause**: Adopting module not declared in the consumer's Podfile, OR consumer is importing the wrong target (`{Module}Plugins` instead of `{Module}`).
-**Fix**: Add `pod '{Module}', :path => '...'` to consumer's Podfile (NOT `{Module}Plugins` — never cross-module-import Plugins). Run `pod install`.
+**Fix**: A sibling feature adds/imports the `{Module}` IO target only. App composition may additionally depend on `{Module}Plugins` solely to construct/install LauncherPlugin wiring; that exception is not a feature-to-feature dependency. After correcting the consuming repo's package declaration, use its normal project-regeneration/build command.
 **Ref**: `QUICK_REF.md` §5, `CROSS_MODULE_DI.md`.
 
 ### 2.5 `EXC_BAD_ACCESS` on Board → Controller call
@@ -203,13 +237,14 @@
 **Fix**: Use `mod{Module}Plugins` to access the opener, not `mod{Module}`.
 **Ref**: `PLUGINS_INTEGRATION.md` §URLOpener.
 
-### 6.2 Module's boards aren't discoverable after `new-module.sh`
+### 6.2 Module's boards aren't discoverable after `ifl-new-module`
 
-**Cause**: Module scaffolded but not added to consumer Podfile, AND/OR `{Module}LauncherPlugin` not added to App's launch list.
-**Fix**: Two steps required after `new-module.sh`:
-1. Add `pod '{Module}', :path => '...'` and `pod '{Module}Plugins', :path => '...'` to Podfile.
-2. Add `{Module}LauncherPlugin()` to `App/ServiceRegistry+Modules.swift`.
-Then `pod install`.
+**Cause**: The command creates only the IO/Plugins source boundary. The consuming repository has not
+added those sources to its build/package graph, registered the Boards, or installed the module at the
+app composition root.
+**Fix**: Add the IO and Plugins source surfaces using a current neighbouring module, register each
+Board with its canonical public ID, install the public Plugins composition type at app boot, and run
+the repository-owned dependency/project generation step when applicable.
 **Ref**: `MODULE_CREATION.md`, `PLUGINS_INTEGRATION.md`.
 
 ### 6.3 `sharedRepository` instance changes across activations
@@ -260,10 +295,14 @@ Then `pod install`.
 
 ## 9. Pod / project regeneration issues
 
-### 9.1 New module / new board not picked up after `new-module.sh`
+### 9.1 New module / new board sources are not in the project
 
-**Cause**: CocoaPods caches the project state; new files added to disk need `pod install` to be picked up into Xcode targets.
-**Fix**: `pod install` (NOT `pod update`). If files still don't appear, check the podspec's `source_files` glob — `'IO/**/*.swift'` for IO target, `'Sources/**/*.swift'` for Plugins target. Local path `pod '{Module}', :path => '...'` requires the podspec to be valid.
+**Cause**: Thin scaffolders do not edit build/package configuration. An existing glob, project file,
+package target, or dependency-generation step does not include the new IO/Sources paths.
+**Fix**: Compare with a current neighbouring module, add the exact source paths and dependencies to
+the repository-owned build surfaces, then run its normal dependency/project-generation command. For
+CocoaPods this may be `pod install`; for other systems use their owned equivalent rather than a
+plugin-supplied universal command.
 **Ref**: `MODULE_CREATION.md`.
 
 ### 9.2 `pod install` fails with "Cannot find module" cycle
@@ -288,7 +327,7 @@ If your symptom isn't here:
 
 1. Identify the pattern in play (Board type, communication channel, layer) via `DECISION_TREES.md`.
 2. Read that pattern's spec — every spec has a §Pitfalls section with the recurring traps.
-3. Inspect the affected paths against the architecture rules and include them in the plan's final AI review.
+3. Inspect the affected paths against the architecture rules and include them in the plan's one final joined AI review.
 4. Check `17-anti-patterns.md` (rulebook) for the wider anti-pattern catalog.
 
 If you've diagnosed a new symptom worth recording, add it here as a §X.Y entry following the symptom → cause → fix → ref shape. New entries belong in the section that matches the failure mode, not the affected module.

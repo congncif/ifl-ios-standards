@@ -1,44 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# new-board.sh <Module> <Board> <type> [--root=PATH] [--module-root=PATH] [--dry-run]
+# ifl-new-board <Module> <Board> <ui|swiftui|viewless|flow|blocktask>
+#   [--root=PATH] [--module-root=PATH] [--dry-run]
 #
-# vinone Bazel fork of ifl-ios-pack bin/new-board.sh.
-#
-# Bazel note: this script emits ONLY .swift files under IO/{Board}/ and
-# Sources/Microboards/{Board}/. The module's BUILD.bazel globs IO/**/*.swift and
-# Sources/**/*.swift, so the new files are picked up automatically — NO per-board
-# BUILD.bazel edit is required. (Run `bazel build //<root>/<Module>/...` after.)
-#
-# Types:
-#   ui         — VIP stack (Board + Builder + Interactor + Presenter + ViewController + Protocols)
-#   viewless   — Controller-backed (Board + Builder + Controller + Protocols)
-#   flow       — Flow board only (Board)
-#   blocktask  — Flow board only (Board)  (semantic alias; both shapes pure-Board)
-#
-# Emits under {ModuleRoot}/{Module}/:
-#   IO/{Board}/{Board}IOInterface.swift            pub.mod.{Module}.{Board} + MainDestination + ioX factory
-#   IO/{Board}/{Board}InOut.swift                  Input/Output/Command/Action types
-#   IO/{Board}/ServiceMap+{Board}.swift            ioX on {Module}ServiceMap
-#   Sources/Microboards/{Board}/{Board}BoardIOInterface.swift   mod{Board}Board alias
-#   Sources/Microboards/{Board}/{Board}BoardInOut.swift         typealiases to IO types
-#   Sources/Microboards/{Board}/{Board}Board.swift              Board class (type-specific shape)
-#   Sources/Microboards/{Board}/ServiceMap+{Board}.swift        io{Board} on {Module}PluginsServiceMap
-#   Sources/Microboards/{Board}/{Board}Builder.swift            (ui, viewless only)
-#   Sources/Microboards/{Board}/{Board}Protocols.swift          (ui, viewless only)
-#   Sources/Microboards/{Board}/{Board}Controller.swift         (viewless only)
-#   Sources/Microboards/{Board}/{Board}Interactor.swift         (ui only)
-#   Sources/Microboards/{Board}/{Board}Presenter.swift          (ui only)
-#   Sources/Microboards/{Board}/{Board}ViewController.swift     (ui only)
-#
-# Resolves {ModuleRoot} like new-module.sh:
-#   1. --module-root=PATH
-#   2. `Module root` row in .claude/project/PROJECT_CONFIG.md
-#   3. Default `Features`
-#
-# Refuses to overwrite an existing board directory.
+# Emits Boardy IO and source skeletons only. The consuming repository owns build-system wiring,
+# concrete dependencies, tests, presentation copy, and product behavior. Existing destinations are
+# never overwritten.
 
-usage() { sed -n '4,46p' "$0"; }
+usage() { sed -n '4,12p' "$0"; }
 
 [ $# -ge 3 ] || { usage; exit 64; }
 
@@ -51,66 +21,92 @@ ROOT="$PWD"
 MROOT=""
 DRY=0
 
-for v in MODULE BOARD; do
-  val="${!v}"
-  case "$val" in
-    [A-Z]*) : ;;
-    *) echo "new-board.sh: $v must start uppercase (got '$val')" >&2; exit 64 ;;
-  esac
+for value in "$MODULE" "$BOARD"; do
+  if ! [[ "$value" =~ ^[A-Z][A-Za-z0-9]*$ ]]; then
+    echo "ifl-new-board: module and board names must match [A-Z][A-Za-z0-9]* (got '$value')" >&2
+    exit 64
+  fi
 done
 
 case "$TYPE" in
-  ui|viewless|flow|blocktask) : ;;
-  *) echo "new-board.sh: type must be ui|viewless|flow|blocktask (got '$TYPE')" >&2; exit 64 ;;
+  ui|swiftui|viewless|flow|blocktask) : ;;
+  *) echo "ifl-new-board: type must be ui|swiftui|viewless|flow|blocktask (got '$TYPE')" >&2; exit 64 ;;
 esac
 
-for a in "$@"; do
-  case "$a" in
-    --root=*)         ROOT="${a#--root=}" ;;
-    --module-root=*)  MROOT="${a#--module-root=}" ;;
-    --dry-run)        DRY=1 ;;
-    -h|--help)        usage; exit 0 ;;
-    *) echo "new-board.sh: unknown arg '$a'" >&2; exit 64 ;;
+for argument in "$@"; do
+  case "$argument" in
+    --root=*)        ROOT="${argument#--root=}" ;;
+    --module-root=*) MROOT="${argument#--module-root=}" ;;
+    --dry-run)       DRY=1 ;;
+    -h|--help)       usage; exit 0 ;;
+    *) echo "ifl-new-board: unknown argument '$argument'" >&2; exit 64 ;;
   esac
 done
 
-[ -d "$ROOT" ] || { echo "new-board.sh: root '$ROOT' not a directory" >&2; exit 65; }
+[ -d "$ROOT" ] || { echo "ifl-new-board: root '$ROOT' is not a directory" >&2; exit 65; }
 ROOT="$(cd "$ROOT" && pwd)"
 
+module_root_from() {
+  local file="$1"
+  [ -f "$file" ] || return 0
+  grep -E '^\|[[:space:]]*Module root[[:space:]]*\|' "$file" \
+    | head -1 \
+    | sed -E 's/.*\|[[:space:]]*`?([^`|]+)`?[[:space:]]*\|.*/\1/' \
+    | sed -E 's/[[:space:]]+$//' \
+    || true
+}
+
 resolve_module_root() {
-  if [ -n "$MROOT" ]; then echo "$MROOT"; return; fi
-  local cfg="$ROOT/.claude/project/PROJECT_CONFIG.md"
-  if [ -f "$cfg" ]; then
-    local hit
-    hit="$(grep -E '^\|[[:space:]]*Module root[[:space:]]*\|' "$cfg" \
-            | head -1 \
-            | sed -E 's/.*\|[[:space:]]*`?([^`|]+)`?[[:space:]]*\|.*/\1/' \
-            | sed -E 's/[[:space:]].*$//' \
-            | sed -E 's/[[:space:]]+$//')"
-    if [ -n "$hit" ]; then echo "${hit%/}"; return; fi
+  if [ -n "$MROOT" ]; then
+    printf '%s\n' "$MROOT"
+    return
   fi
-  echo "Features"
+
+  local file value
+  for file in \
+    "$ROOT/CLAUDE.md" \
+    "$ROOT/AGENTS.md" \
+    "$ROOT/.claude/project/PROJECT_CONFIG.md"; do
+    value="$(module_root_from "$file")"
+    if [ -n "$value" ] && [[ "$value" != \{* ]]; then
+      printf '%s\n' "${value%/}"
+      return
+    fi
+  done
+
+  echo "ifl-new-board: module root is not configured; pass --module-root=PATH or set the Module root row in CLAUDE.md/AGENTS.md" >&2
+  exit 64
 }
 
 MROOT="$(resolve_module_root)"
+if ! [[ "$MROOT" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+  echo "ifl-new-board: module root must be a repository-relative path token (got '$MROOT')" >&2
+  exit 64
+fi
+case "$MROOT" in
+  ..|../*|*/..|*/../*|./*|*/.|*/./*) echo "ifl-new-board: module root must not contain traversal components (got '$MROOT')" >&2; exit 64 ;;
+esac
+case "$MROOT" in
+  /*) echo "ifl-new-board: module root must be repository-relative (got '$MROOT')" >&2; exit 64 ;;
+esac
+
 MDIR="$ROOT/$MROOT/$MODULE"
 BDIR="$MDIR/Sources/Microboards/$BOARD"
 IDIR="$MDIR/IO/$BOARD"
 
-[ -d "$MDIR" ] || { echo "new-board.sh: module dir '$MDIR' missing — run new-module.sh $MODULE first" >&2; exit 1; }
-
+[ -d "$MDIR" ] || { echo "ifl-new-board: module directory '$MDIR' is missing; run ifl-new-module first" >&2; exit 1; }
 if [ -e "$IDIR" ] || [ -e "$BDIR" ]; then
-  echo "new-board.sh: board destination exists" >&2
+  echo "ifl-new-board: board destination exists" >&2
   [ -e "$IDIR" ] && echo "  $IDIR" >&2
   [ -e "$BDIR" ] && echo "  $BDIR" >&2
   exit 1
 fi
 
-YEAR_DATE="$(date +%Y-%m-%d)"
+CREATED_ON="$(date +%Y-%m-%d)"
 
 emit() {
-  local path="$1"; shift
-  local content="$1"
+  local path="$1"
+  local content="$2"
   if [ "$DRY" = 1 ]; then
     echo "DRY  write $path  (${#content} bytes)"
     return
@@ -120,27 +116,29 @@ emit() {
   echo "  WRITE  ${path#$ROOT/}"
 }
 
-echo "new-board.sh — scaffolding $BOARD ($TYPE) in $MODULE"
+echo "ifl-new-board — scaffolding $BOARD ($TYPE) in $MODULE"
 echo "  root:        $ROOT"
-echo "  module:      $MDIR"
-echo "  io-dir:      $IDIR"
-echo "  src-dir:     $BDIR"
+echo "  module-root: $MROOT"
+echo "  io:          $IDIR"
+echo "  source:      $BDIR"
 echo "  dry:         $DRY"
 echo
 
-# ── IO files ────────────────────────────────────────────────────────────────
+DESTINATION_INPUT="${BOARD}Input"
+if [ "$TYPE" = "blocktask" ]; then
+  DESTINATION_INPUT="${BOARD}Parameter"
+fi
 
-emit "$IDIR/${BOARD}IOInterface.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+emit "$IDIR/${BOARD}IOInterface.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Boardy
-import Foundation
 
 public extension BoardID {
     static let pub${BOARD}: BoardID = \"pub.mod.${MODULE}.${BOARD}\"
 }
 
 public typealias ${BOARD}MainDestination = MainboardGenericDestination<
-    ${BOARD}Input,
+    ${DESTINATION_INPUT},
     ${BOARD}Output,
     ${BOARD}Command,
     ${BOARD}Action
@@ -152,70 +150,86 @@ public extension MotherboardType where Self: FlowManageable {
     }
 }"
 
-emit "$IDIR/${BOARD}InOut.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+if [ "$TYPE" = "viewless" ]; then
+  emit "$IDIR/${BOARD}InOut.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Boardy
-import Foundation
+import UIKit
 
 public struct ${BOARD}Input {
-    public init() {}
+    public weak var context: UIViewController?
+
+    public init(context: UIViewController? = nil) {
+        self.context = context
+    }
 }
 
 public typealias ${BOARD}Output = Void
 public typealias ${BOARD}Command = Void
 public enum ${BOARD}Action: BoardFlowAction {}"
-
-emit "$IDIR/ServiceMap+${BOARD}.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+else
+  PARAMETER_ALIAS=""
+  if [ "$TYPE" = "blocktask" ]; then
+    PARAMETER_ALIAS=$'\npublic typealias '"${BOARD}"$'Parameter = BlockTaskParameter<'"${BOARD}"$'Input, '"${BOARD}"$'Output>\n'
+  fi
+  emit "$IDIR/${BOARD}InOut.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Boardy
-import Foundation
+
+public struct ${BOARD}Input {
+    public init() {}
+}
+${PARAMETER_ALIAS}
+public typealias ${BOARD}Output = Void
+public typealias ${BOARD}Command = Void
+public enum ${BOARD}Action: BoardFlowAction {}"
+fi
+
+emit "$IDIR/ServiceMap+${BOARD}.swift" "// Created on $CREATED_ON by ifl-new-board
+
+import Boardy
 
 public extension ${MODULE}ServiceMap {
-    var io${BOARD}: ${BOARD}MainDestination {
-        mainboard.io${BOARD}()
-    }
+    var io${BOARD}: ${BOARD}MainDestination { mainboard.io${BOARD}() }
 }"
 
-# ── Sources: ServiceMap+ + IOInterface + InOut (all types) ──────────────────
-
-emit "$BDIR/${BOARD}BoardIOInterface.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+emit "$BDIR/${BOARD}BoardIOInterface.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Boardy
-import Foundation
-import ${MODULE}
+import $MODULE
 
 extension BoardID {
     static let mod${BOARD}Board: BoardID = .pub${BOARD}
 }"
 
-emit "$BDIR/${BOARD}BoardInOut.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+INTERNAL_PARAMETER_ALIAS=""
+if [ "$TYPE" = "blocktask" ]; then
+  INTERNAL_PARAMETER_ALIAS=$'\ntypealias '"${BOARD}"$'BoardParameter = '"${BOARD}"$'Parameter'
+fi
+emit "$BDIR/${BOARD}BoardInOut.swift" "// Created on $CREATED_ON by ifl-new-board
 
-import ${MODULE}
+import $MODULE
 
 typealias ${BOARD}BoardInput = ${BOARD}Input
 typealias ${BOARD}BoardOutput = ${BOARD}Output
 typealias ${BOARD}BoardCommand = ${BOARD}Command
-typealias ${BOARD}BoardAction = ${BOARD}Action"
+typealias ${BOARD}BoardAction = ${BOARD}Action${INTERNAL_PARAMETER_ALIAS}"
 
-emit "$BDIR/ServiceMap+${BOARD}.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+emit "$BDIR/ServiceMap+${BOARD}.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Boardy
-import Foundation
-import ${MODULE}
+import $MODULE
 
 extension ${MODULE}PluginsServiceMap {
     var io${BOARD}: ${BOARD}MainDestination { mainboard.io${BOARD}() }
 }"
 
-# ── Sources: Board.swift (type-specific) ────────────────────────────────────
-
 case "$TYPE" in
-ui)
-  emit "$BDIR/${BOARD}Board.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+ui|swiftui)
+  emit "$BDIR/${BOARD}Board.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Boardy
-import Foundation
-import ${MODULE}
+import $MODULE
 import SiFUtilities
 import UIKit
 
@@ -232,12 +246,16 @@ final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
     init(identifier: BoardID, builder: ${BOARD}Buildable, producer: ActivatableBoardProducer) {
         self.builder = builder
         super.init(identifier: identifier, boardProducer: producer)
+        registerFlows()
     }
 
     func activate(withGuaranteedInput input: InputType) {
-        let component = builder.build(withDelegate: self, input: input)
-        attachObject(component.controller)
-        // TODO: present component.userInterface via SiFUtilities show(_:) — see MICROBOARD_UI.md
+        MainActor.assumeIsolated {
+            let component = builder.build(withDelegate: self, input: input)
+            watch(content: component.controller)
+            motherboard.putIntoContext(component.userInterface)
+            rootViewController.show(component.userInterface)
+        }
     }
 
     func activationBarrier(withGuaranteedInput _: InputType) -> ActivationBarrier? { nil }
@@ -245,44 +263,26 @@ final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
 }
 
 extension ${BOARD}Board: ${BOARD}Delegate {
-    // TODO: implement ${BOARD}ActionDelegate + ${BOARD}ControlDelegate
-}"
+    // TODO: implement typed ActionDelegate and ControlDelegate outcomes.
+}
 
-  emit "$BDIR/${BOARD}Builder.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
-
-import ${MODULE}
-import UIKit
-
-struct ${BOARD}Builder: ${BOARD}Buildable {
-    func build(withDelegate delegate: ${BOARD}Delegate?, input: ${BOARD}BoardInput) -> ${BOARD}Interface {
-        let viewController = ${BOARD}ViewController()
-        let presenter = ${BOARD}Presenter()
-        presenter.view = viewController
-
-        let interactor = ${BOARD}Interactor(presenter: presenter, input: input)
-        interactor.delegate = delegate
-
-        viewController.actionDelegate = delegate
-        viewController.interactor = interactor
-
-        return ${BOARD}Interface(
-            userInterface: viewController,
-            controller: interactor
-        )
+private extension ${BOARD}Board {
+    func registerFlows() {
+        // TODO: register child flows here. Never register them from activate().
     }
 }"
 
-  emit "$BDIR/${BOARD}Interactor.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+  emit "$BDIR/${BOARD}Interactor.swift" "// Created on $CREATED_ON by ifl-new-board
 
-import Foundation
-import ${MODULE}
+import $MODULE
 
+@MainActor
 protocol ${BOARD}Presentable: AnyObject {
-    // TODO: presenter calls — see EXAMPLES specs
+    func present(_ state: ${BOARD}ViewState)
 }
 
 final class ${BOARD}Interactor {
-    weak var delegate: ${BOARD}ControlDelegate!
+    weak var delegate: ${BOARD}ControlDelegate?
     private let presenter: ${BOARD}Presentable
     private let input: ${BOARD}BoardInput
 
@@ -293,89 +293,184 @@ final class ${BOARD}Interactor {
 }
 
 extension ${BOARD}Interactor: ${BOARD}Controllable, ${BOARD}Interactable {
-    // TODO: implement ${BOARD}Interactable (VC → interactor) + ${BOARD}Controllable (Board → interactor)
+    func didBecomeActive() {
+        // TODO: execute use cases and send domain results to the Presenter.
+    }
 }"
 
-  emit "$BDIR/${BOARD}Presenter.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+  emit "$BDIR/${BOARD}Presenter.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Foundation
-import ${MODULE}
 
-protocol ${BOARD}Viewable: AnyObject {
-    // TODO: view-state calls — see EXAMPLES specs
+struct ${BOARD}ViewState: Equatable {
+    enum Phase: Equatable { case idle }
+    let phase: Phase
+
+    static let idle = Self(phase: .idle)
 }
 
+@MainActor
+protocol ${BOARD}Viewable: AnyObject {
+    func render(_ state: ${BOARD}ViewState)
+}
+
+@MainActor
 final class ${BOARD}Presenter {
-    weak var view: ${BOARD}Viewable!
+    weak var view: ${BOARD}Viewable?
 }
 
 extension ${BOARD}Presenter: ${BOARD}Presentable {
-    // TODO: implement ${BOARD}Presentable
+    func present(_ state: ${BOARD}ViewState) {
+        view?.render(state)
+    }
 }"
 
-  emit "$BDIR/${BOARD}ViewController.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+  emit "$BDIR/${BOARD}Protocols.swift" "// Created on $CREATED_ON by ifl-new-board
 
-import ${MODULE}
+import $MODULE
 import UIKit
 
-final class ${BOARD}ViewController: UIViewController, ${BOARD}UserInterface {
+protocol ${BOARD}Controllable: AnyObject {}
 
+protocol ${BOARD}Interactable: AnyObject {
+    func didBecomeActive()
+}
+
+protocol ${BOARD}ActionDelegate: AnyObject {}
+protocol ${BOARD}ControlDelegate: AnyObject {}
+protocol ${BOARD}Delegate: ${BOARD}ActionDelegate, ${BOARD}ControlDelegate {}
+
+struct ${BOARD}Interface {
+    let userInterface: UIViewController
+    let controller: ${BOARD}Controllable
+}
+
+@MainActor
+protocol ${BOARD}Buildable {
+    func build(withDelegate delegate: ${BOARD}Delegate?, input: ${BOARD}BoardInput) -> ${BOARD}Interface
+}"
+
+  if [ "$TYPE" = "ui" ]; then
+    emit "$BDIR/${BOARD}Builder.swift" "// Created on $CREATED_ON by ifl-new-board
+
+import $MODULE
+
+@MainActor
+struct ${BOARD}Builder: ${BOARD}Buildable {
+    func build(withDelegate delegate: ${BOARD}Delegate?, input: ${BOARD}BoardInput) -> ${BOARD}Interface {
+        let viewController = ${BOARD}ViewController()
+        let presenter = ${BOARD}Presenter()
+        let interactor = ${BOARD}Interactor(presenter: presenter, input: input)
+
+        presenter.view = viewController
+        interactor.delegate = delegate
+        viewController.actionDelegate = delegate
+        viewController.interactor = interactor
+
+        return ${BOARD}Interface(userInterface: viewController, controller: interactor)
+    }
+}"
+
+    emit "$BDIR/${BOARD}ViewController.swift" "// Created on $CREATED_ON by ifl-new-board
+
+import $MODULE
+import UIKit
+
+final class ${BOARD}ViewController: UIViewController {
     var interactor: ${BOARD}Interactable!
     weak var actionDelegate: ${BOARD}ActionDelegate?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // TODO: setup
         interactor.didBecomeActive()
     }
 }
 
 extension ${BOARD}ViewController: ${BOARD}Viewable {
-    // TODO: implement ${BOARD}Viewable render methods
+    func render(_ state: ${BOARD}ViewState) {
+        // Render display-ready state and framework-local UX mechanics only.
+    }
+}"
+  else
+    emit "$BDIR/${BOARD}Builder.swift" "// Created on $CREATED_ON by ifl-new-board
+
+import $MODULE
+import SwiftUI
+
+@MainActor
+struct ${BOARD}Builder: ${BOARD}Buildable {
+    func build(withDelegate delegate: ${BOARD}Delegate?, input: ${BOARD}BoardInput) -> ${BOARD}Interface {
+        let presenter = ${BOARD}Presenter()
+        let interactor = ${BOARD}Interactor(presenter: presenter, input: input)
+        let store = ${BOARD}PresentationStore { [weak interactor] intent in
+            switch intent {
+            case .didBecomeActive: interactor?.didBecomeActive()
+            }
+        }
+
+        presenter.view = store
+        interactor.delegate = delegate
+
+        let host = UIHostingController(rootView: ${BOARD}View(store: store))
+        return ${BOARD}Interface(userInterface: host, controller: interactor)
+    }
 }"
 
-  emit "$BDIR/${BOARD}Protocols.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+    emit "$BDIR/${BOARD}PresentationStore.swift" "// Created on $CREATED_ON by ifl-new-board
 
-import ${MODULE}
-import UIKit
+import Observation
 
-// MARK: - Inward (Board → Interactor)
-protocol ${BOARD}Controllable: AnyObject {}
-
-// MARK: - Inward (VC → Interactor)
-protocol ${BOARD}Interactable: AnyObject {
-    func didBecomeActive()
+enum ${BOARD}ViewIntent {
+    case didBecomeActive
 }
 
-// MARK: - Outward (VC → Board)
-protocol ${BOARD}ActionDelegate: AnyObject {}
+@MainActor
+@Observable
+final class ${BOARD}PresentationStore: ${BOARD}Viewable {
+    private(set) var state: ${BOARD}ViewState = .idle
+    private let sendIntent: (${BOARD}ViewIntent) -> Void
 
-// MARK: - Outward (Interactor → Board)
-protocol ${BOARD}ControlDelegate: AnyObject {}
+    init(sendIntent: @escaping (${BOARD}ViewIntent) -> Void) {
+        self.sendIntent = sendIntent
+    }
 
-protocol ${BOARD}Delegate: ${BOARD}ActionDelegate, ${BOARD}ControlDelegate {}
+    func send(_ intent: ${BOARD}ViewIntent) {
+        sendIntent(intent)
+    }
 
-// MARK: - View interface
-protocol ${BOARD}UserInterface: UIViewController {}
-
-// MARK: - Interface
-struct ${BOARD}Interface {
-    let userInterface: ${BOARD}UserInterface
-    let controller: ${BOARD}Controllable
-}
-
-// MARK: - Builder
-protocol ${BOARD}Buildable {
-    func build(withDelegate delegate: ${BOARD}Delegate?, input: ${BOARD}BoardInput) -> ${BOARD}Interface
+    func render(_ state: ${BOARD}ViewState) {
+        self.state = state
+    }
 }"
+
+    emit "$BDIR/${BOARD}View.swift" "// Created on $CREATED_ON by ifl-new-board
+
+import SwiftUI
+
+struct ${BOARD}View: View {
+    let store: ${BOARD}PresentationStore
+
+    var body: some View {
+        content
+            .onAppear { store.send(.didBecomeActive) }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch store.state.phase {
+        case .idle:
+            EmptyView()
+        }
+    }
+}"
+  fi
   ;;
 
 viewless)
-  emit "$BDIR/${BOARD}Board.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+  emit "$BDIR/${BOARD}Board.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Boardy
-import Foundation
-import ${MODULE}
+import $MODULE
 
 final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
     GuaranteedOutputSendingBoard, GuaranteedActionSendingBoard, GuaranteedCommandBoard {
@@ -390,11 +485,16 @@ final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
     init(identifier: BoardID, builder: ${BOARD}Buildable, producer: ActivatableBoardProducer) {
         self.builder = builder
         super.init(identifier: identifier, boardProducer: producer)
+        registerFlows()
     }
 
     func activate(withGuaranteedInput input: InputType) {
         let component = builder.build(withDelegate: self, input: input)
-        attachObject(component.controller)
+        if let context = input.context {
+            attachObject(component.controller, context: context)
+        } else {
+            attachObject(component.controller, context: rootViewController)
+        }
         component.controller.start()
     }
 
@@ -403,23 +503,26 @@ final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
 }
 
 extension ${BOARD}Board: ${BOARD}Delegate {
-    // TODO: implement ${BOARD}ControlDelegate — see EXAMPLES_VIEWLESS_BOARD.md
+    // TODO: implement typed controller outcomes and release the activation exactly once.
+}
+
+private extension ${BOARD}Board {
+    func registerFlows() {
+        // TODO: register child flows here. Board-to-controller delivery uses buses, not retrieval.
+    }
 }"
 
-  emit "$BDIR/${BOARD}Builder.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
-
-import Foundation
+  emit "$BDIR/${BOARD}Builder.swift" "// Created on $CREATED_ON by ifl-new-board
 
 struct ${BOARD}Builder: ${BOARD}Buildable {
-    func build(withDelegate delegate: ${BOARD}Delegate?,
-               input: ${BOARD}BoardInput) -> ${BOARD}Interface {
+    func build(withDelegate delegate: ${BOARD}Delegate?, input: ${BOARD}BoardInput) -> ${BOARD}Interface {
         let controller = ${BOARD}Controller(input: input)
         controller.delegate = delegate
         return ${BOARD}Interface(controller: controller)
     }
 }"
 
-  emit "$BDIR/${BOARD}Controller.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+  emit "$BDIR/${BOARD}Controller.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Foundation
 
@@ -434,22 +537,19 @@ final class ${BOARD}Controller: NSObject {
 
 extension ${BOARD}Controller: ${BOARD}Controllable {
     func start() {
-        // TODO: kick off work; call delegate?.* to escalate to Board
+        // TODO: start controller-owned work and report typed outcomes through delegate.
     }
 }"
 
-  emit "$BDIR/${BOARD}Protocols.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+  emit "$BDIR/${BOARD}Protocols.swift" "// Created on $CREATED_ON by ifl-new-board
 
-import Foundation
+import $MODULE
 
 protocol ${BOARD}Controllable: AnyObject {
     func start()
 }
 
-protocol ${BOARD}ControlDelegate: AnyObject {
-    // TODO: controller → board callbacks
-}
-
+protocol ${BOARD}ControlDelegate: AnyObject {}
 protocol ${BOARD}Delegate: ${BOARD}ControlDelegate {}
 
 struct ${BOARD}Interface {
@@ -457,17 +557,15 @@ struct ${BOARD}Interface {
 }
 
 protocol ${BOARD}Buildable {
-    func build(withDelegate delegate: ${BOARD}Delegate?,
-               input: ${BOARD}BoardInput) -> ${BOARD}Interface
+    func build(withDelegate delegate: ${BOARD}Delegate?, input: ${BOARD}BoardInput) -> ${BOARD}Interface
 }"
   ;;
 
-flow|blocktask)
-  emit "$BDIR/${BOARD}Board.swift" "// Created on $YEAR_DATE by ifl-scaffold new-board.sh
+flow)
+  emit "$BDIR/${BOARD}Board.swift" "// Created on $CREATED_ON by ifl-new-board
 
 import Boardy
-import Foundation
-import ${MODULE}
+import $MODULE
 
 final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
     GuaranteedOutputSendingBoard, GuaranteedActionSendingBoard, GuaranteedCommandBoard {
@@ -482,8 +580,8 @@ final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
         registerFlows()
     }
 
-    func activate(withGuaranteedInput input: InputType) {
-        // TODO: orchestrate child boards via motherboard.serviceMap.mod${MODULE}Plugins.io*
+    func activate(withGuaranteedInput _: InputType) {
+        // TODO: orchestrate child boards without storing activation state on this Board.
     }
 
     func activationBarrier(withGuaranteedInput _: InputType) -> ActivationBarrier? { nil }
@@ -492,7 +590,25 @@ final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
 
 private extension ${BOARD}Board {
     func registerFlows() {
-        // TODO: addTarget(self) callbacks on child board flows — see EXAMPLES_NONUI_BOARDS.md
+        // TODO: register child flow handlers once.
+    }
+}"
+  ;;
+
+blocktask)
+  emit "$BDIR/${BOARD}BoardFactory.swift" "// Created on $CREATED_ON by ifl-new-board
+
+import Boardy
+import $MODULE
+
+enum ${BOARD}BoardFactory {
+    static func make(identifier: BoardID, executingType: ExecutingType = .concurrent) -> ActivatableBoard {
+        BlockTaskBoard<${BOARD}BoardInput, ${BOARD}BoardOutput>(
+            identifier: identifier,
+            executingType: executingType
+        ) { _, _, _ in
+            preconditionFailure(\"Implement ${BOARD} BlockTask execution and complete on MainActor\")
+        }
     }
 }"
   ;;
@@ -501,9 +617,8 @@ esac
 if [ "$DRY" != 1 ]; then
   echo
   echo "Done. Next steps:"
-  echo "  1. Register ${BOARD}Board in ${MODULE}ModulePlugin.swift (ServiceType case + build())."
-  echo "  2. Fill in TODO markers — see .ai/specs EXAMPLES_*.md."
-  echo "  3. Bazel auto-globs the new files — no BUILD.bazel edit needed. If ${BOARD} imports a"
-  echo "     new cross-module IO target, add it to PLUGINS_DEPENDENCIES in $MROOT/$MODULE/BUILD.bazel."
-  echo "  4. Verify:  bazel build //$MROOT/$MODULE:${MODULE}Plugins"
+  echo "  1. Create or complete ${MODULE}ModulePlugin and register $BOARD using BoardID.pub${BOARD}."
+  echo "  2. Replace TODO/fail-fast placeholders with project-owned dependencies and behavior."
+  echo "  3. Add the generated sources to the consuming repository's build/package configuration."
+  echo "  4. Add meaningful executable tests for changed behavior and run one owned native signal."
 fi
