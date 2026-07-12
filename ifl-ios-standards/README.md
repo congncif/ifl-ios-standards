@@ -1,16 +1,16 @@
 # ifl-ios-standards
 
 A Claude Code plugin packaging reusable **iOS engineering standards**: specialist agents,
-pattern-neutral brain workflows, Boardy/VIP task skills, bundled architecture references, and Bazel
-module/board scaffolders.
+provider-native brain workflows, Boardy/VIP and enterprise-iOS task routing, bundled architecture
+references, and Bazel module/board scaffolders.
 
 ## What's inside
 
 | Component | What it is |
 |-----------|------------|
 | `agents/` (9) | Delegated pipeline: `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
-| `skills/` (20) | **Brain stages** (pattern-neutral, brain-rulebook-driven): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` (for Boardy/VIP routing) + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · `init` |
-| `standards/` | Bundled reference: `rules/` (7), `brain/` (rulebook + patterns), `specs/` (43 incl. compact), plan-scale process guidance, and `templates/portable-claude/` |
+| `skills/` (21) | **Brain stages** (pattern-neutral, provider-native): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · **Enterprise iOS**: router `enterprise-ios` · `init` |
+| `standards/` | Bundled reference: `rules/` (6), `brain/` (rulebook + patterns), `specs/` (44 incl. compact), ten focused `enterprise/` chapters, plan-scale process guidance, and `templates/portable-claude/` |
 | `bin/` | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — Claude exposes these on PATH; Codex installs stable shims via `scripts/install-codex.sh` |
 
 ## Activate
@@ -19,6 +19,7 @@ module/board scaffolders.
 # every task type is also auto-detected by description — these are explicit entry points:
 /ifl-ios-standards:boardy-vip          # router — read first, routes to the right skill/spec
 /ifl-ios-standards:brain-flow          # automate the whole workflow: analyze → … → done
+/ifl-ios-standards:enterprise-ios      # route enterprise concerns to the relevant chapter(s)
 /ifl-ios-standards:boardy-new-module
 /ifl-ios-standards:boardy-new-board
 /ifl-ios-standards:boardy-review
@@ -27,7 +28,15 @@ module/board scaffolders.
 ```
 
 Or describe the iOS task and choose the matching skill family: `brain-*` for pattern-neutral flow,
-`boardy-*` for Boardy/VIP projects.
+`boardy-*` for Boardy/VIP projects, and `enterprise-ios` for Swift concurrency, SwiftUI production,
+data lifecycle, security, privacy, accessibility/global readiness, observability, modern testing,
+performance/resilience, or supply-chain/legal concerns. The enterprise router selects among the ten
+focused chapters; their files remain the single source of detailed standards.
+
+`brain-flow` uses provider-native task state and delegation to execute one approved plan, then runs
+one joined final AI consistency review over the complete result. The Standards 1.0 operating path does
+not invoke a verifier CLI or require receipts, manifests, or a provider-independent workflow state
+machine; frozen post-1.0 tooling artifacts are outside that operating contract.
 
 ## How references resolve
 

@@ -30,8 +30,8 @@ Prefer hand-written fakes that implement the protocol with simple in-memory beha
 A good test reads as a specification of behavior. Name tests after the behavior under test, not the function under test:
 
 ```
-✅ test_submitsOrder_whenInventoryAvailable
-❌ test_submitOrder_1
+✅ testSubmitsOrderWhenInventoryAvailable
+❌ test_submitsOrder_whenInventoryAvailable
 ```
 
 ### 15.5 Test Independence
@@ -43,5 +43,14 @@ Each test:
 - Does not share mutable state with other tests
 - Runs quickly enough to be run continuously
 
----
+### 15.6 TDD and Evidence Boundary
 
+Apply TDD only to executable code, proportionally to behavioral and regression risk. Documentation,
+standards prose, metadata, documentation-only schemas, and templates require no TDD or runtime gate;
+the approved plan's single final joined AI review evaluates their consistency.
+
+Executable build and test evidence comes from observed commands using the consuming repository or
+provider's native tooling with relevant context. Do not add plugin-owned verification scripts or
+duplicate CI, nor process-only fixtures, checks, receipts, or evidence ledgers.
+
+---

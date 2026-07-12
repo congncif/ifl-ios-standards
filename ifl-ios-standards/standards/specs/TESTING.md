@@ -21,6 +21,15 @@ When writing unit tests for any of:
 - Pure Domain struct equality — usually no tests needed unless custom logic.
 - Third-party adapter behavior — test the adapter; vendor SDK is out of scope.
 
+## TDD and evidence boundary
+
+- Apply TDD only to executable code, proportionally to behavioral and regression risk.
+- Documentation, standards prose, metadata, documentation-only schemas, and templates require no TDD
+  or runtime gate; the approved plan's single final joined AI review evaluates their consistency.
+- Executable build and test evidence comes from observed commands using the consuming repository or
+  provider's native tooling with relevant context. Do not add plugin-owned verification scripts or
+  duplicate CI, nor process-only fixtures, checks, receipts, or evidence ledgers.
+
 ## Forces
 
 - Interactor has TWO dependencies to mock — `presenter` (Presentable) AND `delegate` (Board ControlDelegate). Forgetting the delegate mock leaves nav assertions untested.
@@ -52,7 +61,9 @@ When writing unit tests for any of:
 ## Naming
 
 - Test class: `{SUT}Tests: XCTestCase`.
-- Test method: `test_{trigger}_{behavior}` (e.g. `test_didBecomeActive_callsLoadData_and_fetchesData`).
+- Test method: camelCase `testScenarioExpectation` (e.g.
+  `testDidBecomeActiveCallsLoadDataAndFetchesData`). Never use snake_case
+  `test_<scenario>_<expectation>`.
 - Mocks: `Mock{Type}` conforming to the SUT's protocol surface (`{Feature}Presentable`, `{Feature}ControlDelegate`, `{Feature}UseCase`, `{Feature}Viewable`, `{Entity}Repository`).
 - Stubs: extension on the type with `static func stub(...) -> Self`.
 - Errors: `enum TestError: Error { case network; case parsing }`.
@@ -100,7 +111,7 @@ final class {Feature}InteractorTests: XCTestCase {
         super.tearDown()
     }
 
-    func test_didBecomeActive_callsLoadData_and_fetchesData() async throws {
+    func testDidBecomeActiveCallsLoadDataAndFetchesData() async throws {
         mockUseCase.fetchResult = .success(.stub())
         sut.didBecomeActive()
         await Task.yield()
@@ -109,7 +120,7 @@ final class {Feature}InteractorTests: XCTestCase {
         XCTAssertTrue(mockPresenter.presentStateCalled)
     }
 
-    func test_didBecomeActive_whenFetchFails_callsClose() async throws {
+    func testDidBecomeActiveWhenFetchFailsCallsClose() async throws {
         mockUseCase.fetchResult = .failure(TestError.network)
         sut.didBecomeActive()
         await Task.yield()
@@ -117,7 +128,7 @@ final class {Feature}InteractorTests: XCTestCase {
         XCTAssertFalse(mockPresenter.presentStateCalled)
     }
 
-    func test_submit_showsLoading_thenCallsDelegate() async throws {
+    func testSubmitShowsLoadingThenCallsDelegate() async throws {
         mockUseCase.submitResult = .success(())
         sut.userDidTapSubmit(with: "data")
         await Task.yield()
@@ -126,7 +137,7 @@ final class {Feature}InteractorTests: XCTestCase {
         XCTAssertTrue(mockDelegate.performCompletionCalled)
     }
 
-    func test_submit_whenFails_showsError() async throws {
+    func testSubmitWhenFailsShowsError() async throws {
         mockUseCase.submitResult = .failure(TestError.network)
         sut.userDidTapSubmit(with: "data")
         await Task.yield()
@@ -191,7 +202,7 @@ final class {Feature}PresenterTests: XCTestCase {
         sut.view = mockView
     }
 
-    func test_presentState_mapsToCorrectViewModel() {
+    func testPresentStateMapsToCorrectViewModel() {
         let model = {Aggregate}.stub(relatedCount: 3)
         sut.presentState(model)
         XCTAssertNotNil(mockView.lastState)
@@ -203,18 +214,18 @@ final class {Feature}PresenterTests: XCTestCase {
         }
     }
 
-    func test_presentError_showsSnackMessage() {
+    func testPresentErrorShowsSnackMessage() {
         sut.presentError(TestError.network)
         XCTAssertTrue(mockView.showErrorSnackCalled)
         XCTAssertNotNil(mockView.lastErrorMessage)
     }
 
-    func test_presentOverlayLoading_showsHUD() {
+    func testPresentOverlayLoadingShowsHUD() {
         sut.presentOverlayLoading()
         XCTAssertTrue(mockView.showHUDCalled)
     }
 
-    func test_dismissOverlayLoading_hidesHUD() {
+    func testDismissOverlayLoadingHidesHUD() {
         sut.dismissOverlayLoading()
         XCTAssertTrue(mockView.hideHUDCalled)
     }
@@ -255,7 +266,7 @@ final class {Action}UseCaseTests: XCTestCase {
         )
     }
 
-    func test_execute_whenServiceReturnsData_savesToRepository() async throws {
+    func testExecuteWhenServiceReturnsDataSavesToRepository() async throws {
         let aggregate = {Aggregate}.stub()
         mockQueryService.result = aggregate
         try await sut.execute()
@@ -263,7 +274,7 @@ final class {Action}UseCaseTests: XCTestCase {
         XCTAssertNotNil(mockRepository.lastSaved)
     }
 
-    func test_execute_whenServiceReturnsNil_throwsError() async {
+    func testExecuteWhenServiceReturnsNilThrowsError() async {
         mockQueryService.result = nil
         do {
             try await sut.execute()
@@ -347,7 +358,7 @@ This spec IS the testing standard — meta-testing checklist:
 - [ ] Every UI Board has paired `*InteractorTests.swift` + `*PresenterTests.swift`
 - [ ] Every UseCase has `*UseCaseTests.swift`
 - [ ] Mocks live in `Tests/Mocks/`, stubs in `Tests/Stubs/`
-- [ ] Each test method names trigger + behavior (`test_X_doesY`)
+- [ ] Each test method names scenario + expectation in camelCase (`testScenarioExpectation`)
 - [ ] Async tests `await Task.yield()` (or proper await) before asserting
 - [ ] No vendor-SDK imports in test targets except for adapter tests
 - [ ] Mocks conform to protocol surface (not concrete class)

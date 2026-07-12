@@ -2,7 +2,17 @@
 
 Derived from `TESTING.md`. Default load for `ios-tester`. Full spec only when you need a non-trivial mock pattern (e.g. async sequences, snapshot, integration).
 
-Last sync: 2026-05-23 against brain 0.1.0.
+Last sync: 2026-07-13 for Standards 1.0 candidate.
+
+## TDD and evidence boundary
+
+- Apply TDD only to executable code where behavioral or regression risk warrants it.
+- Documentation, standards prose, metadata, documentation-only schemas, and templates require no TDD
+  or runtime gate; their consistency is evaluated by the approved plan's single final joined AI
+  review.
+- Use observed commands from the consuming repository or provider's native tooling as executable build
+  and test evidence. Do not add plugin-owned verification scripts or duplicate CI, nor process-only
+  fixtures, checks, receipts, or evidence ledgers.
 
 ## What to test (priority)
 

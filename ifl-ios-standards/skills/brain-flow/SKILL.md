@@ -26,6 +26,9 @@ Read:
 - Read the consuming repository's `CLAUDE.md`/`AGENTS.md` bindings. Ask only for a missing value that
   would materially change the result.
 - Detect Boardy+VIP or another bound pattern and forward relevant stages to its skills.
+- When the task intersects enterprise iOS concerns, route through `enterprise-ios` and load only the
+  applicable chapter(s) among the ten enterprise chapters. The chapters own normative detail; do not
+  duplicate it in Brain-Flow artifacts.
 - Use the approved plan checklist and provider-native task state for progress. Do not create canonical
   progress schemas, receipts, manifests, fingerprints, or evidence ledgers.
 
@@ -78,9 +81,10 @@ Use `brain-execute` until the complete Definition of Done is implemented.
 
 ## 5. One final AI consistency review
 
-After the last planned mutation, invoke `brain-review` exactly once over the complete branch diff and
-final repository state. Parallel specialist lanes may participate, but they form one joined review
-event over the same candidate.
+After every workstream in the approved plan is complete and the last planned mutation has landed,
+invoke `brain-review` exactly once over the complete branch diff and final repository state. Parallel
+specialist lanes may participate, but they form one joined AI consistency review event over the same
+candidate.
 
 Collect all findings before editing. Join and deduplicate them, then apply accepted in-scope findings
 in one corrective batch. Do not schedule routine re-review, per-finding review, confirmation review,
