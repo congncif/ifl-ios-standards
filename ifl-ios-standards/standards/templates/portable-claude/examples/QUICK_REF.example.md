@@ -155,11 +155,11 @@ init(identifier: BoardID, ...) {
 public final class AuthServiceMap: ServiceMap {}
 public struct SignInInput { ... }
 
-// Sources/  → everything internal
+// Sources/  → internal by default
 final class AuthPluginsServiceMap: ServiceMap {}
 final class SignInBoard: ModernContinuableBoard, ... {}
 
-// LauncherPlugin — explicitly public
+// Sources/Plugins/ — minimum App-boot construction surface may be public
 public struct AuthLauncherPlugin: LauncherPlugin {
     public init() { /**/ }
 }
@@ -171,16 +171,17 @@ public struct AuthLauncherPlugin: LauncherPlugin {
 
 > Add to the generic hard rules (`${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/20-non-negotiable-rules.md`):
 
-1. View has ZERO logic — renders ViewModels, forwards events only.
-2. Unidirectional flow: `ViewController → Interactor → UseCase → Presenter → ViewController`. Exception: direct UI navigation intents may go `ViewController → ActionDelegate(Board)`.
-3. IO modules are `public`; Sources are `internal`.
-4. Never import `{ModuleName}Plugins` from another module — only import IO.
+1. Humble View (`UI-HUMBLE-001`…`004`) renders display-ready state and forwards typed intent. It may branch on Presenter-encoded loading/content/empty/error state and own UX-local interaction/geometry state; it never formats raw/domain values, derives product or analytics meaning, makes business/navigation-policy decisions, performs business I/O, or constructs dependencies.
+2. Unidirectional flow (`BRD-VIP-001`): `View → Interactor → UseCase → Presenter → View`. Exception: direct UI navigation intents may go `View → ActionDelegate(Board)`.
+3. IO exports public domain contracts. `Sources/**` is internal except the minimum App-boot construction surface in `Sources/Plugins/**` (`CORE-API-001`).
+4. Never import `{ModuleName}Plugins` from another feature module; depend on IO only (`CORE-COMP-001`).
 5. `weak var view` in Presenter; `weak var delegate` in Interactor.
 6. `registerFlows()` called in Board's `init`, never in `activate()`.
 7. Double-activation guard only when the Board is explicitly single-session; Board→Controller communication uses event buses, not retrieved controller references.
 8. `sharedRepository` as stored property on ModulePlugin — never created inside closures.
 9. `complete()` called at most once; `BlockTaskBoard` auto-completes (never call manually).
 10. Viewless boards using `attachObject` must release via `complete()` or `detachObject(_:)`; otherwise re-activation stacks controllers on buses.
+11. UIKit consumes immutable display-ready state through a display port. SwiftUI consumes the same semantic state through a MainActor presentation store; SwiftUI `State` is UX-only (`UIKIT-RENDER-001`, `UI-ISOLATION-001`).
 
 ---
 

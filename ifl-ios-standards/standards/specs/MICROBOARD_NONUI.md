@@ -42,11 +42,11 @@ Fully custom?                                    → Empty Board.
 
 ## Forces
 
-- **Stateless Flow vs stateful Viewless**: stateless wins on simplicity but cannot carry state between child boards. Adding `private var someState` to a Flow board is the most common drift — promote it to Viewless.
+- **Stateless Flow vs stateful Viewless** (`BRD-VIEWLESS-001`): stateless wins on simplicity but cannot carry state between child boards. Adding `private var someState` to a Flow board is the most common drift — promote it to Viewless.
 - **Direct controller refs vs event buses (Viewless)**: storing the controller breaks re-activation; bus-based wiring is correct but costs one `Bus<T>` per action. Pay the cost.
 - **Controller attachment context — Board lifecycle ≠ Controller lifecycle**: a Board has its own lifecycle independent of any controller; binding a Controller's lifetime to the Board's by default causes drift and surprise releases. The attach context is `AnyObject` (most commonly a UIViewController, but not pinned to it). Default to explicit input context for max control, fall back to root context, treat board context as last resort. Cost: one extra `context` field in `Input` (typically `UIViewController?`) for the common case; pay it.
 - **Bus identity-filter applies to round-trips, not Board-originated transport**. Controller → Board delegate → Bus → Controller round-trips need an identity payload (`Bus<{Board}Controllable>` or a tuple containing it) so the subscriber can `guard target === source`; closing over a local controller variable does *not* work because the closure outlives the activation. Board-originated transport (e.g. child flow → Board → Controller) needs no identity payload — `bus.connect(target:)` weak-binds the live Controller.
-- **BlockTask `.concurrent` vs `.flow` listening**: `.flow` is shared across concurrent activations and cannot distinguish callers; parameter callbacks (`onSuccess`/`onError`) are the only safe routing.
+- **BlockTask `.concurrent` vs `.flow` listening** (`BRD-BLOCKTASK-001`): `.flow` is shared across concurrent activations and cannot distinguish callers; parameter callbacks (`onSuccess`/`onError`) are the only safe routing.
 
 ## Files
 
@@ -320,12 +320,13 @@ extension BoardID { static let mod{Board}: BoardID = .pub{PublicBoard} }
 
 ## Lifecycle
 
-- `registerFlows()` always in `init`, never in `activate`. Flows transport via buses.
+- `registerFlows()` always in `init`, never in `activate` (`BRD-FLOW-001`). Flows transport via buses.
 - `activationBarrier` returns `nil` unless implementing a Barrier.
 - `attachObject(controller, context:)` (Viewless) — pick context per priority table in Communication §Controller Attachment Context. Lifecycle:
   - With **input context** (priority 1) or **root context** (priority 2) → Controller is released when the attached UIViewController is released; Board lifecycle stays independent.
   - With **board context** (priority 3, no `context:`) → Controller stays attached until `complete()` (ends session, releases all attached) or `detachObject(_:)` (release one). Forgetting either → re-activation stacks Controllers on the same buses → duplicate handler firings.
-  - Bus subscribers MUST `guard target === component.controller` regardless of context choice — otherwise sibling/stale Controllers still receive events.
+  - Only Controller→Board→Bus→Controller round-trips carry and compare source identity. Board-originated
+    buses rely on `bus.connect(target:)` weak binding and do not fabricate a source (`BRD-VIEWLESS-001`).
 - `complete()` decision per variant:
 
 | Board type | Call `complete()`? |
@@ -335,7 +336,7 @@ extension BoardID { static let mod{Board}: BoardID = .pub{PublicBoard} }
 | Viewless | ✅ after `sendOutput()`, after streams terminated |
 | BlockTaskBoard | ❌ framework auto-completes |
 
-- Double-`complete()` raises an assertion — confirm all streams are terminated before calling.
+- Double-`complete()` raises an assertion — confirm all streams are terminated before calling (`BRD-LIFE-001`).
 - Always `sendOutput()` BEFORE `complete()`.
 
 ## Testing

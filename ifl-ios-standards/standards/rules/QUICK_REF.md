@@ -84,20 +84,20 @@ The cheatsheet has the no-prefix case. When the project applies a prefix (e.g. `
 
 ## 4. The 14 rules (never break)
 
-1. View has zero logic — renders ViewModels, forwards events.
-2. Unidirectional flow: `VC → Interactor → UseCase → Presenter → VC`. Exception: `VC → ActionDelegate(Board)` for pure-navigation intents the Interactor would only forward.
-3. IO modules are `public` (domain meaning); `Sources/**` is `internal` EXCEPT `Sources/Plugins/**` which may be `public` for LauncherPlugin construction wiring (provider configs, init-args). Provider configurations live in `Sources/Plugins/`, never IO — they're boot-time wiring, not domain.
-4. Never import `{ModuleNamePlugins}` from another module — only IO.
-5. Async UI updates always in `await MainActor.run { [weak self] in ... }`.
-6. `weak var view` in Presenter; `weak var delegate` in Interactor; `weak var actionDelegate` in ViewController. Interactor must NOT declare actionDelegate.
-7. `registerFlows()` called in Board's `init`, never in `activate()`.
-8. Double-activation guard only when the Board is explicitly single-session. All Board→Controller communication uses event buses, never retrieved controller references.
-9. Domain layer is pure Swift — no UIKit, no Boardy, no networking.
-10. `sharedRepository` is a stored property on ModulePlugin — never created inside closures.
-11. Classify string literals before localizing: user-facing text → Localizable (SwiftGen); URLs / identifiers / keys / event names / config values stay inline unless product needs locale variants.
-12. `complete()` called at most once, and only after the Board has released all streams/observers. Stateless boards rarely need it; `BlockTaskBoard` never needs it. Double-`complete()` raises an assertion.
-13. Viewless boards attach Controller with context priority: (1) explicit `input.context` (default — caller-owned reference pins lifecycle, typically a UIViewController but Boardy's context is `AnyObject`); (2) `rootViewController` (flow outlives single screens); (3) `attachObject(controller)` board context (last resort — release via `complete()` or `detachObject(_:)`; forgetting either stacks controllers on buses → duplicate handler firings). Board lifecycle is independent of Controller's — never bind Board to Controller. **Bus identity-filter** applies only to round-trips (Controller→Board delegate→Bus→Controller): payload must carry the source Controller; subscriber `guard target === source`. Board-originated buses (child flow → Board → Controller) use plain `Bus<Void>` and rely on `bus.connect(target:)`'s weak binding; never call `attachedObject(_:)` to fabricate a source.
-14. `BlockTaskBoard` with `executingType: .concurrent` — use parameter callbacks (`onSuccess`, `onError`) for per-activation routing; `.flow.addTarget` is unreliable because `.flow` is shared across concurrent activations. For sequential BlockTaskBoard, `.flow` is acceptable but parameter callbacks are preferred.
+1. **Humble View** (`UI-HUMBLE-001`…`004`): UIKit and SwiftUI Views render display-ready state and forward typed intent. They may branch on presentation state already encoded as loading/content/empty/error, own transient UX-local state (focus, highlight, gesture, animation, scroll, disclosure), and calculate geometry-only or visual interpolation values. They never format raw/domain values, derive product meaning, decide eligibility/pricing/retry/navigation policy, create analytics meaning, fetch/persist business data, or construct business dependencies.
+2. **VIP flow** (`BRD-VIP-001`): `VC/View → Interactor → UseCase → Presenter → VC/View`. Exception: `VC/View → ActionDelegate(Board)` for pure-navigation intents the Interactor would only forward.
+3. **Contract/export boundary** (`CORE-API-001`, `BRD-MOD-001`): IO modules are `public` domain contracts. `Sources/**` stays `internal` except `Sources/Plugins/**`, which may export the minimum LauncherPlugin construction surface (provider configs and init arguments). Provider configurations are boot-time wiring, never IO domain meaning.
+4. **Cross-module dependency** (`CORE-COMP-001`): never import `{ModuleNamePlugins}` from another module — depend on its IO contract only.
+5. **UI isolation** (`UI-ISOLATION-001`): UI and presentation-store mutation runs on the declared MainActor boundary; async UIKit updates use `await MainActor.run { [weak self] in ... }`.
+6. **Weak back edges** (`BRD-REF-001`): `weak var view` in Presenter; `weak var delegate` in Interactor; `weak var actionDelegate` in ViewController. Interactor must not declare `actionDelegate`.
+7. **Flow registration** (`BRD-FLOW-001`): call `registerFlows()` in Board `init`, never in `activate()`.
+8. **Activation semantics** (`BRD-ACTIVATION-001`): add a double-activation guard only for an explicitly single-session Board. Board→Controller communication uses event buses, never retrieved controller references.
+9. **Domain purity** (`BRD-MOD-001`): Domain is pure Swift — no UIKit, SwiftUI, Boardy, or networking.
+10. **Shared ownership** (`BRD-REPOSITORY-001`): `sharedRepository` is a stored property on ModulePlugin, never created inside registration closures.
+11. **Copy classification** (`UI-COPY-001`): localize user-facing copy (SwiftGen/module strings). URLs, identifiers, keys, event names, and config values stay inline unless the product explicitly defines locale variants.
+12. **Completion lifecycle** (`BRD-LIFE-001`): call `complete()` at most once and only after releasing streams/observers. Stateless boards rarely need it; `BlockTaskBoard` never needs it. Double completion asserts.
+13. **Viewless lifecycle** (`BRD-VIEWLESS-001`): attach Controller by priority: explicit `input.context`; `rootViewController`; then Board context as a last resort. Board lifecycle remains independent of Controller lifecycle. Identity filtering applies only to Controller→Board→Bus→Controller round-trips; Board-originated buses rely on the bus's weak target and never fabricate a source through `attachedObject(_:)`.
+14. **Concurrent block task** (`BRD-BLOCKTASK-001`): with `executingType: .concurrent`, route each activation through parameter callbacks (`onSuccess`, `onError`), not shared `.flow`. Sequential mode may use `.flow`, though parameter callbacks remain preferred.
 
 ## 5. Module folder skeleton (canonical for this project)
 

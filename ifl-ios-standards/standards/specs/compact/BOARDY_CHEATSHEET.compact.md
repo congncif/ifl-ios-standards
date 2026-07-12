@@ -2,24 +2,24 @@
 
 Derived from `MICROBOARD_UI.md` + `IO_INTERFACE.md` + `COMMUNICATION.md`. Default load for `ios-coder` + `ios-tester`. Full specs only on demand.
 
-Last sync: 2026-05-23 against brain 0.1.0.
+Last sync: 2026-07-13 for Standards 1.0 candidate.
 
 ## File layout per module
 
 ```
 {Module}/                            ← module dir (two podspec targets live here)
 ├── {Module}.podspec                 ← target name = "{Module}" (public Interface module, no suffix)
-├── {Module}Plugins.podspec          ← target name = "{Module}Plugins" (internal impl module)
+├── {Module}Plugins.podspec          ← target name = "{Module}Plugins" (implementation target)
 ├── IO/                              ← sources of the public "{Module}" target
 │   ├── {Module}ServiceMap.swift     ← public final class, single entry
 │   └── {PublicBoard}/
 │       ├── {PublicBoard}IOInterface.swift   ← BoardID + MainDestination typealias
 │       ├── {PublicBoard}InOut.swift         ← Input/Output/Command/Action
 │       └── ServiceMap+{PublicBoard}.swift   ← extension on {Module}ServiceMap
-└── Sources/                         ← sources of the internal "{Module}Plugins" target
+└── Sources/                         ← internal by default; Plugins/ has narrow App-boot export exception
     ├── Microboards/{Board}/         ← VIP folder + Board class
     ├── Services/                    ← UseCases + Service protocols
-    ├── Plugins/                     ← ModulePlugin + ServiceMap+Plugins
+    ├── Plugins/                     ← ModulePlugin + minimum public LauncherPlugin construction surface
     └── ...
 ```
 
@@ -29,7 +29,7 @@ Last sync: 2026-05-23 against brain 0.1.0.
 |---------|---------|---------|
 | Module dir | `{Module}` | `Cart` |
 | Interface (public) target | `{Module}` (sources under `IO/`) | `Cart` |
-| Implementation (internal) target | `{Module}Plugins` (sources under `Sources/`) | `CartPlugins` |
+| Implementation target | `{Module}Plugins` (sources under `Sources/`; internal except narrow Plugins export zone) | `CartPlugins` |
 | Public ServiceMap class | `{Module}ServiceMap` | `CartServiceMap` |
 | Public ServiceMap accessor | `mod{Module}` | `mod.modCart` |
 | Public BoardID | `pub.mod.{Module}.{Board}` | `pub.mod.Cart.Checkout` |
@@ -152,6 +152,16 @@ Activation order inside `activate(...)`: `watch(content:)` → `putIntoContext(v
 
 ## Hard rules
 
+- **Humble View** (`UI-HUMBLE-001`…`004`): render display-ready state and forward typed intent.
+  Branching on Presenter-encoded loading/content/empty/error state is valid. UX-local focus,
+  highlight, gesture, animation, scroll, disclosure, geometry, and visual interpolation are valid.
+  Raw/domain formatting, derived product or analytics meaning, business/navigation-policy decisions,
+  business I/O, and dependency construction are not.
+- UIKit consumes immutable state through a display port; SwiftUI consumes the same semantic state
+  through a MainActor presentation store. SwiftUI `State` is UX-only (`UIKIT-RENDER-001`,
+  `UI-ISOLATION-001`).
+- `Sources/**` is internal except the minimum App boot construction surface in `Sources/Plugins/**`;
+  another feature still never imports `{Module}Plugins` (`CORE-API-001`, `CORE-COMP-001`).
 - `rootViewController.show(_:)` (SiFUtilities) is the **default**; deviate only when `show(_:)` cannot express the requirement (custom transitions) or when embedding into a Composable surface (follow `COMPOSABLE_BOARD.md`). Don't reach for `UINavigationController` wrapping or `topPresentViewController` by reflex.
 - Omit custom `context:` on `show()` unless you need explicit control (target a specific VC instead of inferring from root, or pin lifecycle to a known UIViewController).
 - `registerFlows()` last in `init`; never in `activate`.
@@ -174,6 +184,7 @@ Activation order inside `activate(...)`: `watch(content:)` → `putIntoContext(v
 - [ ] `BlockTaskParameter` typealias present
 - [ ] Plugins target imports IO, never the other way
 - [ ] No `import {OtherModule}Plugins` cross-module
+- [ ] Views receive display-ready state; View conditionals are presentation-only and View-owned state is UX-local
 
 ## Full-spec routing (load only if needed)
 
@@ -191,7 +202,7 @@ Activation order inside `activate(...)`: `watch(content:)` → `putIntoContext(v
 
 ## Anti-patterns (auto-blocker)
 
-1. Logic in View / UIViewController body — must live in Interactor.
+1. Raw/domain formatting or business/product/analytics decisions in a UIKit or SwiftUI View — Presenter prepares display-ready meaning; Interactor/UseCase owns business behavior.
 2. Importing `*Plugins` from another module's `Sources/`.
 3. Wrapping presented VC in `UINavigationController` instead of `show()`.
 4. `registerFlows()` inside `activate()` — re-registers on every activation.

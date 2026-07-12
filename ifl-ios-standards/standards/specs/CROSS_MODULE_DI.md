@@ -21,7 +21,11 @@ When a service (UseCase / Repository / domain operation) implemented in one feat
 
 ## Forces
 
-- **Core rule**: never make `{Client}Plugins` depend on `{Owner}Plugins`. Implementation pods are leaf nodes. Cross-module sharing always goes through either (a) the public IO pod, or (b) a `{Feature}Core` protocol pod plus Resolver.
+- **Core rule** (`CORE-COMP-001`, `CORE-API-001`): never make `{Client}Plugins` depend on
+  `{Owner}Plugins`. Feature implementation pods are leaves from another feature's perspective.
+  Cross-module sharing always goes through either (a) the public IO pod, or (b) a `{Feature}Core`
+  protocol pod plus Resolver. The public LauncherPlugin construction surface in
+  `Sources/Plugins/**` is for App boot only; it is not a feature dependency escape hatch.
 - Pattern A is Boardy-native — observability, lifecycle, `complete()` semantics are uniform. Cost: one `BlockTaskBoard` + IO files per shared service.
 - Pattern B is leaner per call site but introduces a second DI mechanism. `@LazyInjected` MUST be a local var inside `internalContinuousRegistrations` — stored on a `struct` plugin it mutates and resolves before `launchSettings` runs.
 - Putting a service in `sharedComponent` and reaching across modules to read it = forbidden; that channel is for owner-internal sharing only.
@@ -69,7 +73,7 @@ When a service (UseCase / Repository / domain operation) implemented in one feat
 ## Naming
 
 - Service Board: `{Service}Board` in `{Feature}Plugins/Sources/Microboards/{Service}/`.
-- Public BoardID: `pub{Service}: BoardID = "pub.mod.{Feature}IO.{Service}"`.
+- Public BoardID: `pub{Service}: BoardID = "pub.mod.{Feature}.{Service}"`.
 - Public destination: `{Service}MainDestination`.
 - ServiceMap entry: `io{Service}` on `{Feature}ServiceMap` (Pattern A).
 - Core pod: `{Feature}Core`; protocol: `{Action}UseCase`; implementation: `{Action}UseCaseInteractor`.

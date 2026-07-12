@@ -17,13 +17,9 @@ import Boardy
 import Foundation
 import UIKit
 
-// Typed Output enum — every exit path MUST sendOutput then complete().
-public enum {Barrier}Result {
-    case succeeded
-    case skipped         // already passed (e.g. session already valid)
-    case notEligible     // user is not allowed to proceed
-    case failed(Error)
-}
+// Public `{Barrier}Result` lives in IO/{Barrier}/{Barrier}InOut.swift.
+// Cases: succeeded, skipped, notEligible, failed(Error).
+// Every exit path MUST sendOutput then complete().
 
 final class {Barrier}Board: ModernContinuableBoard, GuaranteedBoard,
     GuaranteedOutputSendingBoard, GuaranteedActionSendingBoard, GuaranteedCommandBoard {
@@ -173,15 +169,14 @@ Does the barrier outcome differ across mainboards (e.g. different user sessions)
 ## 4. ModulePlugin (barrier side)
 
 ```swift
-// {BarrierModule}/Sources/{BarrierModule}ModulePlugin.swift
+// {BarrierModule}/Sources/Plugins/{BarrierModule}ModulePlugin.swift
 import Boardy
 
-public final class {BarrierModule}ModulePlugin: ModulePlugin {
-    public init() {}
+final class {BarrierModule}ModulePlugin: ModulePlugin {
 
-    public var continuousRegistrations: [BoardRegistration] {
+    var continuousRegistrations: [BoardRegistration] {
         [
-            BoardRegistration(.pub.mod.{BarrierModule}IO.{Barrier}) { id in
+            BoardRegistration(.pub{Barrier}) { id in
                 {Barrier}Board(
                     identifier: id,
                     builder: {Barrier}Builder(/* deps */),
@@ -192,6 +187,9 @@ public final class {BarrierModule}ModulePlugin: ModulePlugin {
     }
 }
 ```
+
+`{BarrierModule}ModulePlugin` is an implementation detail. Only a LauncherPlugin and construction
+types the App must instantiate may be public from `Sources/Plugins/**` (`CORE-API-001`).
 
 ---
 

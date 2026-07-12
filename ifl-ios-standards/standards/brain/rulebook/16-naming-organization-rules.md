@@ -21,7 +21,7 @@ The agent ecosystem depends on names being **mechanically derivable**:
 | Domain error | `{Feature}Error` |
 | Repository protocol | `{Entity}Repository` |
 | Use case protocol | `{Action}UseCase` |
-| Use case implementation | `{Action}UseCaseImpl` |
+| Use case implementation | `{Action}UseCaseInteractor` |
 | Infrastructure adapter | `{Tech}{Entity}Repository` (e.g., `RESTUserRepository`) |
 | DTO | `{Entity}DTO` |
 | View model | `{Screen}ViewModel` |
@@ -51,4 +51,3 @@ Within a module that adopts this skeleton, an agent should be able to predict wh
 | Composition root | `Sources/Composition/` |
 
 ---
-

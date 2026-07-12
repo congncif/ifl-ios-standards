@@ -23,7 +23,10 @@ Read FIRST, before any per-spec rule. Use as the orientation map for:
 ## Forces
 
 - Boardy is the pinned UI/coordination engine — non-negotiable across all features.
-- Interface Module / Implementation Module split keeps cross-module imports honest: only `{Module}` is consumed externally.
+- Interface Module / Implementation Module split keeps cross-module imports honest: feature consumers
+  depend only on `{Module}`. App composition may construct the minimum public LauncherPlugin surface
+  exported from `{Module}Plugins/Sources/Plugins/**`; that exception never authorizes feature-to-feature
+  Plugins imports (`CORE-API-001`, `CORE-COMP-001`).
 - 5 pillars are orthogonal — applying one in isolation usually leaves dangling violations of another (e.g. adding a Board without splitting IO defeats Pillar 2).
 - Terminology drift between PDF and codebase is real; canonical map below prevents review churn.
 - App entry file is project-specific (`SceneDelegate` vs `AppDelegate` vs SwiftUI App) — resolve via PROJECT_CONFIG, don't hardcode.
@@ -45,15 +48,15 @@ Module anatomy this architecture mandates:
 ```
 {ModuleRoot}/{Module}/
 ├── {Module}.podspec               ← Interface Module (public)
-├── {Module}Plugins.podspec        ← Implementation Module (internal)
+├── {Module}Plugins.podspec        ← Implementation target; feature internals hidden
 ├── IO/                            ← BoardID, InOut, ServiceMap (public)
 │   ├── {Module}ServiceMap.swift
 │   └── {Board}/
 │       ├── {Board}IOInterface.swift
 │       ├── {Board}InOut.swift
 │       └── ServiceMap+{Board}.swift
-└── Sources/                       ← Implementation (hidden)
-    ├── Plugins/                   ← ModulePlugin + LauncherPlugin
+└── Sources/                       ← Implementation (internal by default)
+    ├── Plugins/                   ← ModulePlugin + minimum public LauncherPlugin construction surface
     ├── Microboards/{Board}/       ← BA (VIP) per Board
     └── Services/                  ← Domain + Application + Infra + Tracking
 ```
@@ -86,7 +89,7 @@ Left column is canonical; right column appears in legacy code/specs.
 | # | Pillar | Goal | Spec |
 |---|---|---|---|
 | 1 | **SDK-first** | Prefer first-party platform frameworks; minimize 3rd-party surface | `SDK_FIRST.md` |
-| 2 | **Modular + Interface Module** | Split each feature into public `{Module}` (IO) + private `{Module}Plugins` (Sources). Cross-module deps only on the Interface Module. | `MODULE_CREATION.md`, `IO_INTERFACE.md` |
+| 2 | **Modular + Interface Module** | Split each feature into public `{Module}` (IO) + implementation `{Module}Plugins` (Sources). Feature-to-feature deps use only the Interface Module; `Sources/Plugins/**` may expose minimal App boot wiring. | `MODULE_CREATION.md`, `IO_INTERFACE.md` |
 | 3 | **Plugins composition** | Apps assemble at runtime via `PluginLauncher` + `LauncherPlugin` + `ModulePlugin` + `URLOpenerPlugin`. Host = app entry from PROJECT_CONFIG. | `PLUGINS_INTEGRATION.md` |
 | 4 | **Micro-services Composable (Boardy)** | Boards are independently activatable services; Motherboard is gateway; `BoardProducer` is registry; `ActivatableBoard`/`InteractableBoard` are contracts. | `MICROBOARD_UI.md`, `MICROBOARD_NONUI.md`, `COMMUNICATION.md`, `COMPOSABLE_BOARD.md` |
 | 5 | **Domain-Driven Layering** | Pure Domain core; BA (VIP) on top; Infra & UI at edges. Deps point inward. | `LAYERING.md`, `SERVICE_LAYER.md`, `VIP_COMPONENTS.md` |
@@ -128,11 +131,22 @@ Activation always: `motherboard.serviceMap.mod{Module}.io{Board}.activation.acti
 ```
 
 Invariants:
-1. **View is humble** — zero logic; renders ViewModels, forwards events.
-2. **Presenter is the only ViewModel mapper** — Interactor passes domain models only.
-3. **Interactor never references `ActionDelegate`** — UI navigation goes `View → ActionDelegate(Board)`.
-4. **Board is stateless** — per-session state lives in Interactor (UI) or Controller (Viewless).
-5. **Unidirectional** — `View → Interactor → UseCase → Presenter → View`.
+1. **View is humble** (`UI-HUMBLE-001`…`004`) — renders display-ready state, may branch on
+   presenter-encoded loading/content/empty/error state, owns only transient UX-local state and
+   geometry/visual interpolation, and forwards typed intent. It does not format raw/domain values,
+   derive product or analytics meaning, make business/navigation-policy decisions, fetch/persist
+   business data, or construct dependencies.
+2. **Presenter is the only ViewModel mapper** (`UI-HUMBLE-002`) — Interactor passes domain models only.
+3. **Interactor never references `ActionDelegate`** (`BRD-VIP-001`) — UI navigation intent goes
+   `View → ActionDelegate(Board)`.
+4. **Board is stateless** (`BRD-LIFE-001`) — per-session state lives in Interactor (UI) or Controller (Viewless).
+5. **Unidirectional** (`BRD-VIP-001`) — `View → Interactor → UseCase → Presenter → View`.
+
+UIKit and SwiftUI are equivalent rendering adapters, not alternate owners of product state.
+UIKit receives immutable display-ready state through a display port. SwiftUI receives the same
+semantic state through a MainActor presentation store; SwiftUI `State` is UX-only. The same domain
+input must produce the same display-ready semantic state in both adapters (`UIKIT-RENDER-001`,
+`UI-ISOLATION-001`).
 
 Full rules → `VIP_COMPONENTS.md`. UI boards → `MICROBOARD_UI.md`. Non-UI variants → `MICROBOARD_NONUI.md`.
 

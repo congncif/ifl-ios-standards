@@ -182,16 +182,15 @@ extension {ChildA}Board: {ChildA}Delegate {
 ## 5. ModulePlugin registration (parent)
 
 ```swift
-// Sources/{Parent}ModulePlugin.swift
+// Sources/Plugins/{Parent}ModulePlugin.swift
 import Boardy
 import Foundation
 
-public final class {Parent}ModulePlugin: ModulePlugin {
-    public init() {}
+final class {Parent}ModulePlugin: ModulePlugin {
 
-    public var continuousRegistrations: [BoardRegistration] {
+    var continuousRegistrations: [BoardRegistration] {
         [
-            BoardRegistration(.pub.mod.{Parent}IO.{Parent}) { id in
+            BoardRegistration(.pub{Parent}) { id in
                 {Parent}Board(
                     identifier: id,
                     builder: {Parent}Builder(),
@@ -204,16 +203,19 @@ public final class {Parent}ModulePlugin: ModulePlugin {
     // Children of a Composable parent are registered against the composable motherboard
     // (so composableBoard.serviceMap resolves them). The exact syntax depends on the
     // composing helper in your project — see COMPOSABLE_BOARD.md §"Registering children".
-    public var composingRegistrations: [ComposingRegistration] {
+    var composingRegistrations: [ComposingRegistration] {
         [
-            .composing(parent: .pub.mod.{Parent}IO.{Parent}, children: [
-                .pub.mod.{ChildAModule}IO.{ChildA},
-                .pub.mod.{ChildBModule}IO.{ChildB}
+            .composing(parent: .pub{Parent}, children: [
+                .pub{ChildA},
+                .pub{ChildB}
             ])
         ]
     }
 }
 ```
+
+The ModulePlugin and composing registrations remain internal. Only the minimum LauncherPlugin
+construction surface used by App boot may be public from `Sources/Plugins/**` (`CORE-API-001`).
 
 ---
 

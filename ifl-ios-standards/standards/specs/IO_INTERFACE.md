@@ -29,7 +29,10 @@ The Interface module (`IO/`) exposes **domain meaning only**: what the module DO
 
 Test: ask "does a client module call this to USE the feature, or does App call this to BOOT the feature?" If boot-only → Sources/Plugins/. If use → IO/. Provider configurations fail the test: clients never reference them; only App-boot wiring does.
 
-This is why `Sources/Plugins/**` is the **public-export zone**: it is where LauncherPlugin and its construction inputs live, so `public` is allowed there.
+This is why `Sources/Plugins/**` is the **narrow public-export zone**: LauncherPlugin and the
+construction inputs required by App boot may be `public`; unrelated implementation symbols remain
+internal. The exception is construction-only and never permits another feature to import
+`{ModuleName}Plugins` (`CORE-API-001`, `CORE-COMP-001`).
 
 ## Forces
 
@@ -61,8 +64,8 @@ Sources/
 - Module IO ServiceMap accessor: `mod{ModuleName}` on `ServiceMap`
 - Plugins ServiceMap class: `{ModuleName}PluginsServiceMap` — internal, no `public`
 - Plugins ServiceMap accessor: `mod{ModuleName}Plugins` on `ServiceMap`
-- Public BoardID: `"pub.mod.{ModuleName}IO.{Board}"`, declared as `static let pub{Board}: BoardID`
-- Internal BoardID: `"mod.{ModuleName}.{Board}"`, declared as `static let mod{Board}: BoardID`
+- Public BoardID (`BRD-ID-001`): `"pub.mod.{ModuleName}.{Board}"`, declared as `static let pub{Board}: BoardID`
+- Internal BoardID (`BRD-ID-001`): `"mod.{ModuleName}.{Board}"`, declared as `static let mod{Board}: BoardID`
 - MainDestination typealias: `{Board}MainDestination`
 - Motherboard factory: `io{Board}(_ identifier:)`
 
@@ -88,7 +91,7 @@ public extension ServiceMap {
 
 // IO/{Board}/{Board}IOInterface.swift
 public extension BoardID {
-    static let pub{Board}: BoardID = "pub.mod.{ModuleName}IO.{Board}"
+    static let pub{Board}: BoardID = "pub.mod.{ModuleName}.{Board}"
 }
 
 public typealias {Board}MainDestination = MainboardGenericDestination<

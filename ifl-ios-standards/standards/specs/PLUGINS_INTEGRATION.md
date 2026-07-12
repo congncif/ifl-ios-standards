@@ -37,7 +37,11 @@ When adding a new feature module to the app, or extending one with:
 └── {Module}{Feature}ProviderConfiguration.swift   ← public LauncherPlugin init args (optional)
 ```
 
-`Sources/Plugins/**` is the pack's **public-export zone**: LauncherPlugin + its construction wiring (provider configurations, options structs the App passes at init). Public symbols are permitted here. Everything else under `Sources/` (Microboards, Services, Domain) stays internal. See `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
+`Sources/Plugins/**` is the pack's **narrow public-export zone** (`CORE-API-001`): LauncherPlugin and
+only the construction wiring the App must pass at boot (provider configurations and init options)
+may be public. Everything else under `Sources/` (Microboards, Services, Domain, and unrelated Plugin
+helpers) stays internal. This exception does not permit feature-to-feature imports of another
+`{Module}Plugins` target (`CORE-COMP-001`). See `IO_INTERFACE.md` §"Domain meaning vs construction wiring".
 
 App Core:
 
@@ -262,6 +266,9 @@ Module-level extensions:
 | `{Module}URLOpenerPlugin` struct | `internal` | only used by LauncherPlugin |
 | `sharedRepository`, `sharedTracker` | `internal` | plugin-level shared deps |
 | `mod{Internal}` BoardID | `internal` | implementation detail |
+
+Public construction types in `Sources/Plugins/**` are justified individually by an App boot call
+site. A type used only by ModulePlugin, a Board, a service, or another feature remains internal.
 
 ## Testing
 

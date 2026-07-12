@@ -9,7 +9,8 @@
 
 ## When to use
 
-A feature that needs a `UIViewController` plus its Interactor + Presenter, presented through the motherboard's navigation context. Use when:
+A feature that needs a UIKit screen or a SwiftUI screen hosted at the Boardy navigation boundary,
+plus its Interactor and Presenter, presented through the motherboard's navigation context. Use when:
 
 - The board owns a screen and that screen needs user-driven business logic (not a pure dumb VC).
 - The board may emit a typed outcome to the caller (`OutputType`) and accept incoming commands (`CommandType`).
@@ -23,7 +24,8 @@ A feature that needs a `UIViewController` plus its Interactor + Presenter, prese
 
 ## Forces
 
-- VIP separation costs 4–5 files per board; the payoff is testable Interactor + Presenter, swappable VC, and a clear public contract (IO).
+- VIP separation costs 4–5 files per board; the payoff is testable Interactor + Presenter, swappable
+  UIKit/SwiftUI rendering adapters, and a clear public contract (IO).
 - `ModernContinuableBoard` adds command + action machinery you'll pay for whether or not you use them — declare all four `Guaranteed*` conformances up-front rather than retrofitting.
 - `watch(content:)` ties controller lifetime to the board; on the flip side, it means the board cannot keep the controller after `complete()`.
 
@@ -39,14 +41,16 @@ A feature that needs a `UIViewController` plus its Interactor + Presenter, prese
 | `Sources/Microboards/{Board}/{Board}Builder.swift` | DI for Interactor / Presenter / VC |
 | `Sources/Microboards/{Board}/{Board}Interactor.swift` | Business logic + UseCase calls |
 | `Sources/Microboards/{Board}/{Board}Presenter.swift` | Domain → ViewModel mapping |
-| `Sources/Microboards/{Board}/{Board}ViewController.swift` | Programmatic VC, ViewModel rendering |
+| `Sources/Microboards/{Board}/{Board}ViewController.swift` | UIKit rendering adapter, or SwiftUI hosting adapter at the Boardy boundary |
+| `Sources/Microboards/{Board}/{Board}View.swift` | SwiftUI rendering adapter when SwiftUI is selected; consumes the presentation store |
+| `Sources/Microboards/{Board}/{Board}PresentationStore.swift` | Optional MainActor SwiftUI store conforming to the same display port as UIKit |
 | `Sources/Microboards/{Board}/ServiceMap+{Board}.swift` | Plugins ServiceMap accessor |
 
 ## Naming
 
 See `QUICK_REF.md` §2 (Module naming) and `BOARDY_CHEATSHEET.compact.md` Naming table. Quick rules:
 
-- BoardID: public `"pub.mod.{Module}.{Board}"` / internal `"mod.{Module}.{Board}"`.
+- BoardID (`BRD-ID-001`): public `"pub.mod.{Module}.{Board}"` / internal `"mod.{Module}.{Board}"`.
 - VIP class names are **never** prefixed even when the module is prefixed (e.g. `DADProfile` module → `ProfileDetailBoard`, not `DADProfileDetailBoard`).
 
 ## Communication
@@ -122,24 +126,46 @@ Direction matrix:
 - **Board → Child board**: `serviceMap.mod{Module}Plugins.ioChild.activation.activate(...)`.
 - **Child → parent**: `flow.addTarget` registered in `registerFlows()`.
 
+### UIKit and SwiftUI rendering contract
+
+The Presenter prepares one immutable semantic ViewModel for both frameworks (`BRD-VIP-001`,
+`UI-HUMBLE-001`…`004`). A View may switch over an already-encoded presentation phase such as
+loading/content/empty/error. It may own focus, highlight, gesture, animation, scroll, disclosure,
+geometry, and visual interpolation. It must not format raw/domain dates, currency, quantities,
+labels, or errors; derive product or analytics meaning; decide eligibility, pricing, retry, CTA, or
+business navigation; fetch/persist business data; or construct business dependencies.
+
+- **UIKit** (`UIKIT-RENDER-001`): Presenter calls a display port with display-ready state; the
+  `UIViewController` renders it and forwards typed intent.
+- **SwiftUI** (`UIKIT-RENDER-001`): a MainActor presentation store conforms to the same display port
+  and publishes that state. The SwiftUI View observes it and keeps `@State` UX-only. Domain/product
+  state does not move into the View or store merely because SwiftUI is used.
+- **Parity**: identical domain input yields equivalent semantic display state for both adapters.
+  Layout and framework-specific interaction mechanics may differ.
+
+Boardy still composes a `UIViewController` navigation surface. A SwiftUI Board adapts its View at
+that outer boundary (for example with a hosting controller); Interactor, UseCase, Presenter, IO, and
+Board lifecycle stay unchanged.
+
 ## Concurrency
 
-- All async UI updates inside the Presenter / VC wrap in `await MainActor.run { [weak self] in ... }`.
+- UIKit rendering and SwiftUI presentation-store mutation run on the declared MainActor boundary
+  (`UI-ISOLATION-001`). Async Interactor paths hop to that boundary before presenting.
 - `Bus<T>.transport(input:)` is synchronous; trigger from main when consumers touch UIKit.
 - `watch(content:)` keeps the controller alive — do not also strongly retain it from a closure.
 
 ## Composition
 
-- Registered in `{Module}ModulePlugin.internalContinuousRegistrations` (see `PLUGINS_INTEGRATION.md`).
-- Builder is the DI seam: it receives the board (as `delegate`) and constructs Interactor + Presenter + VC, returning a component with `controller` + `userInterface`.
+- Registered in `{Module}ModulePlugin.internalContinuousRegistrations` (`BRD-COMP-001`; see `PLUGINS_INTEGRATION.md`).
+- Builder is the DI seam (`UIKIT-DI-001`): it receives the board (as `delegate`) and constructs Interactor + Presenter + UIKit/SwiftUI adapter, returning a component with `controller` + `userInterface`.
 - Cross-module activation goes via `mod{Module}Plugins.io{Board}.activation` — never reach into another module's internals.
 
 ## Lifecycle
 
-- `registerFlows()` always called from `init`, never `activate()` — flows must be ready before the first activation.
+- `registerFlows()` always called from `init`, never `activate()` (`BRD-FLOW-001`) — flows must be ready before the first activation.
 - Double-activation guard **only** when the board is explicitly single-session.
 - `complete()` called at most once. For UI boards with a typed outcome it maps to `sendOutput`.
-- `rootViewController.returnHere { ... }` is the only correct way to schedule `complete` after the user pops the screen.
+- `rootViewController.returnHere { ... }` is the only correct way to schedule `complete` after the user pops the screen (`UIKIT-LIFE-001`).
 
 ## Testing
 
@@ -179,3 +205,6 @@ Direction matrix:
 - [ ] `registerFlows()` called in `init`, not `activate()`
 - [ ] Board conforms to `{Board}Delegate`
 - [ ] Registered in `ModulePlugin`'s `internalContinuousRegistrations`
+- [ ] Presenter prepares display-ready state; neither UIKit nor SwiftUI View formats raw/domain values or derives product meaning
+- [ ] View conditionals select presenter-encoded presentation state only; View-owned state is UX-local
+- [ ] SwiftUI presentation-store mutation is MainActor-isolated and semantically equivalent to the UIKit display port

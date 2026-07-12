@@ -5,7 +5,7 @@
 
 > **Status**: Optional pattern guide. The brain rulebook is pattern-neutral; this file is loaded only by projects that adopt VIP as their presentation pattern.
 > **Recommended**: VIP is the **default recommendation** for modular iOS systems — with or without Boardy. It enforces unidirectional flow, humble views, and single-source ViewModel mapping that align with the rulebook's hard rules (`rulebook/09-ui-layer-rules.md`, `rulebook/11-state-management-rules.md`).
-> **Boardy is optional**. Pure VIP works standalone with any router/coordinator. Boardy adds lifecycle + composition primitives on top; see §9 for the optional Boardy integration notes.
+> **Boardy is optional**. Pure VIP works standalone with any router/coordinator. Boardy adds lifecycle + composition primitives on top; see §10 for the optional Boardy integration notes.
 
 ---
 
@@ -13,7 +13,7 @@
 
 | Goal | How VIP enforces it |
 |------|---------------------|
-| Humble view | View renders ViewModels and forwards user intent only. No business logic, no domain types, no formatting decisions. |
+| Humble view | View renders display-ready state, may branch on presenter-encoded presentation state, owns UX-local interaction state, and forwards typed intent. It never derives product meaning or formats raw/domain values. |
 | Unidirectional flow | Strict pipeline: `View → Interactor → UseCase → Presenter → View`. No back-channels. |
 | Single ViewModel mapper | Presenter is the **only** owner of domain → ViewModel translation. Interactor never builds ViewModels; View never reads domain types. |
 | Testable presentation | Each role has one input protocol and one output protocol. Mock one boundary at a time. |
@@ -27,7 +27,7 @@ VIP is preferred over MVVM/MVC when the view layer must stay strictly humble acr
 
 | Component | Owns | Knows about | Must not |
 |-----------|------|-------------|----------|
-| **View** (`ViewController` or SwiftUI view) | Rendering, user input forwarding | `ViewModel` types, `ActionDelegate` protocol | Hold domain types, format data, call UseCases, decide navigation policy |
+| **View** (`ViewController` or SwiftUI view) | Rendering, presentation-state branching, UX-local interaction state, user input forwarding | Display-ready `ViewModel` types, `ActionDelegate` protocol | Hold domain types, format raw values, derive product meaning, call UseCases, decide business/navigation policy |
 | **Interactor** | Business orchestration for the screen | UseCase protocols, domain models, Presenter input protocol | Build ViewModels, hold view references, touch UIKit |
 | **Presenter** | Domain → ViewModel mapping (single source) | Domain models (read-only), View output protocol | Run business logic, call UseCases, store state |
 | **UseCase** | One business capability (pure orchestration of domain + repository) | Domain models, Repository protocols | Know about View, Presenter, UI types |
@@ -217,20 +217,96 @@ struct {Name}Builder: {Name}Buildable {
 
 These extend the brain rulebook's hard rules. A project adopting VIP must enforce all of them:
 
-1. **View has ZERO logic.** Renders ViewModels, forwards events. No `if/else` on domain data, no formatting, no navigation decisions beyond forwarding intent.
-2. **Unidirectional pipeline.** `View → Interactor → UseCase → Presenter → View`. Skipping or reversing is a quick-fail.
-3. **Presenter is the single ViewModel mapper.** Interactor passes domain models to Presenter; Presenter builds ViewModels. Building a ViewModel anywhere else is forbidden.
-4. **No domain types in View.** Views import only ViewModel structs and protocol types. Domain models stay below the Interactor boundary.
-5. **No UIKit / SwiftUI in Interactor or Presenter.** Presenter may import `Foundation` only (for `String`, `Date`, etc.). Interactor imports domain + UseCase contracts only.
-6. **Weak back-edges.** `Presenter.view`, `Interactor.delegate`, `ViewController.actionDelegate` are always `weak`. Forward edges (View → Interactor, Interactor → Presenter) are owned-and-strong from the Builder.
-7. **Async UI updates run on the main actor.** Wrap Presenter calls from Interactor's async work in `await MainActor.run { [weak self] in … }`.
+1. **View is humble (`UI-HUMBLE-001`…`004`).** It renders display-ready state, branches on presentation decisions already encoded as loading/content/empty/error, owns transient UX-local state, calculates only geometry/visual interpolation, and forwards typed intent. It does not format dates/currency/quantities/errors, derive user-visible or analytics meaning, decide eligibility/pricing/retry/navigation policy, fetch or persist business data, or construct dependencies.
+2. **Unidirectional pipeline (`BRD-VIP-001`).** `View → Interactor → UseCase → Presenter → View`. Skipping or reversing is a quick-fail.
+3. **Presenter is the single ViewModel mapper (`UI-HUMBLE-002`).** Interactor passes domain models to Presenter; Presenter builds display-ready ViewModels. Building a product ViewModel anywhere else is forbidden.
+4. **No domain types in View (`UI-HUMBLE-003`).** Views import only ViewModel structs and protocol types. Domain models stay below the Interactor boundary.
+5. **Framework-neutral core (`UIKIT-RENDER-001`).** Interactor and Presenter import neither UIKit nor SwiftUI. Presenter may use Foundation for locale-aware mapping; rendering adapters own framework mechanics only.
+6. **Weak back-edges (`BRD-REF-001`).** `Presenter.view`, `Interactor.delegate`, `ViewController.actionDelegate` are always `weak`. Forward edges (View → Interactor, Interactor → Presenter) are owned-and-strong from the Builder.
+7. **UI isolation (`UI-ISOLATION-001`).** UIKit rendering and SwiftUI presentation-store mutation run on the declared MainActor boundary. Wrap Presenter calls from asynchronous Interactor work in `await MainActor.run { [weak self] in … }`.
 8. **Builder is the only composition root for the screen.** Concrete `Interactor`/`Presenter`/`ViewController` types are instantiated only in the Builder.
 9. **One Builder per screen.** Don't reuse a Builder across screens; copy the structure instead. Builders are composition, not abstraction.
 10. **Navigation intent is explicit.** Direct navigation requests from View use `ActionDelegate` (forwarded to Router/Coordinator). Business completion uses `ControlDelegate` from Interactor. Never reach into a parent controller.
 
 ---
 
-## 8. When VIP Fits — and When It Doesn't
+## 8. UIKit and SwiftUI Rendering Adapters
+
+UIKit and SwiftUI share the same Interactor, UseCase, Presenter, and display-ready state contract. A
+framework choice changes only the rendering adapter (`UIKIT-RENDER-001`). Given the same domain input,
+both adapters must receive the same semantic state; layout and interaction mechanics may differ.
+
+The Presenter owns product presentation decisions:
+
+```swift
+struct {Name}ViewModel: Equatable {
+    enum Phase: Equatable {
+        case loading
+        case content(Content)
+        case empty(Empty)
+        case error(ErrorContent)
+    }
+
+    let phase: Phase
+}
+```
+
+A UIKit adapter receives immutable display-ready state through its display port. Its `switch` renders
+the encoded phase; it does not reinterpret domain input:
+
+```swift
+protocol {Name}Viewable: AnyObject {
+    @MainActor func render(_ viewModel: {Name}ViewModel)
+}
+
+@MainActor
+final class {Name}ViewController: UIViewController, {Name}Viewable {
+    func render(_ viewModel: {Name}ViewModel) {
+        switch viewModel.phase {
+        case .loading: renderLoading()
+        case .content(let content): renderContent(content)
+        case .empty(let empty): renderEmpty(empty)
+        case .error(let error): renderError(error)
+        }
+    }
+}
+```
+
+A SwiftUI adapter receives the same state through a MainActor presentation store. `@State` remains
+limited to UX-local mechanics such as focus, disclosure, animation, gesture, and scroll position;
+the store owns presentation state, while Interactor/UseCase own product behavior:
+
+```swift
+@MainActor
+final class {Name}PresentationStore: ObservableObject, {Name}Viewable {
+    @Published private(set) var viewModel: {Name}ViewModel
+
+    func render(_ viewModel: {Name}ViewModel) {
+        self.viewModel = viewModel
+    }
+}
+
+struct {Name}View: View {
+    @ObservedObject var store: {Name}PresentationStore
+    @State private var isDisclosureExpanded = false // UX-only
+
+    var body: some View {
+        switch store.viewModel.phase {
+        case .loading: ProgressView()
+        case .content(let content): {Name}ContentView(content: content)
+        case .empty(let empty): {Name}EmptyStateView(content: empty)
+        case .error(let error): {Name}ErrorStateView(content: error)
+        }
+    }
+}
+```
+
+Both examples permit conditionals that select an already-prepared presentation state. Formatting raw
+dates, currency, quantities, labels, or errors in either View remains a boundary violation.
+
+---
+
+## 9. When VIP Fits — and When It Doesn't
 
 **Fits well**:
 - Modular apps where each screen is owned by a feature module.
@@ -247,7 +323,7 @@ For prototypes or one-off screens, allow MVVM/MVC. Promote to VIP when the scree
 
 ---
 
-## 9. Optional: Boardy Integration
+## 10. Optional: Boardy Integration
 
 [Boardy](https://github.com/dovecorp/Boardy) is an optional framework that adds **board lifecycle + composition primitives** on top of VIP. It contributes:
 
@@ -271,13 +347,16 @@ Pure VIP without Boardy is fully supported. Add a small `Router` or `Coordinator
 
 ---
 
-## 10. Verification Checklist (pre-merge)
+## 11. Review Checklist
 
 For every VIP screen added or modified:
 
 - [ ] View imports only `UIKit`/`SwiftUI` + ViewModel types + protocol types
 - [ ] No `import` of a use case or domain repository from the View file
+- [ ] View conditionals inspect display-ready presentation state only; no raw/domain formatting or business decisions
+- [ ] View-owned state is UX-local only; product/business state remains outside UIKit/SwiftUI state containers
 - [ ] Presenter is the only file that constructs a `ViewModel`
+- [ ] UIKit display port and SwiftUI presentation store consume equivalent semantic state for the same domain input
 - [ ] Interactor calls UseCase via protocol, never a concrete class
 - [ ] `weak` keyword present on every back-edge reference
 - [ ] Async path wraps Presenter calls in `await MainActor.run { [weak self] in … }`

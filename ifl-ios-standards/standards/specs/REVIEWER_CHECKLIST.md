@@ -11,18 +11,18 @@
 
 ## Architecture Rules (check every PR)
 
-- [ ] View has ZERO logic -- no conditionals, no business decisions
-- [ ] Unidirectional flow only: ViewController -> Interactor -> UseCase -> Presenter -> ViewController
+- [ ] **Humble View (`UI-HUMBLE-001`…`004`)** — renders display-ready state, may branch on presenter-encoded loading/content/empty/error state, owns only UX-local interaction state and geometry/visual interpolation, and forwards typed intent; no raw/domain formatting, product or analytics meaning, business/navigation-policy decisions, business I/O, or dependency construction
+- [ ] Unidirectional flow only (`BRD-VIP-001`): View -> Interactor -> UseCase -> Presenter -> View
 - [ ] String literals are classified by meaning before localization: user-facing text content uses Localizable strings (SwiftGen/module strings); URLs, identifiers, keys, file names, analytics event names, and config values are not localized unless they need locale-specific variants
-- [ ] All IO types are `public`; all Sources types are `internal` (no `public` in Sources/)
-- [ ] No module imports `{ModuleNamePlugins}` -- only IO modules are imported
-- [ ] All async UI updates in `await MainActor.run { [weak self] in ... }`
+- [ ] IO exports the minimum public domain contract; `Sources/**` is internal except the minimum App boot construction surface in `Sources/Plugins/**` (`CORE-API-001`)
+- [ ] No feature module imports another `{ModuleNamePlugins}` target; feature-to-feature dependencies use IO contracts only (`CORE-COMP-001`)
+- [ ] UIKit rendering and SwiftUI presentation-store mutation run on the declared MainActor boundary (`UI-ISOLATION-001`)
 - [ ] `weak var view` in every Presenter; `weak var delegate` in every Interactor
 - [ ] `registerFlows()` called in `init`, never in `activate()`
 - [ ] Domain layer: no UIKit, no Boardy, no network frameworks
 - [ ] SDK-first checked: native/platform option preferred before new third-party dependency
 - [ ] `sharedRepository` / `sharedTracker` are stored properties on ModulePlugin, not locals
-- [ ] **Board is STATELESS** — no stored state (input, context, flags) on Board; all state lives in Controller
+- [ ] **Board is STATELESS** — no per-session input/context/flags on Board; UI session state lives in Interactor and Viewless session state lives in Controller (`BRD-LIFE-001`)
 - [ ] **Board → Controller communication uses event buses** — Board never stores/retrieves controller references to communicate; lifecycle tracing/duplicate checks must not become a communication path
 - [ ] **Correct communication mechanism chosen** — `sendOutput()` for child→direct parent; `broadcastAction()` for signals targeting one or more upstream ancestors; Command for Motherboard→already-activated child or sibling→sibling within the same Motherboard
 
@@ -183,15 +183,21 @@
 - [ ] `{Name}Viewable` protocol defined at top of Presenter file
 - [ ] ViewModels (structs/enums) defined in Presenter file
 - [ ] `weak var view: {Name}Viewable!`
-- [ ] All string formatting and display logic here, NONE in ViewController
+- [ ] All raw/domain → display-ready mapping and formatting lives here, never in a UIKit/SwiftUI View
 - [ ] Private `map(_ model:) -> ViewModel` function does all domain→ViewModel conversion
 
 ### ViewController
 - [ ] `{Name}Interactable` protocol defined at top of ViewController file
 - [ ] `weak var actionDelegate: {Name}ActionDelegate!`
 - [ ] `viewDidLoad` calls `interactor.didBecomeActive()`
-- [ ] Only renders and forwards -- no conditionals or business logic
+- [ ] Renders and forwards; conditionals inspect display-ready presentation state only, never raw/domain data
 - [ ] Conforms to `{Name}Viewable`
+
+### SwiftUI rendering adapter
+- [ ] MainActor presentation store conforms to the same display port and receives the same semantic ViewModel as UIKit
+- [ ] SwiftUI View observes display-ready state and forwards typed intent; it does not call UseCases or hold domain models
+- [ ] `@State` / local observation owns UX-only focus, disclosure, gesture, animation, and scroll mechanics — never product/business state
+- [ ] Same domain input produces equivalent loading/content/empty/error meaning in UIKit and SwiftUI; only rendering mechanics differ
 
 ### Builder
 - [ ] Wires Presenter.view = viewController
