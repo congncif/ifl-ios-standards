@@ -175,7 +175,10 @@ it is not absorbed here. No routine second review is scheduled.
 **Outcome:** repository history contains a concise closeout record that names the already-created
 Task-2 SHA without changing the candidate being qualified.
 
-**Status:** PENDING
+**Status:** COMPLETE
+
+**Candidate identity:** IIS-0005 is bound to Task-2 commit
+`521c7a4ee939bb96f3f67a75050f71f5d13416a1`; this Task-3 reporting commit is not the candidate.
 
 ### Changes
 
@@ -224,4 +227,4 @@ Task-2 SHA without changing the candidate being qualified.
   - Verdict: AUTO_APPROVED by independent agent `iis0004_amendment_gate_fast`; no P0/P1/P2 remained.
 - Open material questions: none
 
-STATUS: TASK_2_CANDIDATE_COMMIT_PENDING
+STATUS: COMPLETE_RC3_CANDIDATE_FROZEN

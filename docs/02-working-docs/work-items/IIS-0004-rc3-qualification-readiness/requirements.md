@@ -130,7 +130,7 @@ corrective diff passes one joined AI consistency review with no open P0/P1.
   writer-frozen for one joined independent AI consistency review. All accepted P0/P1 findings are
   resolved in at most one batch, no routine second review runs, and the resulting post-review commit
   is recorded separately as the immutable RC3 qualification candidate.
-- [ ] **D6 — Scope and history are clean.** Only explicit paths are staged, each semantic task has one
+- [x] **D6 — Scope and history are clean.** Only explicit paths are staged, each semantic task has one
   commit, `.superpowers/` and unrelated files stay excluded, and no external release operation occurs.
 
 ## Requirement gate
