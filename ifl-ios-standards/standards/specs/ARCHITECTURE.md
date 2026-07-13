@@ -2,9 +2,9 @@
 
 # SPEC: Architecture (Top-Level Overview)
 
-> Canonical authority: the bundled Canon, ADRs, and sibling specs under this plugin's
-> `standards/` directory. A consuming project may keep additional source references in its own
-> documented knowledge location.
+> Normative authority: Rules and Profiles under `standards/canon/`, explained by accepted ADRs.
+> This overview and sibling specs are derived guidance; they cannot add or weaken an obligation.
+> Boardy-specific sections apply only when the `boardy-vip` Profile is selected.
 > Companion specs: `SDK_FIRST.md`, `MODULE_CREATION.md`, `IO_INTERFACE.md`, `PLUGINS_INTEGRATION.md`, `MICROBOARD_UI.md`, `MICROBOARD_NONUI.md`, `COMMUNICATION.md`, `COMPOSABLE_BOARD.md`, `LAYERING.md`, `SERVICE_LAYER.md`, `VIP_COMPONENTS.md`, `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded).
 
 ## When to use
@@ -25,8 +25,8 @@ Read FIRST, before any per-spec rule. Use as the orientation map for:
 
 ## Forces
 
-- Boardy is the pinned coordination engine for projects and features that select the `boardy-vip`
-  Profile; Core itself remains architecture-pattern-neutral.
+- Boardy is an optional coordination/presentation adapter for projects and features that select the
+  `boardy-vip` Profile. Core Domain and Application policy remain independent of it.
 - Interface Module / Implementation Module split keeps cross-module imports honest: feature consumers
   depend only on `{Module}`. App composition may construct the minimum public LauncherPlugin surface
   exported from `{Module}Plugins/Sources/Plugins/**`; that exception never authorizes feature-to-feature
@@ -46,7 +46,7 @@ ${CLAUDE_PLUGIN_ROOT}/standards/rules/QUICK_REF.md  ← operational routing inde
 <project-root>/CLAUDE.md or AGENTS.md        ← project-specific bindings
 ```
 
-Module anatomy this architecture mandates:
+Boardy-profile module anatomy (derived from the selected Profile):
 
 ```
 {ModuleRoot}/{Module}/
@@ -58,7 +58,7 @@ Module anatomy this architecture mandates:
 │       └── ServiceMap+{Board}.swift
 └── Sources/                       ← Implementation (internal by default)
     ├── Plugins/                   ← ModulePlugin + minimum public LauncherPlugin construction surface
-    ├── Microboards/{Board}/       ← BA (VIP) per Board
+    ├── Microboards/{Board}/       ← outward Boardy/VIP orchestration + presentation adapter
     └── Services/                  ← Domain + Application + Infra + Tracking
 ```
 
@@ -70,7 +70,8 @@ Canonical (PDF) ↔ codebase alias:
 |---|---|
 | Interface Module | IO module / `{Module}` target |
 | Implementation Module | Plugins module / `{Module}Plugins` target |
-| Business Application Layer | VIP layer (Microboards) |
+| Presentation/orchestration adapter | VIP/Boardy Microboards when that Profile applies |
+| Application policy | Services/Application |
 | Domain Layer | Services/Domain |
 | Infrastructure Layer | Services/Infra |
 | Plugin host | `PluginLauncher` |
@@ -92,8 +93,8 @@ Left column is canonical; right column appears in legacy code/specs.
 | 1 | **SDK-first** | Prefer first-party platform frameworks; minimize 3rd-party surface | `SDK_FIRST.md` |
 | 2 | **Modular + Interface Module** | Split each feature into public `{Module}` (IO) + implementation `{Module}Plugins` (Sources). Feature-to-feature deps use only the Interface Module; `Sources/Plugins/**` may expose minimal App boot wiring. | `MODULE_CREATION.md`, `IO_INTERFACE.md` |
 | 3 | **Plugins composition** | Apps assemble at runtime via `PluginLauncher` + `LauncherPlugin` + `ModulePlugin` + `URLOpenerPlugin`. Host = app entry from PROJECT_CONFIG. | `PLUGINS_INTEGRATION.md` |
-| 4 | **Micro-services Composable (Boardy)** | Boards are independently activatable services; Motherboard is gateway; `BoardProducer` is registry; `ActivatableBoard`/`InteractableBoard` are contracts. | `MICROBOARD_UI.md`, `MICROBOARD_NONUI.md`, `COMMUNICATION.md`, `COMPOSABLE_BOARD.md` |
-| 5 | **Domain-Driven Layering** | Pure Domain core; BA (VIP) on top; Infra & UI at edges. Deps point inward. | `LAYERING.md`, `SERVICE_LAYER.md`, `VIP_COMPONENTS.md` |
+| 4 | **Optional Boardy composition** | When `boardy-vip` applies, Boards are outward lifecycle/composition adapters; Motherboard is gateway and `BoardProducer` is registry. | `MICROBOARD_UI.md`, `MICROBOARD_NONUI.md`, `COMMUNICATION.md`, `COMPOSABLE_BOARD.md` |
+| 5 | **Domain-Driven Layering** | Pure Domain core; framework-neutral Application policy; orchestration, presentation, Infra, and UI at the edges. Dependencies point inward. | `LAYERING.md`, `SERVICE_LAYER.md`, `VIP_COMPONENTS.md` |
 
 ### Runtime composition
 
@@ -191,7 +192,9 @@ high-level map.
 
 ## Composition
 
-- Pillars compose strictly inward: Pillar 5 (Layering) is innermost; Pillar 4 (Boardy) sits in the BA + UI shells; Pillar 3 (Plugins) is the runtime glue; Pillar 2 (Modular) is the build-time boundary; Pillar 1 (SDK-first) governs dependency choices across all.
+- Pillars compose strictly inward: Domain/Application policy is innermost; optional Boardy sits only in
+  the orchestration/presentation shell; Plugins are runtime composition; modules are build-time
+  boundaries; SDK-first governs dependency choices across all adapters.
 - Module → ServiceMap → Board → VIP forms one composition tree per feature.
 - Cross-module composition uses the Interface target's `MainboardGenericDestination` only.
 

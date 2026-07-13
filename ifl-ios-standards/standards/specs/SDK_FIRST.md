@@ -16,7 +16,9 @@ When evaluating a new dependency, infrastructure integration, or third-party fra
 
 ## When NOT to use
 
-- Pre-existing architecture pins — Boardy + SiFUtilities are already approved; no re-evaluation each PR.
+- A dependency already governed by the selected Profile and a current project policy binding does not
+  need a fresh product-selection debate in every PR. Compatibility, security, ownership, and correct
+  layer placement still apply when the dependency or its use changes.
 - Pure-Swift utilities (small functions, value types) — write inline.
 - Internal modules from this repo — they're not third-party.
 
@@ -26,7 +28,9 @@ When evaluating a new dependency, infrastructure integration, or third-party fra
 - Third-party adoption costs accumulate: dual maintenance, build time, security surface, opaque bugs.
 - Vendor types in Domain bind business rules to the vendor's API — refactor cost compounds.
 - "Small helper" libraries (3-line shims, leftpad-class) deliver near-zero value vs writing local Swift.
-- Boardy + SiFUtilities are exceptions (architecture contract); other deps must justify themselves.
+- A Profile may select an orchestration framework such as Boardy at its adapter shell; that selection
+  does not create a general vendor exception for Domain or Application code and does not pre-approve
+  unrelated utility libraries.
 
 ## Files
 
@@ -42,7 +46,7 @@ Governance spec — no file shape produced. Affects:
 
 - Adapter: `{Vendor}{Concern}Adapter` (e.g. `FirebaseAnalyticsAdapter`) — lives in `Sources/Services/Infra/` or `Sources/Services/Tracking/`.
 - Domain protocol the adapter implements: `{Concern}Service` / `{Concern}Repository` (vendor-neutral).
-- Imports: vendor `import` statements appear ONLY in adapter file(s), never in Domain / BA.
+- Imports: vendor `import` statements appear only in adapter files, never in Domain/Application policy.
 
 ## Communication
 
@@ -55,13 +59,16 @@ Prefer first-party platform SDKs and language-standard libraries before adding t
 1. Swift, Foundation, UIKit, Swift Concurrency, URLSession, Codable, XCTest, etc. — when sufficient.
 2. Existing project-local abstractions already present in the app or module.
 3. Add/keep a third-party dep ONLY when native is incomplete, risky, or materially more expensive.
-4. Wrap third-party APIs at module boundaries — Domain + BA depend on Domain protocols, never vendor types.
+4. Wrap third-party APIs at outward module boundaries — Domain and Application depend on inward-owned
+   protocols, never vendor types.
 
 ### Allowed third-party criteria
 
-A third-party dep is acceptable when ≥1 of:
+A third-party dependency is a candidate for approval when at least one of these is true and project
+policy accepts its ownership, maintenance, security, and compatibility posture:
 
-- Already part of the architecture contract (Boardy, SiFUtilities).
+- The selected Profile requires it at a declared outward adapter boundary (for example, Boardy in a
+  `boardy-vip` orchestration/presentation shell).
 - Infrastructure integration the platform SDK doesn't provide directly.
 - Replaces substantial custom code with a stable, well-maintained implementation.
 - Isolated behind Domain protocols or Infrastructure adapters.
@@ -71,9 +78,10 @@ A third-party dep is acceptable when ≥1 of:
 | Layer | Third-party rule |
 |---|---|
 | Domain | No third-party imports. Foundation only. |
-| Business Application | Avoid third-party except already-approved architecture primitives (Boardy). |
+| Application / business policy | No orchestration, UI, persistence, networking, or utility-framework imports; depend on inward-owned protocols (`CORE-DEP-002`). |
+| Orchestration / presentation adapter | A selected Profile may use its framework here (for example Boardy), while depending inward on Application/Domain contracts. |
 | Infrastructure & UI | Third-party SDKs allowed ONLY behind adapters, DTOs, repositories, services, UI components. |
-| Interface Module | Minimal surface — plain Swift types + Boardy IO contracts only. |
+| Interface Module | Minimal vendor-neutral surface; Boardy IO types appear only when the `boardy-vip` Profile explicitly owns that public contract. |
 
 ### Dependency review checklist
 
@@ -98,13 +106,16 @@ Need new capability?
 
 ## Concurrency
 
-- Native APIs (Swift Concurrency, URLSession async) compose cleanly with Boardy's MainActor model.
-- Vendor SDKs often use callback-on-arbitrary-thread → adapter MUST hop to MainActor before crossing into BA / UI (see `MICROBOARD_NONUI.md` Concurrency).
+- Native APIs (Swift Concurrency, URLSession async) keep Application contracts independent of the
+  selected orchestration adapter.
+- Vendor SDKs often use callback-on-arbitrary-thread → the adapter must cross the actor boundary
+  required by its inward contract before publishing to presentation/UI. Boardy-specific MainActor
+  behavior applies only when the `boardy-vip` Profile is selected.
 - Adapter is the concurrency boundary as well as the API boundary.
 
 ## Composition
 
-- Vendor adapter conforms to Domain protocol → BA UseCase depends on protocol → swapping vendors = swap adapter, no BA churn.
+- Vendor adapter conforms to an inward-owned protocol → Application UseCase depends on that protocol → swapping vendors changes only the adapter.
 - Multiple vendors for one concern (analytics A + B) → either one adapter calling both, or `EXTENSIBLE_PROVIDER.md` pattern when interchangeable at launch.
 - Adapter lives in Infra; if cross-module needed, expose Domain protocol via IO pod (Pattern A/B in `CROSS_MODULE_DI.md`).
 
@@ -112,17 +123,19 @@ Need new capability?
 
 - SDK init (e.g. `Firebase.configure()`) → in `LauncherPlugin.prepareForLaunching` `launchSettings:` block, runs once.
 - Adapter instance — typically app-lifetime (shared on ModulePlugin) or per-Board depending on statefulness.
-- Vendor session/handle objects — owned by adapter; not exposed to BA.
-- Replacing a vendor → bump Infra adapter only; Domain + BA + IO unchanged.
+- Vendor session/handle objects — owned by adapter; not exposed to Domain/Application.
+- Replacing a vendor → change the Infra adapter only; Domain/Application and vendor-neutral IO remain unchanged.
 
 ## Testing
 
 - Domain layer test: grep for `import Alamofire|GoogleSignIn|Firebase…` etc. under `Sources/Services/Domain/` — must be empty.
-- BA layer: same grep across `Sources/Microboards/` excluding ViewController-only vendor UI components — should be near-empty.
+- Application layer: imports of Boardy, UIKit, networking, persistence, and vendor/utility frameworks
+  under `Sources/Services/Application/` must be empty.
 - Adapter: unit test with vendor SDK in test mode OR with vendor mocked at adapter boundary; assert Domain protocol contract upheld.
 - IO surface: visually scan `IO/**/*.swift` for vendor imports — must be zero.
 - Podspec lint: `s.dependency` lines have no `:path` modifier (see `MODULE_CREATION.md`).
-- Final architecture review: confirm Domain and Business Application layers contain no vendor imports.
+- Final architecture review: confirm Domain and Application policy contain no vendor imports; Profile
+  frameworks are confined to their declared outward adapters.
 
 ## Pitfalls
 
@@ -134,7 +147,7 @@ Need new capability?
 | Feature module imports another module's Plugins target | Depend on Interface Module only |
 | ViewController directly calls analytics / network SDK | Route View → Interactor → UseCase → Domain protocol → Infra adapter |
 | Multiple vendors duplicated across modules | One shared adapter behind one Domain protocol; expose via IO |
-| Vendor callback fires on background thread, results published as-is | MainActor hop inside adapter before crossing into BA |
+| Vendor callback fires on an arbitrary thread and crosses its contract unsafely | Cross to the actor declared by the inward contract inside the adapter |
 | `s.dependency '{Vendor}', :path => '.'` in podspec | NAME only; paths belong in Podfile |
 
 ## References

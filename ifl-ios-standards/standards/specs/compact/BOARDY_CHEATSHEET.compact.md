@@ -1,6 +1,8 @@
 # BOARDY_CHEATSHEET (compact)
 
-Derived from `MICROBOARD_UI.md` + `IO_INTERFACE.md` + `COMMUNICATION.md`. Default load for `ios-coder` + `ios-tester`. Full specs only on demand.
+Derived from the selected `boardy-vip` Canon Profile through `MICROBOARD_UI.md`, `IO_INTERFACE.md`,
+and `COMMUNICATION.md`. This cheatsheet is routing/guidance only and cannot invent or weaken a Rule.
+Load full specs only when the affected pattern needs them.
 
 Last sync: 2026-07-13 for Standards 1.0 candidate.
 
@@ -108,7 +110,7 @@ final class CheckoutBoard: ModernContinuableBoard,
         let vc = component.userInterface
         watch(content: component.controller)         // 1
         motherboard.putIntoContext(vc)               // 2
-        rootViewController.show(vc)                  // 3 — default; deviate only for SiFUtilities-unsupported nav or Composable embed
+        rootViewController.show(vc, sender: self)    // 3 — UIKit default; use a bound adapter or Composable when required
         completeBus.connect(target: self) { t, isDone in
             t.rootViewController.returnHere { [weak t] in t?.complete(isDone) }
         }
@@ -163,7 +165,8 @@ Activation order inside `activate(...)`: `watch(content:)` → `putIntoContext(v
   `UI-ISOLATION-001`).
 - `Sources/**` is internal except the minimum App boot construction surface in `Sources/Plugins/**`;
   another feature still never imports `{Module}Plugins` (`CORE-API-001`, `CORE-COMP-001`).
-- `rootViewController.show(_:)` (SiFUtilities) is the **default**; deviate only when `show(_:)` cannot express the requirement (custom transitions) or when embedding into a Composable surface (follow `COMPOSABLE_BOARD.md`). Don't reach for `UINavigationController` wrapping or `topPresentViewController` by reflex.
+- UIKit `rootViewController.show(_:sender:)` is the dependency-free default. Use a project-approved
+  navigation adapter only for behavior UIKit cannot express; use `COMPOSABLE_BOARD.md` for embedding.
 - Omit custom `context:` on `show()` unless you need explicit control (target a specific VC instead of inferring from root, or pin lifecycle to a known UIViewController).
 - `registerFlows()` last in `init`; never in `activate`.
 - `context` in Input is `weak`; activation backedges are `weak`.

@@ -2,6 +2,8 @@
 
 # SPEC: Service Layer (DDD)
 
+> Derived guidance for `CORE-DEP-001`…`003` and ADR-0002. Canon owns the dependency obligation;
+> Boardy examples apply only when the `boardy-vip` Profile is selected.
 > Reference: *Modern large-scale iOS app development* — Domain-driven Layered pillar.
 > Companion specs: `LAYERING.md` (3-layer dependency rule), `CROSS_MODULE_DI.md` (sharing across modules), `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded).
 
@@ -18,13 +20,15 @@ When adding domain logic, business operations, persistence, or networking inside
 
 - VIP Interactor inside a Board — that is presentation logic, see `VIP_COMPONENTS.md`. The VIP Interactor *consumes* UseCases; it does not contain domain rules.
 - Pure UI state container → `Presenter` / `ViewState`, not a UseCase.
-- Cross-module shared service — wire it through `CROSS_MODULE_DI.md` (Pattern A Boardy Board or Pattern B Resolver).
+- Cross-module shared service — expose an inward-owned contract through the Interface Module; a
+  Boardy Board is one optional outward transport when that Profile applies.
 - One-off helper used by exactly one Board with no domain meaning → just inline it.
 
 ## Forces
 
 - Domain layer must stay framework-free (no UIKit / Boardy / Codable). Adding `Codable` directly to a Domain struct is the most common drift — keep DTOs in `Infra/`.
-- UseCase protocols exist to make Builder wiring + tests easy; *every* UseCase has a protocol + `*UseCaseInteractor`, even single-method ones. The cost is small; the consistency pays off when Resolver/Boardy injection comes in.
+- UseCase protocols keep Application independent of its outward composition and tests; the concrete
+  runtime or DI mechanism does not enter the Application import graph.
 - Splitting `REST{Entity}Service` by protocol extension keeps one HTTP class but separates the concerns each Domain protocol cares about — easier to mock per concern in tests.
 - Tracking is a parallel concern, not a UseCase — keep it out of the Domain → Application dependency chain.
 
@@ -227,15 +231,17 @@ struct {Board}Builder: {Board}Buildable {
 }
 ```
 
-- Cross-module sharing — see `CROSS_MODULE_DI.md`. Never expose a `*UseCaseInteractor` directly to another module; expose via Boardy Board or Resolver protocol.
+- Cross-module sharing — see `CROSS_MODULE_DI.md`. Never expose a `*UseCaseInteractor` directly to
+  another module; expose an Interface Module contract and choose a Boardy or non-Boardy adapter at the edge.
 
 ## Lifecycle
 
 - Domain types — process lifetime; immutable.
 - Shared repositories — one instance per `ModulePlugin` (stored property), shared across all Boards of that module.
 - REST services — typically created per Builder call; cheap to instantiate, the HTTPClient inside is shared.
-- UseCaseInteractors — created per Builder call; live as long as the consuming Interactor (Boardy `attachObject` chain).
-- No `complete()`, no `attachObject` semantics at this layer — that's Boardy / Board concerns. Service Layer objects ride the Board's lifetime.
+- UseCaseInteractors — created by an outward composition root and live as long as their consuming flow.
+- No `complete()`, `attachObject`, UIKit, SwiftUI, or Boardy semantics at this layer; the selected
+  orchestration adapter owns that lifecycle outside Application.
 
 ## Testing
 

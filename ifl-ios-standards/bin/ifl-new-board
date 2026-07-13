@@ -230,7 +230,6 @@ ui|swiftui)
 
 import Boardy
 import $MODULE
-import SiFUtilities
 import UIKit
 
 final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
@@ -254,7 +253,7 @@ final class ${BOARD}Board: ModernContinuableBoard, GuaranteedBoard,
             let component = builder.build(withDelegate: self, input: input)
             watch(content: component.controller)
             motherboard.putIntoContext(component.userInterface)
-            rootViewController.show(component.userInterface)
+            rootViewController.show(component.userInterface, sender: self)
         }
     }
 

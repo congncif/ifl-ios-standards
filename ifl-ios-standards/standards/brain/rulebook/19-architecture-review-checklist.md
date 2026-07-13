@@ -3,7 +3,9 @@
 
 # 19. Architecture Review Checklist
 
-Use this checklist for code review, agent self-review, and architecture audits.
+This is derived review guidance, not a second Rule registry. Apply only the selected Canon Profiles;
+where wording differs, Canon governs. Use this checklist for code review, agent self-review, and
+architecture audits.
 
 ### 19.1 Dependency & Layering
 
@@ -63,8 +65,11 @@ Use this checklist for code review, agent self-review, and architecture audits.
 - [ ] Names match canonical patterns
 - [ ] Trace headers / authorship metadata present on new files (per project convention)
 - [ ] Diff contains only changes required by the task
-- [ ] Verification was performed against a real signal
+- [ ] Executable changes have the smallest risk-relevant signal; documentation-only changes have no
+      artificial build/test gate
 - [ ] Report states facts: changed files, commands run, results
 
----
+For a plan-scale change, this checklist participates in the one final joined AI consistency review
+after all semantic tasks; it does not create a review checkpoint per task.
 
+---

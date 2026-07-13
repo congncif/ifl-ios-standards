@@ -1,15 +1,17 @@
 <!-- Created by claude-opus-4-7 on 2026-05-09 -->
 # REVIEWER_CHECKLIST
 
-> Load this file (+ QUICK_REF.md) for ALL code review tasks.
-> Do NOT load individual specs for review -- everything needed is here.
+> Derived Boardy+VIP review aid. Use only when the `boardy-vip` Profile applies, after selecting the
+> applicable Canon Profiles and Rules. Canon owns every obligation; unchecked, summarized, or legacy
+> wording here cannot add, remove, or weaken a Rule. Load focused specs only when they clarify an
+> applicable pattern.
 >
 > **Looking for the *procedure* (triage order, categorization, comment templates, escalation)?**
 > → `REVIEW_PLAYBOOK.md`. This file is the rules reference; the playbook is how to apply them.
 
 ---
 
-## Architecture Rules (check every PR)
+## Architecture review prompts (apply by selected Profile and change impact)
 
 - [ ] **Humble View (`UI-HUMBLE-001`…`004`)** — renders display-ready state, may branch on presenter-encoded loading/content/empty/error state, owns only UX-local interaction state and geometry/visual interpolation, and forwards typed intent; no raw/domain formatting, product or analytics meaning, business/navigation-policy decisions, business I/O, or dependency construction
 - [ ] Unidirectional flow only (`BRD-VIP-001`): View -> Interactor -> UseCase -> Presenter -> View
@@ -19,7 +21,7 @@
 - [ ] UIKit rendering and SwiftUI presentation-store mutation run on the declared MainActor boundary (`UI-ISOLATION-001`)
 - [ ] `weak var view` in every Presenter; `weak var delegate` in every Interactor
 - [ ] `registerFlows()` called in `init`, never in `activate()`
-- [ ] Domain layer: no UIKit, no Boardy, no network frameworks
+- [ ] Domain layer follows `CORE-DEP-001`: no UIKit/SwiftUI, Boardy, persistence, networking, or vendor SDK imports/types
 - [ ] SDK-first checked: native/platform option preferred before new third-party dependency
 - [ ] `sharedRepository` / `sharedTracker` are stored properties on ModulePlugin, not locals
 - [ ] **Board is STATELESS** — no per-session input/context/flags on Board; UI session state lives in Interactor and Viewless session state lives in Controller (`BRD-LIFE-001`)
@@ -120,7 +122,8 @@
 - [ ] `watch(content: component.controller)` called in `activate()` for lifecycle tracking when applicable
 - [ ] `watch(content:)` / watched-content retrieval is not used for Board→Controller communication
 - [ ] `motherboard.putIntoContext(viewController)` called BEFORE `show()`
-- [ ] `rootViewController.show(viewController)` preferred — only deviate for custom navigation SiFUtilities `show(_:)` cannot express, or when embedding into a Composable surface (`COMPOSABLE_BOARD.md`)
+- [ ] UIKit `rootViewController.show(viewController, sender: self)` is the dependency-free default;
+      a different helper is project-approved and adapter-scoped, or the surface follows `COMPOSABLE_BOARD.md`
 - [ ] No custom `context:` on `show()` unless explicitly required (target a specific VC instead of inferring from root, or pin lifecycle to a known UIViewController)
 - [ ] `completeBus` connected in `activate()` AFTER `show()`
 - [ ] Board conforms to `{Name}Delegate` (ActionDelegate + ControlDelegate)

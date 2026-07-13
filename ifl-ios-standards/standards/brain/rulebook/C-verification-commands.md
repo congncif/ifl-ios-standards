@@ -5,6 +5,10 @@
 
 Resolve project-specific values (workspace name, scheme, simulator) from the project binding document (`PROJECT_CONFIG.md` or equivalent).
 
+These are adapter examples for executable iOS changes, not a universal completion gate. Select only
+the smallest command relevant to the changed behavior and consuming repository. Documentation-only
+changes require neither command, and unchanged code is not rerun for a duplicate green signal.
+
 ```bash
 # Build with filtered output
 xcodebuild build -workspace {Workspace} -scheme {Scheme} \
@@ -19,7 +23,8 @@ xcodebuild test -workspace {Workspace} -scheme {Scheme} \
   | grep -E "(error:|FAILED|PASSED|TEST SUCCEEDED|TEST FAILED|BUILD SUCCEEDED|BUILD FAILED)"
 ```
 
-Never use `-quiet` or output suppressors that hide failures. Empty filter output indicates failure, not success.
+When one of these commands is applicable, do not use `-quiet` or output suppressors that hide
+failures. Report only the result actually observed.
 
 ---
 

@@ -2,10 +2,14 @@
 # SPEC: Boardy Foundations
 
 > Mental model required to read every other Boardy spec. If the rules in `MICROBOARD_*` / `COMMUNICATION` / `BUS_PATTERNS` ever feel arbitrary, the answer is in here: ownership direction, lifecycle independence, attachment context, and the at-most-once completion contract.
+>
+> This is derived guidance for the selected `boardy-vip` Profile, especially `BRD-LIFE-001` and
+> `BRD-VIEWLESS-001`. Canon owns the exact obligation; examples here do not create additional Rules.
 
 ## When to use
 
-Read this **first** before any other Boardy spec. The five non-negotiables below are the axioms; everything else is theorem.
+Read this first when the `boardy-vip` Profile applies. These five prompts summarize its ownership and
+lifecycle model; apply the exact selected Canon Rules when reviewing conformance.
 
 1. A Board owns its Controllers / UI — never the reverse.
 2. A Board's lifecycle is independent of any Controller's.
@@ -119,7 +123,7 @@ Canonical sequence per activation:
 4. (optional) bus.connect(target: component.controller)  // BUS_PATTERNS Shape A or B
 5. attachObject(component.controller, context: ...)      // priority 1 → 2 → 3
 6. motherboard.putIntoContext(viewController)            // UI only, before show
-7. rootViewController.show(viewController)               // UI only, default path
+7. rootViewController.show(viewController, sender: self) // UI only, UIKit default path
 8. component.controller.start()                          // Viewless only
 9. … runtime: bus transports / flow callbacks / delegate calls …
 10. sendOutput(_:)

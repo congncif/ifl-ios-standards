@@ -2,6 +2,9 @@
 
 > **Purpose**: step-by-step procedure for reviewing a Boardy+VIP PR. `REVIEWER_CHECKLIST.md` is the *reference* — exhaustive itemized list of rules to check. This playbook is the *procedure* — the order to check them in, how to categorize what you find, comment templates that match the recurring issues, and when to escalate vs. block.
 >
+> **Authority**: this is derived procedure for a selected `boardy-vip` Profile. Canon Rules, Profiles,
+> and accepted ADRs govern; this runbook cannot invent severity, evidence, or merge obligations.
+>
 > **Not a pattern spec.** Exempt from the 12-section `SPEC_CONTRACT.md` template; this is a procedural runbook, same as `DECISION_TREES.md` / `BROWNFIELD_MIGRATION.md` / `GREENFIELD_SETUP.md` / `TROUBLESHOOTING.md`.
 >
 > **Use this when**: you've been asked to review a PR. **Don't use this for**: writing code (use `DECISION_TREES.md` + pattern specs) or debugging (use `TROUBLESHOOTING.md`).
@@ -15,7 +18,7 @@ Reviewer fatigue degrades quality as files pile up. Most reviews silently follow
 | # | Read | Why first |
 |---|------|-----------|
 | 1 | PR description | If the goal isn't clear, stop and ask. Never review code whose intent you can't restate. |
-| 2 | lint output (CI badge) | If lint fails, the PR isn't ready. Don't review further until green. |
+| 2 | Relevant repository-owned signals, when executable behavior changed | Use available results as context; missing or failing required signals are findings, not a reason to skip architecture review. Documentation-only changes need no lint/build/test ritual. |
 | 3 | `Podfile` + every `*.podspec` diff | Module structure decisions cascade. A wrong podspec dep contaminates downstream files. |
 | 4 | `IO/**` diffs (new + modified) | IO is the public surface. Mistakes here are breaking changes. |
 | 5 | `Sources/Plugins/**` diffs | ModulePlugin + LauncherPlugin + construction wiring. Wiring mistakes cause runtime crashes the tests won't catch. |

@@ -1,16 +1,21 @@
 <!-- Retrofitted to SPEC_CONTRACT 12 sections on 2026-05-23 -->
 
-# SPEC: Layering (Domain-Driven 3-Layer)
+# SPEC: Layering (inward policy, outward adapters)
+
+> This spec is derived guidance for `CORE-DEP-001`…`003` and ADR-0002. Canon owns the
+> obligation. Boardy examples apply only when the `boardy-vip` Profile is selected.
 
 > Reference: *Modern large-scale iOS app development* — Domain-driven Layered pillar.
-> Companion specs: `SERVICE_LAYER.md` (concrete service code), `VIP_COMPONENTS.md` (BA layer detail), `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded).
+> Companion specs: `SERVICE_LAYER.md` (policy and service adapters), `VIP_COMPONENTS.md`
+> (presentation-adapter detail), `compact/BOARDY_CHEATSHEET.compact.md` (Boardy profile guidance).
 
 ## When to use
 
 When deciding which folder a new file belongs in, or auditing whether a feature module respects the dependency rule:
 
 - New model / repository protocol / domain error → Domain layer.
-- New screen flow / use case / coordination Board → Business Application layer.
+- New use case / business orchestration policy → Application layer.
+- New screen flow / Board / Presenter / rendering port → outward orchestration or presentation adapter.
 - New REST client / Codable DTO / storage / SDK adapter / Builder struct / ViewController → Infrastructure & UI layer.
 - Refactor adding a cross-module shared service → consult Cross-Module Layering rule.
 
@@ -22,8 +27,10 @@ When deciding which folder a new file belongs in, or auditing whether a feature 
 
 ## Forces
 
-- Inward-only dependencies stop Infra changes (e.g. swapping REST → GraphQL) from rippling into Domain/BA.
-- The Buildable **protocol** sits in BA so Board never knows the concrete Builder; concrete `{Board}Builder` lives in Infra & UI as the composition root.
+- Inward-only dependencies stop Infra or orchestration changes (e.g. REST → GraphQL or Boardy → a
+  coordinator) from rippling into Domain/Application policy.
+- The Buildable **protocol** sits in the Boardy adapter contract surface so Board never knows the
+  concrete Builder; concrete `{Board}Builder` lives at the outward composition root.
 - DTOs in Domain feel convenient (one type fewer) but couple wire format to business model — they belong in Infra.
 - Shared deps (`sharedRepository`, `sharedTracker`) must be ModulePlugin stored properties so all Boards see one instance.
 - Cross-module reuse goes through Interface Module (IO pod) or a `{Module}Core` protocol pod — never `{Module}Plugins`.
@@ -37,14 +44,14 @@ Sources/
 │   │   ├── Models/                      ← value types + errors
 │   │   ├── Repositories/                ← protocols
 │   │   └── Services/                    ← non-repo Domain protocols
-│   ├── Application/                     ← UseCase protocols + *UseCaseInteractor
+│   ├── Application/                     ← framework-neutral UseCase protocols + *UseCaseInteractor
 │   ├── Infra/                           ← REST/Codable/storage/SDK adapters
 │   └── Tracking/                        ← analytics adapters
 └── Microboards/{Board}/
-    ├── {Board}Board.swift               ← BA (Boardy)
-    ├── {Board}Interactor.swift          ← BA
-    ├── {Board}Presenter.swift           ← BA
-    ├── {Board}Protocols.swift           ← BA — declares Buildable protocol
+    ├── {Board}Board.swift               ← Boardy orchestration adapter
+    ├── {Board}Interactor.swift          ← presentation/application adapter
+    ├── {Board}Presenter.swift           ← presentation mapper
+    ├── {Board}Protocols.swift           ← adapter contracts; declares Buildable protocol
     ├── {Board}ViewController.swift      ← Infra & UI
     └── {Board}Builder.swift             ← Infra & UI — composition root
 ```
@@ -52,8 +59,8 @@ Sources/
 ## Naming
 
 - Domain: `{Entity}` (struct), `{Entity}Repository` (protocol), `{Entity}QueryService` (protocol), `{Module}Error: Error` (enum).
-- BA UseCase: protocol `{Action}UseCase` + concrete `{Action}UseCaseInteractor`.
-- BA Buildable: protocol `{Board}Buildable` in `{Board}Protocols.swift`.
+- Application UseCase: protocol `{Action}UseCase` + concrete `{Action}UseCaseInteractor`.
+- Boardy-profile Buildable: protocol `{Board}Buildable` in `{Board}Protocols.swift`.
 - Infra: `REST{Entity}Service`, `{Entity}DTO` + `toDomain()`, `{Entity}MemoryStorageRepository`.
 - Infra & UI composition: concrete `struct {Board}Builder: {Board}Buildable`.
 
@@ -63,19 +70,19 @@ Sources/
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│ Infrastructure & UI  (composition root)                    │
+│ Outward adapters + composition                             │
 │   UIKit VCs, Storyboards, custom views                     │
 │   REST clients, Codable DTOs, persistence, SDK adapters    │
-│   {Board}Builder (concrete) — wires Infra → BA             │
+│   optional Boardy shell + Presenter + {Board}Builder       │
+│   concrete Builder wires adapters → Application            │
 └──────────────────────────┬─────────────────────────────────┘
                            │ depends on
                            ▼
 ┌────────────────────────────────────────────────────────────┐
-│ Business Application (VIP + Boards)                        │
-│   Microboards: Board / Interactor / Presenter              │
-│   {Board}Buildable PROTOCOL (Board depends on this)        │
+│ Application policy                                         │
 │   UseCase protocols + UseCaseInteractor implementations    │
-│   Coordination (Flow / Viewless / Composable boards)       │
+│   no Boardy, UIKit/SwiftUI, networking, persistence,       │
+│   or utility-framework imports                             │
 └──────────────────────────┬─────────────────────────────────┘
                            │ depends on
                            ▼
@@ -87,7 +94,8 @@ Sources/
 └────────────────────────────────────────────────────────────┘
 ```
 
-Dependency rule → arrows inward only. Domain imports nothing above; BA imports Domain; Infra & UI imports both.
+Dependency rule → arrows inward only. Domain imports nothing above; Application imports Domain and
+inward-owned contracts; outward adapters may import Application/Domain plus their selected framework.
 
 ### Allowed dependencies (compile-time)
 
@@ -95,11 +103,13 @@ Dependency rule → arrows inward only. Domain imports nothing above; BA imports
 |---|---|
 | Domain → Foundation | ✅ |
 | Domain → anything else | ❌ |
-| BA → Domain | ✅ |
-| BA → Boardy / SiFUtilities | ✅ |
-| BA → Infra concrete types | ❌ — depend on Domain protocols |
+| Application → Domain | ✅ |
+| Application → Boardy / UIKit / SwiftUI / SiFUtilities / Infra | ❌ |
+| Application → outward capability | ✅ — through a protocol owned by Domain/Application |
+| Boardy orchestration/presentation adapter → Application / Domain / Boardy | ✅ when `boardy-vip` applies |
+| Boardy adapter → Infra concrete types | ❌ — depend on inward-owned protocols |
 | Infra → Domain (protocols + models) | ✅ |
-| Infra → BA | ❌ |
+| Infra → Application contract | ✅ when implementing an Application-owned port |
 | UI (VC) → Presenter / Interactor protocols | ✅ |
 | UI → Domain models | ❌ — Presenter maps to ViewModels first |
 
@@ -119,7 +129,8 @@ struct {Board}Builder: {Board}Buildable {
 }
 ```
 
-ModulePlugin owns process-wide singletons; hands them to Builder via stored properties — never via closures captured inside `BoardRegistration`.
+The composition root owns process-wide singletons and hands them to the Builder explicitly. Concrete
+adapters never move inward merely because Boardy or another runtime registers the Builder.
 
 ### Cross-module layering
 
@@ -133,14 +144,18 @@ Interface Module *is* the Domain protocol surface consumers compile against.
 ## Concurrency
 
 - Domain value types are immutable → safe across actors.
-- BA Interactor/Presenter typically MainActor; UseCase calls `async`.
-- Infra REST callbacks land on arbitrary threads → MainActor hop before crossing back into BA / UI (see `MICROBOARD_NONUI.md` Concurrency).
+- Application UseCases declare the isolation their policy requires and do not inherit Boardy's actor
+  model merely from an adapter.
+- Interactor/Presenter and rendering adapters typically run on MainActor. Infra callbacks cross into
+  the actor required by the inward contract before presentation/UI delivery.
 - Shared repositories accessed from multiple Boards → mark `@MainActor` or wrap in `actor` if mutation across Tasks expected.
 
 ## Composition
 
-- Each Microboard composes vertically: VC ← Builder (Infra & UI) ← Interactor (BA) ← UseCase (BA) ← Repository (Domain protocol) ← REST/Storage (Infra & UI).
-- Sideways composition across Boards goes through Flow/Composable boards in BA — not through shared Infra.
+- Each Boardy Microboard composes vertically as an outward adapter: VC ← Builder ←
+  Interactor/Presenter ← Application UseCase ← Domain protocol ← Infra adapter.
+- Sideways composition across Boards goes through Flow/Composable Board adapters — not through
+  Application policy or shared Infra.
 - Cross-module composition flows through IO pod activations, keeping layer rule intact across module boundaries.
 
 ## Lifecycle
@@ -158,6 +173,7 @@ Interface Module *is* the Domain protocol surface consumers compile against.
 - [ ] Repository protocols return Domain models, not DTOs
 - [ ] DTOs are `Codable` and live in `Services/Infra/`
 - [ ] DTOs expose `func toDomain() -> {Model}` (or initializer on the model)
+- [ ] `Services/Application/` imports no Boardy, UIKit/SwiftUI, networking, persistence, or utility framework
 - [ ] UseCase protocols live in `Services/Application/`; impls end with `UseCaseInteractor`
 - [ ] Presenter is the only place constructing `{Board}ViewModel`
 - [ ] Interactor `Presentable` surface accepts domain types only
@@ -167,8 +183,8 @@ Interface Module *is* the Domain protocol surface consumers compile against.
 
 Per-layer unit tests:
 - Domain: usually none unless logic in struct (custom Equatable/Hashable).
-- BA UseCaseInteractor: fake Repository + fake Service → assert call order + errors.
-- BA Interactor/Presenter: see `TESTING.md` for the standard mock surface.
+- Application UseCaseInteractor: fake Repository + fake Service → assert call order + errors.
+- Presentation Interactor/Presenter: see `TESTING.md` for the standard mock surface.
 - Infra REST: fake HTTPClient → assert endpoint + DTO mapping.
 
 ## Pitfalls
@@ -180,14 +196,15 @@ Per-layer unit tests:
 | Interactor receives `URLSession` | Skips UseCase + Repository | Inject UseCase that hides transport |
 | Presenter calls `URLSession` | UI reaches into Infra | Route via Interactor + UseCase |
 | VC constructs `ViewModel` | View has logic | Presenter builds VM; View renders |
+| Application imports Boardy or SiFUtilities | Framework/runtime policy leaked inward | Move lifecycle/navigation/utility adaptation to the outward Boardy shell |
 | `import {Module}Plugins` from another module | Impl leak | Depend on `{Module}` Interface |
 | `sharedRepository` created inside `BoardRegistration` closure | New instance per build → lost state | Store on ModulePlugin |
-| Board holds concrete `{Board}Builder` | Concrete leak into BA | Board holds `Buildable` protocol |
+| Board holds concrete `{Board}Builder` | Concrete leak into the orchestration adapter | Board holds `Buildable` protocol |
 
 ## References
 
 - `SERVICE_LAYER.md` (concrete service code by layer)
-- `VIP_COMPONENTS.md` (BA layer in detail)
+- `VIP_COMPONENTS.md` (presentation-adapter detail)
 - `CROSS_MODULE_DI.md` (cross-module layering)
 - `IO_INTERFACE.md` (Interface Module shape)
 - `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded)

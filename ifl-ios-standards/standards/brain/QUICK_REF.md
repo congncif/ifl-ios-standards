@@ -5,7 +5,10 @@
 
 > **Purpose**: Short, always-loaded entry point for AI coding agents.
 > **Rulebook chapters**: `.ai/brain/rulebook/*.md` — load **one file on demand** via the routing table below.
-> **Authority order**: user instruction → project bindings (`.claude/rules/*`) → this file → rulebook chapter → existing code.
+> **Authority**: Canon Rules, Profiles, and accepted ADRs under `standards/canon/` are normative.
+> Project bindings and user instructions select applicability and may add local constraints, but cannot
+> silently weaken or contradict Canon; use the applicable Canon exception process for a deviation.
+> This file and the rulebook are derived routing/guidance only. If they drift from Canon, Canon governs.
 
 ---
 
@@ -15,14 +18,18 @@
 2. **Locate** — smallest set of files the change requires.
 3. **Preserve** — naming, layering, dependency direction, access modifiers.
 4. **Implement** — minimum correct change. No drive-by edits.
-5. **Verify** — real signal (build / test / runtime). Empty output ≠ success.
+5. **Verify** — for executable changes, use the smallest risk-relevant build, test, or runtime signal;
+   documentation-only changes require no build/test gate.
 6. **Report** — changed files, commands, results, remaining work.
 
-Skipping understanding → noise. Skipping verification → lies.
+Skipping understanding creates noise. Claiming an unobserved executable signal creates false confidence.
 
 ---
 
-## 2. Hard Rules (non-negotiable)
+## 2. Canon-Linked Review Prompts
+
+These prompts summarize frequently applicable Canon Rules and process guidance; they do not create
+obligations. Apply the exact Rule statement, level, scope, Profile selection, and exception policy.
 
 1. **Domain is pure Swift.** No UIKit, no networking, no vendor SDKs, no Codable.
 2. **Dependencies point inward.** Infrastructure → Business → Domain. Never reverse.
@@ -32,8 +39,9 @@ Skipping understanding → noise. Skipping verification → lies.
 6. **Concrete types instantiated only at composition roots.** Inner layers depend on protocols.
 7. **One state, one writer.** No shared mutable state across boundaries.
 8. **Smallest correct change.** No speculative abstraction, no unrelated cleanup.
-9. **No bypass of safety checks.** Hooks, signing, verification stay on.
-10. **When in doubt, stop and ask.**
+9. **No bypass of applicable safety checks.** Hooks, signing, and required executable signals stay on.
+10. **Escalate material ambiguity.** Do not silently choose a path that changes product intent,
+    architecture, security, authority, or public behavior.
 
 ---
 
@@ -77,13 +85,15 @@ Skipping understanding → noise. Skipping verification → lies.
 
 Before reporting "done":
 
-- [ ] Build passes (canonical command, real signal observed)
+- [ ] Executable changes have the smallest risk-relevant signal required by the consuming repository
+- [ ] Documentation-only changes did not receive a build/test gate merely for process confirmation
 - [ ] Diff is line-by-line reviewed for unrelated changes
 - [ ] No layer / dependency violations
 - [ ] No new `public` surface without justification
 - [ ] No third-party dependency added without §3.2 + §18.2 check
 - [ ] No vendor types in contract modules
 - [ ] Trace header on new files (per project binding)
+- [ ] A complete plan receives one final joined AI consistency review, not per-task review loops
 - [ ] Report states facts, not theater
 
 ---
@@ -98,12 +108,11 @@ Conventional bindings (resolve actual paths from project root constitution):
 - `PROJECT_STRUCTURE.md` — current modules, schemes, topology
 - `QUICK_REF.md` — project-specific task → spec routing (optional)
 
-When a project binds a pattern (e.g. Boardy+VIP), expect companion compact cheatsheets next to its specs:
+When a project binds a pattern (e.g. Boardy+VIP), it may expose companion compact cheatsheets next to
+its specs. They remain derived from the selected Canon Profile:
 
 - `<specs>/compact/BOARDY_CHEATSHEET.compact.md` — pattern naming + skeletons
 - `<specs>/compact/TESTING.compact.md` — mock + interactor-test skeletons
-- `<rules>/BRIEFING_HANDOFF.md` — sub-agent handoff schema (if using the agent pipeline)
-
 These compact files are loaded **by default** by their owning agents; the full specs they derive from are loaded only on demand.
 
 If a binding file is missing for a value, **stop and ask** rather than guess. If bindings as a whole are missing, the project has not run its setup procedure — point the user there.

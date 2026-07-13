@@ -47,7 +47,6 @@ protocol {Name}Buildable {
 // {Name}Board.swift
 import Boardy
 import Foundation
-import SiFUtilities
 import UIKit
 
 final class {Name}Board: ModernContinuableBoard, GuaranteedBoard,
@@ -71,7 +70,7 @@ final class {Name}Board: ModernContinuableBoard, GuaranteedBoard,
         let component = builder.build(withDelegate: self, input: input)
         watch(content: component.controller)
         motherboard.putIntoContext(component.userInterface)
-        rootViewController.show(component.userInterface)
+        rootViewController.show(component.userInterface, sender: self)
         completeBus.connect(target: self) { target, isDone in
             target.rootViewController.returnHere { [weak target] in
                 target?.complete(isDone)

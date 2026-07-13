@@ -209,7 +209,7 @@ required executable-code tests.
 **Fix**: Use a longer-lived context. Priority: (1) explicit `input.context` (caller-owned), (2) `rootViewController` (flow outlives single screens), (3) Board context (last resort, only when no owner exists).
 **Ref**: `QUICK_REF.md` rule 13, `MICROBOARD_NONUI.md` §Attach context.
 
-### 5.2 `rootViewController.show(_:)` doesn't position the VC where expected
+### 5.2 `rootViewController.show(_:sender:)` doesn't position the VC where expected
 
 **Cause**: Default `show()` uses the topmost VC's presentation logic. Custom positioning (sheet, popover, embedded) needs a different context or a custom `show(_:context:)` call.
 **Fix**: Pass explicit `context:` to `show()`, OR if embedding into a Composable surface, use `putToComposer(elementAction: .update(element:))` instead.

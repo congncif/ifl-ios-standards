@@ -82,7 +82,7 @@ import UIKit
 
 // 2. Third-party frameworks, alphabetical
 import Boardy
-import SiFUtilities
+import {ApprovedVendorSDK}
 
 // 3. Internal interface modules, alphabetical
 import {ModuleName}

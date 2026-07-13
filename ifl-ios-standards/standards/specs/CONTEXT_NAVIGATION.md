@@ -16,7 +16,8 @@ When wiring back navigation, multi-step return-to-anchor flows, or presenting al
 
 ## When NOT to use
 
-- Plain push/present of a child board with no return logic → see `MICROBOARD_UI.md` `rootViewController.show(...)`.
+- Plain push/present of a child board with no return logic → see `MICROBOARD_UI.md` and UIKit
+  `rootViewController.show(..., sender: self)`.
 - Dismissing a modal that the same Board just presented → standard `dismiss(animated:)` on the presenter is fine; no bus needed.
 - View ↔ Interactor ↔ Presenter dialog logic — those are VIP, see `VIP_COMPONENTS.md`.
 
@@ -62,7 +63,7 @@ final class {Board}Board: ModernContinuableBoard, ... {
 
         watch(content: component.controller)
         motherboard.putIntoContext(component.userInterface)
-        rootViewController.show(component.userInterface)
+        rootViewController.show(component.userInterface, sender: self)
     }
 }
 
@@ -91,7 +92,7 @@ final class {Coordinator}Board: ModernContinuableBoard, ... {
 
         watch(content: component.controller)
         motherboard.putIntoContext(component.userInterface)
-        rootViewController.show(component.userInterface)
+        rootViewController.show(component.userInterface, sender: self)
     }
 }
 
@@ -163,7 +164,7 @@ extension {Board}Board: {Board}Delegate {
 }
 ```
 
-Helper (add if not in SiFUtilities):
+Optional outward UI helper (use only when the project has no equivalent bound navigation adapter):
 
 ```swift
 extension UIViewController {

@@ -2,7 +2,9 @@
 
 # SPEC: VIP Components
 
-> Reference: *Modern large-scale iOS app development* — Business Application layer inside Domain-driven Layered pillar.
+> Derived guidance for the selected UI and `boardy-vip` Profiles, especially `UI-HUMBLE-001`…`004`
+> and `BRD-VIP-001`. Canon owns the exact obligation.
+> Reference: *Modern large-scale iOS app development* — presentation adapter around inward Application policy.
 > Companion specs: `ARCHITECTURE.md` (overall picture), `MICROBOARD_UI.md` (Board shell), `EXAMPLES_VIP_BOARD.md` (concrete skeleton), `compact/BOARDY_CHEATSHEET.compact.md` (always-loaded).
 
 ## When to use
@@ -17,7 +19,9 @@ When implementing the Interactor / Presenter / ViewController / Builder / Protoc
 
 ## Forces
 
-- VIP keeps the View dumb so UseCase + Presenter are unit-testable. The cost is five files per board; the payoff is replaceability of any single component.
+- VIP keeps the View humble: it renders display-ready state, branches only on Presenter-encoded
+  presentation state, and owns minimal ephemeral UX mechanics. Presenter formatting/presentation
+  mapping and Application policy remain testable outside the View.
 - The Board-as-delegate split (ActionDelegate for nav intents vs ControlDelegate for domain events) prevents the Interactor from becoming a router. Collapsing them saves a protocol but creates a god-Interactor.
 - `Controllable` exists primarily as a watch handle for `watch(content:)`; collapsing it into the Interactor's main protocol breaks Boardy's lifecycle assumptions.
 
@@ -222,7 +226,8 @@ struct {FeatureName}Builder: {FeatureName}Buildable {
 - ❌ ViewModels declared in their own file — they live inside the Presenter file (private to the board).
 - ❌ Storyboard-only VCs without a programmatic init — every VC must support `init()` for tests and the `ifl-new-board` template.
 - ❌ Strong `delegate` / `view` / `actionDelegate` — retain cycles, leaked boards.
-- ❌ Business logic in `setState` — that's Presenter's job.
+- ❌ Business or presentation derivation in `setState` — business policy belongs in Application;
+  display-ready derivation/formatting belongs in Presenter; the View only renders it.
 
 ## References
 

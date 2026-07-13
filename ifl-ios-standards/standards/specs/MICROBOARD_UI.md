@@ -107,7 +107,7 @@ final class {FeatureName}Board: ModernContinuableBoard, GuaranteedBoard,
 
         watch(content: component.controller)
         motherboard.putIntoContext(viewController)
-        rootViewController.show(viewController)
+        rootViewController.show(viewController, sender: self)
 
         completeBus.connect(target: self) { target, isDone in
             target.rootViewController.returnHere { [weak target] in
@@ -211,7 +211,10 @@ Board lifecycle stay unchanged.
 
 ## Pitfalls
 
-- ❌ Reaching for `UINavigationController` wrapping or `topPresentViewController` by reflex — `rootViewController.show(viewController)` is the **default**, not the only path. Custom navigation is allowed when SiFUtilities' `show(_:)` cannot express the requirement (e.g. specialized transitions, host-controlled containers) or when the Board is being **embedded** into a parent surface — in that case follow `COMPOSABLE_BOARD.md` instead of a bare `show()`.
+- ❌ Reaching for `UINavigationController` wrapping or a top-presented helper by reflex — UIKit
+  `rootViewController.show(viewController, sender: self)` is the dependency-free default, not the only
+  path. Use a project-bound navigation adapter for specialized transitions/host containers, or follow
+  `COMPOSABLE_BOARD.md` when embedding into a parent surface.
 - ❌ `registerFlows()` inside `activate()` — flows re-register every activation → stacked handlers.
 - ❌ Holding the controller as a strong board property — defeats `watch(content:)` lifecycle.
 - ❌ Calling `complete()` twice — raises an assertion.
@@ -234,7 +237,8 @@ Board lifecycle stay unchanged.
 - [ ] Duplicate-activation guard omitted unless single-session
 - [ ] `watch(content: component.controller)` called in `activate()`
 - [ ] `motherboard.putIntoContext(viewController)` called before `show()`
-- [ ] `rootViewController.show(viewController)` preferred — only deviate when SiFUtilities `show(_:)` cannot express the requirement, or when embedding into a `Composable` surface (then follow `COMPOSABLE_BOARD.md`)
+- [ ] UIKit `rootViewController.show(viewController, sender: self)` is the dependency-free default;
+      deviations use the project's bound navigation adapter or a `Composable` surface
 - [ ] No custom `context:` on `show()` unless explicitly required (e.g. presenting on a specific VC instead of inferring from root, or pinning lifecycle to a known UIViewController) — keep the default path otherwise
 - [ ] `completeBus` connected in `activate()` after `show()`
 - [ ] `registerFlows()` called in `init`, not `activate()`

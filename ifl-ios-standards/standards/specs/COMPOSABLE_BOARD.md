@@ -103,7 +103,7 @@ final class {Parent}Board: ModernContinuableBoard, GuaranteedBoard,
 
         switch input.presentation {
         case .rootContext: window.setRootViewController(viewController)
-        case .present:     rootViewController.show(viewController)
+        case .present:     rootViewController.show(viewController, sender: self)
         }
     }
 

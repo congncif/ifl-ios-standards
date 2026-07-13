@@ -61,8 +61,10 @@ Each agent reads the rulebook. Each agent reports concrete results, not summarie
 4. **No premature abstraction.** Concrete code first; abstract only when the second use case arrives.
 5. **No unrelated cleanup.** A bug fix does not include reformatting.
 6. **No silent decisions.** Surface tradeoffs; do not pick the controversial path quietly.
-7. **No bypass of safety checks.** Never disable hooks, skip verification, or force-push as a shortcut.
-8. **Verify with real signals.** "It should work" is not verification. Build it. Run it.
+7. **No bypass of applicable safety checks.** Never disable hooks, omit a required executable signal,
+   or force-push as a shortcut.
+8. **Verify proportionally.** For executable changes, observe the smallest risk-relevant build, test,
+   or runtime signal. Documentation-only changes require no build/test gate.
 9. **Report facts.** Changed files, commands run, exit codes observed, what remains.
 10. **Stop and ask** when ambiguity could materially affect the design.
 
@@ -70,8 +72,8 @@ Each agent reads the rulebook. Each agent reports concrete results, not summarie
 
 Before claiming "done":
 
-- [ ] Build passes against the canonical command
-- [ ] Tests pass (or the absence of tests is acknowledged)
+- [ ] Executable changes have the smallest risk-relevant signal required by the consuming repository
+- [ ] Documentation-only changes did not trigger a build/test loop
 - [ ] Diff is reviewed line by line for unrelated changes
 - [ ] No layer or dependency violations introduced
 - [ ] No new public surface added without justification
@@ -80,5 +82,7 @@ Before claiming "done":
 - [ ] Trace headers / authorship metadata present on new files (per project convention)
 - [ ] The change is the **minimum correct change**
 
----
+Task self-review is not an architecture-review checkpoint. Complete the approved plan, then run its
+one final joined AI consistency review over the whole candidate.
 
+---

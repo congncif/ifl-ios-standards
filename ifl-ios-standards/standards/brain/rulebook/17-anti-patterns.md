@@ -41,7 +41,7 @@
 | `watch(content:)` retrieval used as a Board → Controller communication path | `watch` is a lifecycle marker, not a channel | Bus<T> for all Board → Controller side-effects |
 | Two exit paths each calling `complete()` | Double-`complete()` raises an assertion | Converge exits through one `Bus<Result>` consumed once |
 | Treating context type as `UIViewController` only | Misses non-VC anchors (session managers, coordinators) | Attach context is `AnyObject` — UIViewController is the common case, not the constraint |
-| Reaching for `UINavigationController` wrapping or `topPresentViewController` by reflex | Bypasses the project's navigation default for no reason | `rootViewController.show(_:)` first; deviate only for SiFUtilities-unsupported transitions or Composable embedding |
+| Reaching for a custom navigation helper by reflex | Adds an unbound dependency or bypasses the selected navigation policy | Use UIKit `show(_:sender:)` first; choose a project-approved adapter or Composable only when required |
 
 ### 17.4 Process Anti-Patterns
 
@@ -49,9 +49,9 @@
 |--------------|-----|
 | "I'll add an abstraction now in case we need it" | Add it when the second concrete need arrives |
 | "Let me also clean up while I'm here" | Open a separate task |
-| "Tests are slow, I'll add them later" | Tests written later get written never |
-| "This worked locally, ship it" | Verify in CI before merging |
-| "The build looks fine" (empty grep output) | Empty output is failure, not success |
+| Executable behavior changed but its relevant test is deferred | Run the smallest risk-relevant signal in the same semantic task |
+| Documentation-only work is forced through build/test | Use the plan's final joined AI consistency review; do not manufacture an executable gate |
+| Unchanged code is rebuilt or retested for another green signal | Reuse the observed relevant signal unless code or risk changed |
+| "The build looks fine" without an observed result | Report only the command and result actually observed |
 
 ---
-

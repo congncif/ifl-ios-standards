@@ -166,18 +166,17 @@ Before calling `complete()`:
 
 Order: `sendOutput()` BEFORE `complete()`. After `complete()`, the board is gone.
 
-## SiFUtilities navigation helpers
+## Navigation adapters
 
 ```swift
-import SiFUtilities
-
-rootViewController.show(viewController)                                 // push or present
-rootViewController.returnHere { [weak self] in self?.complete(isDone) } // back to this anchor, then run
-motherboard.putIntoContext(viewController)                              // always BEFORE show
-rootViewController.replaceTopViewControllerIfNeeded(with: viewController) // in-place transition
+motherboard.putIntoContext(viewController)
+rootViewController.show(viewController, sender: self) // UIKit dependency-free default
 ```
 
-`rootViewController.show(_:)` is the **default** path. Deviate only when SiFUtilities' `show(_:)` cannot express the requirement (specialized transitions, host-controlled containers) or when embedding into a Composable surface (then follow `COMPOSABLE_BOARD.md`). Don't reach for `topPresentViewController(nav)`, `presentViewController(nav)`, or `UINavigationController` wrapping by reflex.
+Use a project-bound navigation adapter only when UIKit `show(_:sender:)` cannot express a specialized
+transition, return-context behavior, or host-controlled container. Such an adapter—including
+SiFUtilities when a project explicitly approves it—belongs in the outward navigation shell and does
+not become a Domain/Application dependency. For embedded surfaces follow `COMPOSABLE_BOARD.md`.
 
 ## Testing
 

@@ -1,16 +1,20 @@
 # QUICK_REF — Boardy+VIP binding
 
-> Read this **first** for any task on this project. Then load **one** task-specific spec from the routing table below.
-> Generic engineering loop + hard rules live in `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md`. Boardy/VIP patterns + naming + skeletons live in `${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/BOARDY_CHEATSHEET.compact.md`. This file is the **glue**: which spec / cheatsheet / rule fires for which task.
+> Read this first for a task in a project/surface that selected `boardy-vip`; otherwise start from the
+> pattern-neutral Brain or applicable enterprise router. Then load only the task-specific guidance needed.
+> Canon Rules, Profiles, and accepted ADRs under `${CLAUDE_PLUGIN_ROOT}/standards/canon/` are normative.
+> Project bindings select applicability but cannot silently weaken or contradict Canon. This file,
+> Brain, specs, and cheatsheets are derived routing/guidance and cannot invent mandates.
+> Generic engineering routing lives in `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md`. Boardy/VIP patterns + naming + skeletons live in `${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/BOARDY_CHEATSHEET.compact.md`. This file is the **glue**: which spec / cheatsheet / Rule fires for which task after the Boardy Profile is selected.
 
-## Companion canonicals (do not duplicate here)
+## Companion derived references (do not duplicate here)
 
 | Layer | File | What it covers |
 |-------|------|----------------|
-| Pattern-neutral brain | `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md` | Operating loop, 10 architecture hard rules, rulebook routing |
+| Canon | `${CLAUDE_PLUGIN_ROOT}/standards/canon/` | Normative Rules, selected Profiles, accepted ADRs, and exceptions |
+| Pattern-neutral brain | `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md` | Operating loop, Canon-linked prompts, rulebook routing |
 | Boardy+VIP cheatsheet | `${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/BOARDY_CHEATSHEET.compact.md` | File layout, naming tables (Module / BoardID / VIP), skeletons, anti-patterns |
 | Testing cheatsheet | `${CLAUDE_PLUGIN_ROOT}/standards/specs/compact/TESTING.compact.md` | Mock + interactor-test + stub skeletons |
-| Briefing handoff | `${CLAUDE_PLUGIN_ROOT}/standards/rules/BRIEFING_HANDOFF.md` | Briefing schema, discovery cache, delegation prompt |
 
 ## 1. Task → spec routing
 
@@ -28,7 +32,6 @@
 | Structural decision rationale / ADRs | the project's ADR / decisions location, if it keeps one |
 | Plan execution / verification cadence | `${CLAUDE_PLUGIN_ROOT}/standards/rules/PLAN_EXECUTION.md` |
 | Spec sync discipline / pre-completion checklist | `${CLAUDE_PLUGIN_ROOT}/standards/rules/SPEC_SYNC.md` |
-| Briefing handoff between sub-agents | `${CLAUDE_PLUGIN_ROOT}/standards/rules/BRIEFING_HANDOFF.md` |
 | Commit / push approval rules | `${CLAUDE_PLUGIN_ROOT}/standards/rules/COMMIT_WORKFLOW.md` |
 | New module | `${CLAUDE_PLUGIN_ROOT}/standards/specs/MODULE_CREATION.md` |
 | IO / BoardID / InOut / ServiceMap | `BOARDY_CHEATSHEET.compact.md` → full `${CLAUDE_PLUGIN_ROOT}/standards/specs/IO_INTERFACE.md` on demand |
@@ -82,7 +85,10 @@ The cheatsheet has the no-prefix case. When the project applies a prefix (e.g. `
 | `{Name}UserInterface` | `{Name}Protocols.swift` | ViewController |
 | `{Name}Buildable` | `{Name}Protocols.swift` | Builder struct |
 
-## 4. The 14 rules (never break)
+## 4. Fourteen Canon-linked Boardy review prompts
+
+Apply these only when the Boardy+VIP Profile selects their referenced Rules. The exact Canon Rule
+statement, level, scope, and exception policy governs; this compact list creates no additional mandate.
 
 1. **Humble View** (`UI-HUMBLE-001`…`004`): UIKit and SwiftUI Views render display-ready state and forward typed intent. They may branch on presentation state already encoded as loading/content/empty/error, own transient UX-local state (focus, highlight, gesture, animation, scroll, disclosure), and calculate geometry-only or visual interpolation values. They never format raw/domain values, derive product meaning, decide eligibility/pricing/retry/navigation policy, create analytics meaning, fetch/persist business data, or construct business dependencies.
 2. **VIP flow** (`BRD-VIP-001`): `VC/View → Interactor → UseCase → Presenter → VC/View`. Exception: `VC/View → ActionDelegate(Board)` for pure-navigation intents the Interactor would only forward.
@@ -92,7 +98,7 @@ The cheatsheet has the no-prefix case. When the project applies a prefix (e.g. `
 6. **Weak back edges** (`BRD-REF-001`): `weak var view` in Presenter; `weak var delegate` in Interactor; `weak var actionDelegate` in ViewController. Interactor must not declare `actionDelegate`.
 7. **Flow registration** (`BRD-FLOW-001`): call `registerFlows()` in Board `init`, never in `activate()`.
 8. **Activation semantics** (`BRD-ACTIVATION-001`): add a double-activation guard only for an explicitly single-session Board. Board→Controller communication uses event buses, never retrieved controller references.
-9. **Domain purity** (`BRD-MOD-001`): Domain is pure Swift — no UIKit, SwiftUI, Boardy, or networking.
+9. **Domain purity** (`CORE-DEP-001`): Domain is pure Swift — no UIKit, SwiftUI, Boardy, or networking.
 10. **Shared ownership** (`BRD-REPOSITORY-001`): `sharedRepository` is a stored property on ModulePlugin, never created inside registration closures.
 11. **Copy classification** (`UI-COPY-001`): localize user-facing copy (SwiftGen/module strings). URLs, identifiers, keys, event names, and config values stay inline unless the product explicitly defines locale variants.
 12. **Completion lifecycle** (`BRD-LIFE-001`): call `complete()` at most once and only after releasing streams/observers. Stateless boards rarely need it; `BlockTaskBoard` never needs it. Double completion asserts.
