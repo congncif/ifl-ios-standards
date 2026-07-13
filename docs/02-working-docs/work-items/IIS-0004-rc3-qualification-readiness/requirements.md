@@ -35,6 +35,14 @@ Pre-qualification audit found one promotion-blocking inconsistency:
   every initialized project to Boardy-specific next steps. This can cause Q1 Core-only auto flow to
   load Boardy and contradicts the optional-Profile contract.
 
+The end-to-end init audit then found a second promotion-blocking inconsistency before Task 1 was
+committed:
+
+- **F-RC2-QUAL-002 — P1 candidate defect:** `bin/ifl-init` detects Bazel, CocoaPods, or SwiftPM but
+  still substitutes retired `{DependencyManager}` and `{ModuleDependencyFile}` tokens. The bundled
+  2.5.0 starter uses `{BuildSystem}` and `{BuildIntegration}`, so generated bindings discard the
+  observed package/build-system result while the helper reports that it filled it.
+
 Per `RELEASE.md`, a P1 candidate defect cannot be hidden in qualification cleanup. It requires a new
 semantic candidate revision and a final joined review before qualification starts.
 
@@ -46,8 +54,9 @@ executable path fails, qualification records the resulting finding against the e
 ## Goal
 
 Produce an immutable `1.0.0-rc.3` candidate whose project-init route is genuinely Profile-neutral,
-whose active metadata and release-governance text truthfully identify the new unpublished revision,
-and whose complete corrective diff passes one joined AI consistency review with no open P0/P1.
+whose helper emits the package/build bindings it actually detects, whose active metadata and
+release-governance text truthfully identify the new unpublished revision, and whose complete
+corrective diff passes one joined AI consistency review with no open P0/P1.
 
 ## Product decisions
 
@@ -60,6 +69,8 @@ and whose complete corrective diff passes one joined AI consistency review with 
    published `v1.0.0-rc.1` until separately authorized external release operations occur.
 5. Qualification must use the immutable RC3 commit. RC2 qualification results cannot be inferred,
    reused, or relabeled as RC3 results.
+6. `ifl-init` may fill only values established by unambiguous repository evidence. Its output tokens
+   must match the current starter contract; governed or ambiguous values remain placeholders.
 
 ## In scope
 
@@ -69,6 +80,9 @@ and whose complete corrective diff passes one joined AI consistency review with 
   `CLAUDE.md`/`AGENTS.md` output from `ifl-init`. Correct only the smallest surface that selects or
   recommends Boardy by default. If helper behavior is defective, treat it as an executable change and
   run one focused generated-output signal; do not silently classify it as documentation-only.
+- Update `bin/ifl-init` to populate the current starter's `{BuildSystem}` and `{BuildIntegration}`
+  bindings for unambiguous Bazel, CocoaPods, and SwiftPM repositories without inventing targets,
+  commands, destinations, policy owners, or other governed values.
 - Align the smallest necessary active index/README reference if it still presents `init` as a
   Boardy-only capability.
 - Update candidate version/manifests/changelogs/readmes/release text from unpublished RC2 to
@@ -103,8 +117,10 @@ and whose complete corrective diff passes one joined AI consistency review with 
 - [ ] **D1 — Init is Profile-neutral end to end.** The skill, every active entrypoint it uses, bundled
   starter, and observed generated bindings neither require nor recommend Boardy for a Core-only
   project; Boardy routing is conditional on the selected Profile.
-- [ ] **D2 — Routing is actionable.** The default next step is pattern-neutral `brain-flow`, with
-  conditional `enterprise-ios` and `boardy-adopt` routes stated without ambiguity.
+- [ ] **D2 — Routing and generated build bindings are actionable.** The default next step is
+  pattern-neutral `brain-flow`, with conditional `enterprise-ios` and `boardy-adopt` routes stated
+  without ambiguity; Bazel, CocoaPods, and SwiftPM fixtures emit their observed current
+  `{BuildSystem}`/`{BuildIntegration}` values and retain governed unknowns as placeholders.
 - [ ] **D3 — RC3 metadata is honest.** Active candidate manifests, version text, changelogs, readmes,
   and release-governance text agree on unpublished `1.0.0-rc.3`; public install/marketplace references
   remain on published RC1.
@@ -132,6 +148,8 @@ and whose complete corrective diff passes one joined AI consistency review with 
   - Expanded the init boundary to every active entrypoint, the bundled starter, and observed generated
     bindings, with executable-defect reclassification if needed.
   - Distinguished the frozen review-input range from the immutable post-review RC3 candidate commit.
+  - Retained amendment classified the stale helper/starter build-binding tokens as executable P1
+    `F-RC2-QUAL-002` and bounded the correction to the current template contract.
 - Open material questions: none
 
 STATUS: READY_FOR_PLAN

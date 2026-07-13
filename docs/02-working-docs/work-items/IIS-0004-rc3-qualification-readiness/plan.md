@@ -18,10 +18,9 @@
   truthful candidate metadata or add per-file checkpoints.
 - Stage only explicit paths and commit once after the complete task under the existing scoped local
   stage/commit authority. Preserve `.superpowers/` and all unrelated files.
-- Audit the current helper/template/output end to end. Because no helper defect is currently observed,
-  use one generated-output signal and no build/test. If implementation discovers that executable
-  helper behavior must change, update this task classification and run only the affected focused
-  signal; do not hide executable work in documentation.
+- Treat `ifl-init` as executable work after the retained amendment identified its stale placeholder
+  mapping. Use one focused generated-output event covering the three affected build-system branches;
+  do not add a verifier, test harness, product build, or repeated signal.
 - Freeze the exact planning-baseline-to-Task-1 range and run one joined read-only AI consistency
   review. Apply all accepted in-scope P0/P1 corrections in at most one Task-2 batch and do not run a
   routine second review. Task 2 creates the immutable qualification-candidate commit.
@@ -57,8 +56,11 @@ candidate metadata identifies the same unpublished RC3 revision and keeps public
   `enterprise-ios` only for applicable governed concerns, and `boardy-adopt` only when Boardy/VIP is
   selected.
 - Inspect `bin/ifl-init`, the bundled portable starter twins, active indexes/readmes, and generated
-  bindings as one surface. Change no helper/template/index file unless it contains a default Boardy
-  selection or recommendation.
+  bindings as one surface. Update the helper's stale output-token mapping; change no starter or index
+  file unless it contains a default Boardy selection or recommendation.
+- Change `bin/ifl-init` to substitute `{BuildSystem}` and `{BuildIntegration}` from its existing
+  unambiguous Bazel/CocoaPods/SwiftPM detection. Do not infer target patterns, source globs, commands,
+  destinations, policy owners, or other governed bindings.
 - Bump `VERSION` and both provider manifests to `1.0.0-rc.3`.
 - Add an RC3 changelog entry that records the P1 correction and qualification reset; retain RC2 as
   immutable history rather than rewriting its entry.
@@ -75,6 +77,7 @@ candidate metadata identifies the same unpublished RC3 revision and keeps public
 Task 1 may modify only these paths:
 
 - `ifl-ios-standards/skills/init/SKILL.md`
+- `ifl-ios-standards/bin/ifl-init`
 - `ifl-ios-standards/VERSION`
 - `ifl-ios-standards/.claude-plugin/plugin.json`
 - `ifl-ios-standards/.codex-plugin/plugin.json`
@@ -91,15 +94,17 @@ Task 1 may modify only these paths:
 - `ROADMAP.md`
 - this work item's `requirements.md` and `plan.md`
 
-`ifl-ios-standards/bin/ifl-init`, both portable starter twins, Boardy routing/index files, and
+Both portable starter twins, Boardy routing/index files, and
 `.codex-plugin/marketplace.json` are inspect-only under this plan because the pre-plan audit found no
-default Boardy selection or executable defect in them. Any newly discovered required mutation outside
+default Boardy selection in them. Any newly discovered required mutation outside
 the allowlist is a plan amendment, not an implicit expansion.
 
 ### Bounded signal
 
-- Run `ifl-init` once against a temporary minimal Core-only SwiftPM repository.
-- Observe that generated `CLAUDE.md` and `AGENTS.md` are identical, the package manager is detected,
+- Run one focused signal event: `bash -n` once, then `ifl-init` once against each of three temporary
+  minimal Core-only fixtures representing SwiftPM, CocoaPods, and Bazel.
+- Observe that every generated `CLAUDE.md`/`AGENTS.md` pair is identical, each fixture emits its
+  detected `{BuildSystem}` and `{BuildIntegration}` values, governed unknowns remain placeholders,
   Brain Flow is the general route, and every Boardy mention is explicitly conditional rather than a
   selected/default next step.
 - Inspect candidate-version fields and the unchanged public marketplace ref once. No build, test,
@@ -203,6 +208,11 @@ Task-2 SHA without changing the candidate being qualified.
   - Added an exact Task-1 mutable-path allowlist and made every other audited surface inspect-only.
   - Made Task 2 the immutable candidate-freeze commit and Task 3 the later closeout record, with
     IIS-0005 bound to Task 2 rather than reporting HEAD.
+- Retained amendment:
+  - Reclassified the observed stale helper/template token mapping as executable P1
+    `F-RC2-QUAL-002`, added `bin/ifl-init` to the exact allowlist, and bounded one three-branch
+    generated-output signal.
+  - Verdict: AUTO_APPROVED by independent agent `iis0004_amendment_gate_fast`; no P0/P1/P2 remained.
 - Open material questions: none
 
 STATUS: READY_FOR_EXECUTION
