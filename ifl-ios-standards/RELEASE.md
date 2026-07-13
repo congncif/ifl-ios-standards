@@ -46,7 +46,10 @@ Each report records:
 - sanitized evidence or repository references that do not disclose protected adopter data.
 
 The triage owner records one disposition: `candidate defect`, `approved candidate change`, `defer`,
-`not applicable`, or `duplicate`, with rationale and an owner. Severity follows this policy:
+`not applicable`, or `duplicate`, with rationale and an owner. The table below defines **RC feedback
+and qualification severity**. The engineering final review uses the operating-model taxonomy; a
+finding carried into RC qualification keeps the higher applicable severity and cannot be silently
+downgraded merely because its phase changed.
 
 | Severity | Meaning | RC2 / GA effect |
 |---|---|---|
@@ -54,8 +57,8 @@ The triage owner records one disposition: `candidate defect`, `approved candidat
 | **P1 — promotion blocker** | Materially wrong conformance outcome, architecture/profile inconsistency, broken full-auto recovery or authority handling, unsupported representative adoption path, or a cross-document contradiction likely to mislead implementation. | Blocks GA and any claim that RC2 is qualification-complete. Resolve in a new semantic candidate revision and repeat affected qualification before sign-off. |
 | **P2 — non-blocking** | Editorial clarity, low-risk example/link/metadata defect, or improvement that does not change an obligation or supported behavior. | May be corrected only when semantically neutral and explicitly owned; otherwise defer to the next patch/minor plan. Open P2 items must be listed in release notes with owner and disposition. |
 
-Security/privacy/legal owners may raise severity within their decision rights. AI may recommend severity
-but cannot accept organization risk or downgrade a human policy-owner block.
+Any applicable Organization Policy Owner may raise severity within their decision rights. AI may
+recommend severity but cannot accept organization risk or downgrade a human policy-owner block.
 
 ## Allowed and prohibited candidate changes
 
@@ -79,9 +82,12 @@ Prohibited:
 
 ## Field-qualification matrix
 
-Every row is required for GA promotion unless the Standards Owner and the relevant Profile/Policy
-Owner record why it is non-applicable. Qualification may use representative internal or consenting
-pilot repositories; protected product data must remain in its owning environment.
+Every row is required for every provider, Profile, build-system, and adoption-mode combination claimed
+for GA. The Standards Owner and relevant Profile/Policy Owner may mark a row non-applicable only when
+the corresponding support claim is narrowed or removed consistently from compatibility guidance,
+README/manifests, and release notes. Otherwise an unexercised row is `not qualified` and blocks GA.
+Qualification may use representative internal or consenting pilot repositories; protected product data
+must remain in its owning environment.
 
 | ID | Provider | Selected architecture/UI Profiles | Build system | Adoption mode | Required qualification outcome |
 |---|---|---|---|---|---|
@@ -96,7 +102,8 @@ For each row, the Qualification Owner records candidate identity, repository cla
 Profiles/chapters, mode, result, P0/P1/P2 findings, dispositions, and residual risk. “Passed” means the
 required outcome was observed with no open P0/P1; it does not require copying adopter source or building
 a new evidence framework. Provider availability or a build-system adapter not yet exercised must be
-reported as `not qualified`, not inferred as compatible.
+reported as `not qualified`, not inferred as compatible or relabeled non-applicable while its support
+claim remains advertised.
 
 ## Required sign-offs
 
@@ -105,11 +112,11 @@ One person may hold multiple roles, but each decision right is recorded separate
 | Sign-off role | Required decision |
 |---|---|
 | **Standards Owner** | RC2 scope is complete; all P0/P1 are closed; P2 dispositions and the GA version decision are acceptable. |
-| **Canon Maintainer** | Canon, ADRs, Profiles, Rules, indexes, and derived authority are coherent for the frozen candidate. |
+| **Canon Maintainer** | Canon, ADRs, Profiles, Rules, indexes, and derived authority are coherent for the engineering-complete candidate. |
 | **Enterprise Adoption Owner** | Every applicable qualification row passed and full/partial/transitional claims are truthful. |
-| **Claude Qualification Owner** | Required Claude Code rows passed on the frozen candidate. |
-| **Codex Qualification Owner** | Required Codex rows passed on the frozen candidate. |
-| **Security/Privacy/Legal Policy Owners** | Any affected organization-owned policy, exception, license, or risk decision is approved; unaffected owners are explicitly marked non-applicable. |
+| **Claude Qualification Owner** | Required Claude Code rows passed on the engineering-complete candidate. |
+| **Codex Qualification Owner** | Required Codex rows passed on the engineering-complete candidate. |
+| **Applicable Organization Policy Owners** | Every affected deployment/platform, security, privacy, legal, accessibility, observability/operability, data-retention, performance/resilience, supply-chain, or other governed policy/exception/risk decision is approved by its owner; each unaffected domain is explicitly marked non-applicable with rationale and owner. |
 | **DevOps/Release Owner** | Exact external operations, target commit/version/tag/remote/marketplace scope, operator, timing, and rollback route are authorized. |
 
 ## External release authority

@@ -107,7 +107,8 @@ inward-owned contracts; outward adapters may import Application/Domain plus thei
 | Application → Boardy / UIKit / SwiftUI / SiFUtilities / Infra | ❌ |
 | Application → outward capability | ✅ — through a protocol owned by Domain/Application |
 | Boardy orchestration/presentation adapter → Application / Domain / Boardy | ✅ when `boardy-vip` applies |
-| Boardy adapter → Infra concrete types | ❌ — depend on inward-owned protocols |
+| Board / Interactor / Presenter → Infra concrete types | ❌ — depend on inward-owned protocols |
+| Declared outward Builder/composition root → Infra concrete types | ✅ — construct adapters and inject them behind inward-owned contracts |
 | Infra → Domain (protocols + models) | ✅ |
 | Infra → Application contract | ✅ when implementing an Application-owned port |
 | UI (VC) → Presenter / Interactor protocols | ✅ |
@@ -139,7 +140,9 @@ adapters never move inward merely because Boardy or another runtime registers th
 3. Cross-module activation: `motherboard.serviceMap.mod{Module}.io{Service}` (Pattern A, see `CROSS_MODULE_DI.md`).
 4. Pure protocol sharing may add `{Module}Core` pod (Pattern B).
 
-Interface Module *is* the Domain protocol surface consumers compile against.
+The Interface Module is the public capability surface consumers compile against. It exposes
+inward-owned values/contracts and, only when a selected Profile owns the transport contract, that
+Profile's public transport types (for example Boardy destinations under `boardy-vip`).
 
 ## Concurrency
 
@@ -177,7 +180,8 @@ Interface Module *is* the Domain protocol surface consumers compile against.
 - [ ] UseCase protocols live in `Services/Application/`; impls end with `UseCaseInteractor`
 - [ ] Presenter is the only place constructing `{Board}ViewModel`
 - [ ] Interactor `Presentable` surface accepts domain types only
-- [ ] Concrete `{Board}Builder` composes Infra → UseCase → Presenter → Interactor and wires delegates; Board references only `Buildable`
+- [ ] The declared concrete `{Board}Builder` composition root may construct Infra and composes it into
+      UseCase → Presenter → Interactor; Board/Interactor/Presenter reference only inward contracts
 - [ ] Shared deps (`sharedRepository`, `sharedTracker`) are stored properties on ModulePlugin
 - [ ] Consumer modules import `{Module}` (Interface), never `{Module}Plugins` (Impl)
 

@@ -162,6 +162,12 @@ available cached dependency without changing candidate content.
 
 **Outcome:** the complete candidate has one consolidated, dispositioned review and a release-readiness report.
 
+**Status:** COMPLETE
+
+**Joined result:** 0 P0, 20 P1, and 4 P2. All 24 technical findings were accepted and corrected in
+one batch; no material plan change or open finding remains. The sole corrective executable received
+one focused UIKit/SwiftUI scaffold signal, which passed. No second review was run.
+
 ### Candidate freeze
 
 - Authority inputs: the approved `requirements.md` and `plan.md` in the planning-baseline commit.
@@ -211,4 +217,4 @@ available cached dependency without changing candidate content.
   - Froze the review candidate as the exact planning-baseline-to-Task-4 range and path boundary, excluding review outputs.
   - Limited Task 5 to non-plan-changing corrections and made material decision changes a new-plan blocker.
 
-STATUS: READY_FOR_EXECUTION
+STATUS: ENGINEERING_COMPLETE_RC2_UNPUBLISHED

@@ -115,24 +115,45 @@ Use this path when the remote already exists. Do not re-run `git init` or reposi
 1. Inspect the current branch, remote, and working tree. Switching or creating a branch requires its
    own authority.
 2. Apply the approved candidate changes.
-3. Stage only the exact paths belonging to the semantic update. For the RC2 metadata/roadmap slice,
-   the explicit path form is:
+3. Stage only the exact paths belonging to the semantic update. For the complete RC2
+   governance/metadata semantic task described by this repository, the explicit allowlist is:
 
    ```bash
    git add -- \
      DEPLOY.md \
      README.md \
      ROADMAP.md \
+     docs/02-working-docs/work-items/IIS-0003-standards-1.0-ga/plan.md \
+     docs/02-working-docs/work-items/IIS-0003-standards-1.0-ga/requirements.md \
      ifl-ios-standards/.claude-plugin/plugin.json \
      ifl-ios-standards/.codex-plugin/plugin.json \
      ifl-ios-standards/CHANGELOG.md \
+     ifl-ios-standards/INSTALL.md \
      ifl-ios-standards/README.md \
+     ifl-ios-standards/RELEASE.md \
      ifl-ios-standards/VERSION \
+     ifl-ios-standards/scripts/install-codex.sh \
+     ifl-ios-standards/standards/COMPATIBILITY.md \
+     ifl-ios-standards/standards/GOVERNANCE.md \
      ifl-ios-standards/standards/brain/CHANGELOG.md \
-     ifl-ios-standards/standards/templates/portable-claude/CHANGELOG.md
+     ifl-ios-standards/standards/templates/portable-claude/AGENTS.md \
+     ifl-ios-standards/standards/templates/portable-claude/CHANGELOG.md \
+     ifl-ios-standards/standards/templates/portable-claude/CLAUDE.md \
+     ifl-ios-standards/standards/templates/portable-claude/README.md \
+     ifl-ios-standards/standards/templates/portable-claude/SETUP.md \
+     ifl-ios-standards/standards/templates/portable-claude/VERSION \
+     ifl-ios-standards/standards/templates/portable-claude/examples/PROJECT_CONFIG.example.md \
+     ifl-ios-standards/standards/templates/portable-claude/examples/PROJECT_STRUCTURE.example.md \
+     ifl-ios-standards/standards/templates/portable-claude/examples/QUICK_REF.example.md \
+     ifl-ios-standards/standards/templates/portable-claude/examples/README.md \
+     install.sh
    git diff --cached --name-only
    git commit -m "prepare ifl-ios-standards 1.0.0-rc.2 candidate"
    ```
+
+   This allowlist is complete only for that named semantic task. For any later task, derive a new list
+   from the approved scope and inspected diff, enumerate every reviewed repository-relative file path,
+   and do not reuse this list as a generic release path set.
 
 4. Stop at the local commit unless branch-push authority is separately granted. For an unpublished
    candidate, any authorized push must target a non-distribution candidate branch. Pushing a ref used

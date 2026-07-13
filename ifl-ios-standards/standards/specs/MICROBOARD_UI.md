@@ -11,7 +11,8 @@
 A feature that needs a UIKit screen or a SwiftUI screen hosted at the Boardy navigation boundary,
 plus its Interactor and Presenter, presented through the motherboard's navigation context. Use when:
 
-- The board owns a screen and that screen needs user-driven business logic (not a pure dumb VC).
+- The board owns a screen whose user intent must be coordinated through an Interactor and Application
+  use cases (not a standalone rendering-only view).
 - The board may emit a typed outcome to the caller (`OutputType`) and accept incoming commands (`CommandType`).
 - The board may coordinate child boards via `registerFlows()`.
 
@@ -30,10 +31,10 @@ plus its Interactor and Presenter, presented through the motherboard's navigatio
 
 ## Files
 
-The architectural shape is independent of the rendering framework. The bundled `ui` CLI currently
-emits the UIKit adapter files. For SwiftUI, keep the same IO, Board, Interactor, Presenter, and
-display-port boundaries, then adapt the presentation state through a MainActor store and a hosting
-controller at the Boardy navigation boundary.
+The architectural shape is independent of the rendering framework. The bundled `ui` selector emits
+the UIKit adapter; `swiftui` emits the same IO, Board, Interactor, Presenter, and display-ready state
+contract plus a MainActor presentation store, SwiftUI View, and hosting controller at the Boardy
+navigation boundary.
 
 | Path | Role |
 |------|------|
@@ -43,11 +44,12 @@ controller at the Boardy navigation boundary.
 | `Sources/Microboards/{Board}/{Board}Protocols.swift` | `Buildable`, `Controllable`, `Delegate` |
 | `Sources/Microboards/{Board}/{Board}Board.swift` | The board class (see code below) |
 | `Sources/Microboards/{Board}/{Board}Builder.swift` | DI for Interactor / Presenter / VC |
-| `Sources/Microboards/{Board}/{Board}Interactor.swift` | Business logic + UseCase calls |
+| `Sources/Microboards/{Board}/{Board}Interactor.swift` | Presentation intent coordination + UseCase calls; no domain policy |
 | `Sources/Microboards/{Board}/{Board}Presenter.swift` | Domain → ViewModel mapping |
-| `Sources/Microboards/{Board}/{Board}ViewController.swift` | UIKit rendering adapter, or SwiftUI hosting adapter at the Boardy boundary |
+| `Sources/Microboards/{Board}/{Board}ViewController.swift` | UIKit rendering adapter |
 | `Sources/Microboards/{Board}/{Board}View.swift` | SwiftUI rendering adapter when SwiftUI is selected; consumes the presentation store |
-| `Sources/Microboards/{Board}/{Board}PresentationStore.swift` | Optional MainActor SwiftUI store conforming to the same display port as UIKit |
+| `Sources/Microboards/{Board}/{Board}PresentationStore.swift` | MainActor SwiftUI store for the standard SwiftUI adapter; an alternative must preserve the same display port and semantics |
+| `Sources/Microboards/{Board}/{Board}HostingController.swift` | UIKit hosting boundary for the selected SwiftUI View |
 | `Sources/Microboards/{Board}/ServiceMap+{Board}.swift` | Plugins ServiceMap accessor |
 
 ## Naming

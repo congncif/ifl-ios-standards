@@ -64,6 +64,10 @@ CI. The consuming repository owns all of those values and all executable verific
 User instruction > root `CLAUDE.md` (= `AGENTS.md`, project bindings) > active Canon Rules/Profiles
 and accepted ADRs > the relevant `ifl-ios-standards` skill/spec/process guidance > existing code.
 
+This order resolves task scope and project bindings; it does not rewrite Canon. User/project bindings
+may strengthen constraints. A deviation from an applicable Rule is recorded as transitional,
+excepted, or non-conforming under governance rather than hidden inside a Quick Ref or conformance claim.
+
 ## Versioning
 
 `template-version` lives in the header of `CLAUDE.md` / `AGENTS.md` / `SETUP.md` / this README.

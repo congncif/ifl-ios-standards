@@ -1,6 +1,11 @@
 # Install ifl-ios-standards
 
-## Quick install (recommended)
+Public/release installation uses the immutable RC1-pinned provider commands in [README.md](README.md).
+The local-checkout paths below are only for qualification or development under explicit installation
+authority that names the exact checkout commit and scope. Do not treat an RC2 working tree as a
+published release.
+
+## Local checkout install (qualification/development only)
 
 From this plugin dir (drive must be mounted):
 

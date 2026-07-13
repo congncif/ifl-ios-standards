@@ -54,14 +54,27 @@ base branch, git remote, naming prefix, and ADR/decisions location live in the *
 work-item workspace (in-repo under `docs/02-working-docs/work-items/` per the docs-organization process
 standard) is **optional**, used only by the orchestrator pipeline.
 
-## Install
+## Install the published release
 
-See [INSTALL.md](INSTALL.md). One command (default = global):
+Public installation remains pinned to the immutable published `v1.0.0-rc.1` tag:
+
+**Claude Code**
 
 ```bash
-scripts/install-claude.sh            # global (user scope) — all projects
-scripts/install-claude.sh --scope=project --project=/path/to/repo
+claude plugin marketplace add congncif/ifl-ios-standards#v1.0.0-rc.1
+claude plugin install ifl-ios-standards@ifl-ios-standards
 ```
+
+**Codex**
+
+```bash
+codex plugin marketplace add congncif/ifl-ios-standards --ref v1.0.0-rc.1
+codex plugin add ifl-ios-standards@ifl-ios-standards
+```
+
+The local-checkout scripts described in [INSTALL.md](INSTALL.md) are qualification/development paths,
+not public RC2 installation guidance. Use them only under explicit installation authority that names
+the exact candidate checkout/commit and intended scope.
 
 ## Versioning
 

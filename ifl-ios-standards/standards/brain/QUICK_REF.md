@@ -32,10 +32,16 @@ These prompts summarize frequently applicable Canon Rules and process guidance; 
 obligations. Apply the exact Rule statement, level, scope, Profile selection, and exception policy.
 
 1. **Domain is pure Swift.** No UIKit, no networking, no vendor SDKs, no Codable.
-2. **Dependencies point inward.** Infrastructure → Business → Domain. Never reverse.
+2. **Dependencies point inward.** UI/Infrastructure adapters → Application → Domain. An outward
+   adapter may implement an inward-owned Domain/Application contract; the inward layers never import
+   that adapter.
 3. **Consumers depend on contracts, not implementations.** Cross-module imports target interface modules only.
-4. **No vendor types in public interfaces.** Wrap at Infrastructure boundary.
-5. **Views are humble.** No business decisions in view code. UI updates on main actor.
+4. **Keep public contracts technology-neutral unless a selected Profile owns that framework as part
+   of its contract.** Boardy types in Boardy IO are allowed only for `boardy-vip`; Domain/Application
+   contracts never inherit that exception.
+5. **Views are humble.** A Presenter or equivalent testable mapper owns raw/domain formatting and all
+   derived product-facing display values. Views render display-ready state, forward typed intent, and
+   own only ephemeral UX/geometry mechanics. UI updates run on the declared main-actor boundary.
 6. **Concrete types instantiated only at composition roots.** Inner layers depend on protocols.
 7. **One state, one writer.** No shared mutable state across boundaries.
 8. **Smallest correct change.** No speculative abstraction, no unrelated cleanup.
@@ -91,7 +97,8 @@ Before reporting "done":
 - [ ] No layer / dependency violations
 - [ ] No new `public` surface without justification
 - [ ] No third-party dependency added without §3.2 + §18.2 check
-- [ ] No vendor types in contract modules
+- [ ] Contract modules contain no vendor types except framework types explicitly owned by a selected
+      Profile's public contract; Domain/Application contracts remain technology-neutral
 - [ ] Trace header on new files (per project binding)
 - [ ] A complete plan receives one final joined AI consistency review, not per-task review loops
 - [ ] Report states facts, not theater

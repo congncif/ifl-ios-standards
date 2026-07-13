@@ -54,6 +54,11 @@ The plugin's agents/skills read **this file** for everything project-specific be
    override Canon or an accepted ADR).
 5. Existing code patterns in the target module.
 
+This order resolves the current objective and project bindings; it does not rewrite Canon. User and
+project instructions may select scope or strengthen constraints. A requested deviation from an
+applicable Canon Rule must be recorded through the governed transitional, exception, or non-conforming
+path and cannot be hidden inside a project instruction or conformance claim.
+
 ---
 
 ## 2. Non-negotiable boundaries
@@ -86,13 +91,13 @@ Apply these rules when translating product work into iOS architecture:
 3. **Use interface modules as public contracts.** Export only the minimal stable API needed by consumers. Modules communicate through IO interfaces, never through another module's concrete implementation.
 4. **Keep dependency direction explicit.** App-level composition wires concrete modules at the edge. Feature code imports inward-facing contracts only and does not reach sideways across business units.
 5. **Put domain meaning at the center.** Model enterprise business rules with domain services, entities, and value objects. Keep DTOs, SDK objects, persistence records, and transport details in adapters.
-6. **Preserve clean layering.** Domain is pure Swift. Business Application coordinates use cases and presentation workflow. Infrastructure/UI contains views, data access, SDK integration, and other humble adapters.
-7. **Keep business flow unidirectional.** UI forwards intent into an interactor/use case, presentation maps output into view models or render state, and the view only renders state and emits user events.
+6. **Preserve clean layering.** Domain is pure Swift. Framework-neutral Application owns business policy and use cases. Infrastructure and outward presentation adapters contain views, data access, SDK integration, and UI workflow coordination.
+7. **Keep business flow unidirectional.** UI forwards intent into the selected outward presentation adapter, which invokes Application-owned use cases or ports; a Presenter or equivalent maps results into render state, and the View only renders state and emits user events. When the optional Boardy/VIP Profile is selected, its Interactor coordinates presentation intent and use-case invocation but contains no domain or business rules.
 8. **Build composable business capabilities.** Expose small workflow or service contracts such as `start`, `handle`, `activate`, `interact`, `execute`, or `observe` APIs. Communicate through input/output/command/action events instead of concrete screens.
 9. **Centralize orchestration and registration.** App/plugin composition roots register factories, services, and feature entry points; runtime orchestration resolves and invokes capabilities through IO interfaces.
 10. **Hide external systems behind adapters.** Networking, persistence, analytics, experiments, URL opening, and vendor SDKs stay in infrastructure and are injected behind protocols so they can be tested or replaced.
 11. **Design for build scalability.** Prefer small independently compilable targets. Avoid broad shared modules that become dumping grounds. Introduce shared code only after real duplication or multiple consumers.
-12. **Verify at the module boundary.** Add or update focused unit tests for domain/use-case behavior, compile the changed module, and run integration/UI checks only when composition wiring or user flow changes.
+12. **Verify at the module boundary.** Use the smallest repository-owned executable signal warranted by changed behavior and risk. Add or update focused domain/use-case tests when that risk warrants them; compile the changed module only when API, build-graph, or wiring risk requires it; use integration/UI checks only for behavior that crosses those boundaries.
 13. **Evolve incrementally.** Migrate legacy code by adding seams and contracts first, then moving behavior. Do not rewrite working flows or create platform abstractions without concrete pressure.
 
 ---

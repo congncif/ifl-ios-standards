@@ -208,7 +208,9 @@ Activation order inside `activate(...)`: `watch(content:)` → `putIntoContext(v
 
 1. Raw/domain formatting or business/product/analytics decisions in a UIKit or SwiftUI View — Presenter prepares display-ready meaning; Interactor/UseCase owns business behavior.
 2. Importing `*Plugins` from another module's `Sources/`.
-3. Wrapping presented VC in `UINavigationController` instead of `show()`.
+3. Reflexively wrapping a regular pushed/presented Board screen in `UINavigationController` instead
+   of using `show()`. Project-bound modal/container behavior and Composable surfaces are valid when
+   their selected navigation pattern requires that wrapper.
 4. `registerFlows()` inside `activate()` — re-registers on every activation.
 5. Strong reference to `context` in `Input`.
 6. Missing `public init()` on a public `Input` struct.

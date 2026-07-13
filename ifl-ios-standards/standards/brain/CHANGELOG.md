@@ -44,5 +44,5 @@ Initial versioned baseline. Captures the brain as it shipped with QuizCombatApp.
 
 ### Versioning policy
 
-The brain is canonical English. Translations may be maintained as derived artifacts but do not define
-or weaken the normative contract.
+English is the maintained language of Brain guidance. Brain and any translations are derived
+artifacts; neither defines nor weakens the normative Canon contract.

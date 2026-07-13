@@ -10,17 +10,21 @@ architecture audits.
 ### 19.1 Dependency & Layering
 
 - [ ] Domain imports only Foundation
-- [ ] Business Application imports Domain (and only architecture primitives beyond it)
-- [ ] Infrastructure imports Domain (and vendor SDKs); never Business Application
+- [ ] Application imports Domain and inward-owned architecture contracts only; never UI,
+      orchestration, persistence, networking, utility frameworks, or concrete Infrastructure
+- [ ] Infrastructure implements inward-owned Domain/Application contracts and depends toward those
+      layers; Domain/Application never import Infrastructure
 - [ ] UI imports presentation contracts; never repositories or use cases directly
 - [ ] No consumer imports another module's implementation package
-- [ ] No vendor type appears in any contract module
+- [ ] No vendor type appears in a Domain/Application contract; another public contract uses a
+      framework type only when its selected Profile explicitly owns that framework contract
 
 ### 19.2 Module Boundaries
 
 - [ ] Each module has a clear, single capability
 - [ ] Interface module is minimal and stable
-- [ ] Implementation module is the only place vendor SDKs are imported
+- [ ] Implementation modules contain ordinary vendor SDK imports; a selected Profile may expose only
+      the framework types that Profile explicitly owns in its public contract (for example Boardy IO)
 - [ ] No "Common"/"Utilities" trunk module imported by every feature
 
 ### 19.3 Domain Quality
@@ -36,12 +40,15 @@ architecture audits.
 - [ ] Each use case has one protocol and one implementation
 - [ ] Use cases depend on repository/service protocols, not concrete infrastructure
 - [ ] State ownership is explicit and singular
-- [ ] Presentation mapping has exactly one owner per screen
+- [ ] Presenter or an equivalent independently testable mapper is the sole raw/domain-to-display
+      mapper for each screen
 
 ### 19.5 UI Quality
 
-- [ ] View renders state and forwards events; contains no business decisions
+- [ ] View renders display-ready state and forwards events; it does not format raw/domain values or
+      derive product-facing presentation values, business decisions, or analytics meaning
 - [ ] No domain types in view code; only view models
+- [ ] View-owned values are limited to ephemeral UX state, geometry, and visual interpolation
 - [ ] All UI updates execute on the main actor
 - [ ] No side effects in view layer beyond intent emission
 

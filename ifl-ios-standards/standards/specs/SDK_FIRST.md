@@ -81,7 +81,7 @@ policy accepts its ownership, maintenance, security, and compatibility posture:
 | Application / business policy | No orchestration, UI, persistence, networking, or utility-framework imports; depend on inward-owned protocols (`CORE-DEP-002`). |
 | Orchestration / presentation adapter | A selected Profile may use its framework here (for example Boardy), while depending inward on Application/Domain contracts. |
 | Infrastructure & UI | Third-party SDKs allowed ONLY behind adapters, DTOs, repositories, services, UI components. |
-| Interface Module | Minimal vendor-neutral surface; Boardy IO types appear only when the `boardy-vip` Profile explicitly owns that public contract. |
+| Interface Module | Minimal technology-neutral surface by default; framework types appear only when a selected Profile explicitly owns that public contract (for example Boardy IO under `boardy-vip`). |
 
 ### Dependency review checklist
 
@@ -89,7 +89,8 @@ policy accepts its ownership, maintenance, security, and compatibility posture:
 - [ ] Existing project abstraction was checked
 - [ ] Dep does NOT leak into Domain models or repository protocols
 - [ ] Dep does NOT force consumers to import Implementation Modules
-- [ ] Public IO types remain stable and vendor-neutral
+- [ ] Public IO types remain stable and technology-neutral except for framework types explicitly owned
+      by the selected public-contract Profile
 - [ ] Podspec entry uses dep NAME only; local paths stay in Podfile
 - [ ] Build impact and maintenance ownership acceptable
 
@@ -121,10 +122,14 @@ Need new capability?
 
 ## Lifecycle
 
-- SDK init (e.g. `Firebase.configure()`) → in `LauncherPlugin.prepareForLaunching` `launchSettings:` block, runs once.
-- Adapter instance — typically app-lifetime (shared on ModulePlugin) or per-Board depending on statefulness.
+- SDK init (e.g. `Firebase.configure()`) → at the consuming app's declared launch/composition root,
+  exactly once. With `boardy-vip`, that may be the `LauncherPlugin.prepareForLaunching`
+  `launchSettings:` block; non-Boardy projects use their bound application lifecycle owner.
+- Adapter instance — typically app-lifetime under the declared composition owner. With `boardy-vip`,
+  that may be a stored `ModulePlugin` dependency or an explicitly activation-scoped adapter.
 - Vendor session/handle objects — owned by adapter; not exposed to Domain/Application.
-- Replacing a vendor → change the Infra adapter only; Domain/Application and vendor-neutral IO remain unchanged.
+- Replacing a vendor → change the Infra adapter only; Domain/Application and technology-neutral IO
+  remain unchanged. A Profile-owned framework contract changes only through that Profile's governance.
 
 ## Testing
 
@@ -132,7 +137,8 @@ Need new capability?
 - Application layer: imports of Boardy, UIKit, networking, persistence, and vendor/utility frameworks
   under `Sources/Services/Application/` must be empty.
 - Adapter: unit test with vendor SDK in test mode OR with vendor mocked at adapter boundary; assert Domain protocol contract upheld.
-- IO surface: visually scan `IO/**/*.swift` for vendor imports — must be zero.
+- IO surface: ordinary vendor imports must be zero. Permit only framework imports explicitly owned by
+  the selected public-contract Profile, such as Boardy in Boardy IO.
 - Podspec lint: `s.dependency` lines have no `:path` modifier (see `MODULE_CREATION.md`).
 - Final architecture review: confirm Domain and Application policy contain no vendor imports; Profile
   frameworks are confined to their declared outward adapters.

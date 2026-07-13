@@ -28,17 +28,20 @@ When implementing the Interactor / Presenter / ViewController / Builder / Protoc
 ## Files
 
 ```
+IO/{FeatureName}/
+├── {FeatureName}IOInterface.swift    ← public BoardID + MainDestination typealias
+├── {FeatureName}InOut.swift          ← public Input / Output / Command / Action
+└── ServiceMap+{FeatureName}.swift    ← public IO ServiceMap accessor
+
 Sources/Microboards/{FeatureName}/
-├── {FeatureName}IOInterface.swift    ← BoardID, MainDestination typealias
-├── {FeatureName}InOut.swift          ← Input, Output, Command, Action
-├── {FeatureName}Protocols.swift      ← Controllable / ActionDelegate / ControlDelegate / Delegate / UserInterface / Interface / Buildable
+├── {FeatureName}Protocols.swift      ← shared Board-facing adapter contracts + Interface / Buildable
 ├── {FeatureName}Board.swift          ← Board: lifecycle + delegate impl (see MICROBOARD_UI.md)
 ├── {FeatureName}Builder.swift        ← DI wiring, returns Interface struct
-├── {FeatureName}Interactor.swift     ← Business logic + Presentable protocol
-├── {FeatureName}Presenter.swift      ← ViewModel mapping + ViewModels + Viewable protocol
-├── {FeatureName}ViewController.swift ← Humble VC + Interactable protocol
-├── ServiceMap+{FeatureName}.swift    ← Extension on module Plugins ServiceMap
-└── Views/                            ← Sub-views, cells (optional)
+├── {FeatureName}Interactor.swift     ← presentation intent coordination + UseCase calls + Presentable protocol
+├── {FeatureName}Presenter.swift      ← semantic/domain output → display-ready ViewModel mapping
+├── {FeatureName}ViewController.swift ← humble UIKit adapter + Interactable protocol
+├── ServiceMap+{FeatureName}.swift    ← internal Plugins ServiceMap accessor
+└── Views/                            ← subviews/cells or SwiftUI adapter files (optional)
 ```
 
 ## Naming

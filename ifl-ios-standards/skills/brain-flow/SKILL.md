@@ -8,8 +8,11 @@ description: >-
 # Brain — Flow
 
 Run one end-to-end flow using the provider's native task/thread, subagent, tool, and approval
-capabilities. Do not build a provider-independent workflow kernel, progress state machine, verifier,
-or evidence system.
+capabilities. A provider-independent workflow kernel or state/evidence system may be considered only
+through a separate approved work item backed by reproducible adopter evidence and an accepted ADR, as
+required by shipped `standards/GOVERNANCE.md`. The repository-level `ROADMAP.md` supplies additional
+non-normative intake guidance when working from the Standards source repository. Do not create a
+kernel inside ordinary Brain-Flow delivery.
 
 Read:
 
@@ -17,6 +20,7 @@ Read:
 - `${CLAUDE_PLUGIN_ROOT}/standards/process/approval-modes.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/rules/COMMIT_WORKFLOW.md`
+- `${CLAUDE_PLUGIN_ROOT}/standards/GOVERNANCE.md`
 
 ## 0. Bind mode, repository, and pattern
 
@@ -28,8 +32,8 @@ Read:
   would materially change the result.
 - Detect Boardy+VIP or another bound pattern and forward relevant stages to its skills.
 - When the task intersects enterprise iOS concerns, route through `enterprise-ios` and load only the
-  applicable chapter(s) among the ten enterprise chapters. The chapters own normative detail; do not
-  duplicate it in Brain-Flow artifacts.
+  applicable chapter(s) among the ten enterprise chapters. Those chapters apply and explain relevant
+  Canon Rules; Canon owns normative obligations, so do not duplicate them in Brain-Flow artifacts.
 - Use the approved plan checklist and provider-native task state for progress. Do not create canonical
   progress schemas, receipts, manifests, fingerprints, or evidence ledgers.
 - On resume, rehydrate from the approved requirements/plan, last semantic commit, provider task state,
@@ -120,7 +124,8 @@ Engineering completion/release readiness is Brain-Flow's terminal state.
 - one requirements decision, one plan decision, one completed plan, one final AI review;
 - no packaged verifier/lint/smoke scripts;
 - no per-checkpoint manifests, fingerprints, receipts, or evidence chains;
-- no custom Kernel or provider-independent state engine before 1.0;
+- no custom Kernel or provider-independent state engine without reproducible adopter evidence, a
+  separately approved work item, and an accepted ADR under shipped governance;
 - no execute → review → fix → re-review loop for small findings;
 - no build/test for documentation-only work;
 - no routine human interruption in auto mode.

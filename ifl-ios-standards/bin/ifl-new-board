@@ -275,9 +275,14 @@ private extension ${BOARD}Board {
 
 import $MODULE
 
+// Add semantic/domain cases and values here. Keep display formatting in the Presenter.
+enum ${BOARD}PresentationOutput: Equatable {
+    case idle
+}
+
 @MainActor
 protocol ${BOARD}Presentable: AnyObject {
-    func present(_ state: ${BOARD}ViewState)
+    func present(_ output: ${BOARD}PresentationOutput)
 }
 
 final class ${BOARD}Interactor {
@@ -293,7 +298,7 @@ final class ${BOARD}Interactor {
 
 extension ${BOARD}Interactor: ${BOARD}Controllable, ${BOARD}Interactable {
     func didBecomeActive() {
-        // TODO: execute use cases and send domain results to the Presenter.
+        // TODO: execute use cases and send semantic/domain output to the Presenter.
     }
 }"
 
@@ -319,8 +324,17 @@ final class ${BOARD}Presenter {
 }
 
 extension ${BOARD}Presenter: ${BOARD}Presentable {
-    func present(_ state: ${BOARD}ViewState) {
-        view?.render(state)
+    func present(_ output: ${BOARD}PresentationOutput) {
+        view?.render(map(output))
+    }
+}
+
+private extension ${BOARD}Presenter {
+    func map(_ output: ${BOARD}PresentationOutput) -> ${BOARD}ViewState {
+        switch output {
+        case .idle:
+            return .idle
+        }
     }
 }"
 
@@ -330,10 +344,6 @@ import $MODULE
 import UIKit
 
 protocol ${BOARD}Controllable: AnyObject {}
-
-protocol ${BOARD}Interactable: AnyObject {
-    func didBecomeActive()
-}
 
 protocol ${BOARD}ActionDelegate: AnyObject {}
 protocol ${BOARD}ControlDelegate: AnyObject {}
@@ -374,6 +384,10 @@ struct ${BOARD}Builder: ${BOARD}Buildable {
 
 import $MODULE
 import UIKit
+
+protocol ${BOARD}Interactable: AnyObject {
+    func didBecomeActive()
+}
 
 final class ${BOARD}ViewController: UIViewController {
     var interactor: ${BOARD}Interactable!
@@ -430,6 +444,10 @@ final class ${BOARD}PresentationStore: ObservableObject, ${BOARD}Viewable {
 
 import SwiftUI
 import UIKit
+
+protocol ${BOARD}Interactable: AnyObject {
+    func didBecomeActive()
+}
 
 @MainActor
 final class ${BOARD}HostingController: UIHostingController<${BOARD}View> {

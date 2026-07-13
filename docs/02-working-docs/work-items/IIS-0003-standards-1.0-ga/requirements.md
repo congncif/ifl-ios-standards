@@ -110,9 +110,9 @@ Close the authority, package-boundary, architecture, conformance, and operating-
 - [x] **D7 — Enterprise conformance is adoptable.** Profiles, chapter applicability, policy owners, full/partial/transitional conformance, non-applicable status, and exception lifecycle are defined without requiring Boardy.
 - [x] **D8 — GA promotion is governed.** RC feedback, defect/change policy, qualification matrix, sign-offs, rollback/de-promotion, explicit Git staging, and external release authority are documented.
 - [x] **D9 — Candidate metadata is honest.** Internal version/package documentation consistently identifies an RC2 working candidate while all public install references remain pinned to published RC1 until a separately authorized release.
-- [ ] **D10 — Review is lean and conclusive.** The complete plan receives one final joined AI consistency review; all P0/P1 findings are resolved in at most one semantic corrective batch, with no duplicate documentation build/test signal.
-- [ ] **D11 — Scope is preserved.** `IIS-0002`, `.superpowers/`, unrelated user files, CI, and release operations remain untouched.
-- [ ] **D12 — Git history is reviewable.** Each complete semantic task is staged with explicit paths and committed exactly once under the scoped Git authority; unrelated/untracked files are excluded and no intermediate review or test gate is introduced merely to permit the commit.
+- [x] **D10 — Review is lean and conclusive.** The complete plan receives one final joined AI consistency review; all P0/P1 findings are resolved in at most one semantic corrective batch, with no duplicate documentation build/test signal.
+- [x] **D11 — Scope is preserved.** `IIS-0002`, `.superpowers/`, unrelated user files, CI, and release operations remain untouched.
+- [x] **D12 — Git history is reviewable.** Each complete semantic task is staged with explicit paths and committed exactly once under the scoped Git authority; unrelated/untracked files are excluded and no intermediate review or test gate is introduced merely to permit the commit.
 
 ## Requirement gate
 

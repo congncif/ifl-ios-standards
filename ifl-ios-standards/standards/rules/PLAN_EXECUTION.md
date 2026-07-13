@@ -1,10 +1,10 @@
 # SPEC: Plan Execution Workflow
 
-The normative cadence is defined by
-`${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`.
-Mode eligibility, authority, recovery/resume, frozen candidate identity, finding disposition, and the
-engineering-completion boundary are defined by
-`${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md`.
+Canon remains the normative authority. For derived operating guidance, use
+`${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md` for execution cadence and
+`${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md` for mode eligibility, authority,
+recovery/resume, frozen candidate identity, finding disposition, and the engineering-completion
+boundary.
 
 ## Delivery contract
 

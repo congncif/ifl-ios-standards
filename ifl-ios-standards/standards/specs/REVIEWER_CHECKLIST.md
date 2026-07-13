@@ -167,14 +167,17 @@
 ## VIP Components
 
 ### Protocols.swift
-- [ ] ALL protocols for one board in ONE file
-- [ ] `{Name}Interactable` NOT in Protocols.swift (lives in ViewController file)
+- [ ] Shared Board-facing protocols (`Controllable`, delegates, `Interface`, `Buildable`) live together
+      in Protocols.swift
+- [ ] `{Name}Interactable` NOT in Protocols.swift (lives with the UIKit ViewController or SwiftUI
+      hosting/rendering adapter that owns the intent port)
 - [ ] `{Name}Presentable` NOT in Protocols.swift (lives in Interactor file)
 - [ ] `{Name}Viewable` NOT in Protocols.swift (lives in Presenter file)
 
 ### Interactor
 - [ ] `{Name}Presentable` protocol defined at top of Interactor file
-- [ ] `{Name}Presentable` methods accept **domain model types only** — never ViewModels
+- [ ] `{Name}Presentable` methods accept semantic/domain output types only — never ViewModels or
+      display-ready ViewState
 - [ ] `weak var delegate: {Name}ControlDelegate!`
 - [ ] `private let presenter: {Name}Presentable`
 - [ ] `didBecomeActive()` is the VIP entry point (called by ViewController.viewDidLoad)
@@ -191,8 +194,9 @@
 - [ ] All raw/domain → display-ready mapping and formatting lives here, never in a UIKit/SwiftUI View
 - [ ] Private `map(_ model:) -> ViewModel` function does all domain→ViewModel conversion
 
-### ViewController
-- [ ] `{Name}Interactable` protocol defined at top of ViewController file
+### UIKit / SwiftUI intent adapter
+- [ ] `{Name}Interactable` protocol is defined with the UIKit ViewController or SwiftUI hosting/rendering
+      adapter that forwards lifecycle and typed user intent
 - [ ] `weak var actionDelegate: {Name}ActionDelegate!`
 - [ ] `viewDidLoad` calls `interactor.didBecomeActive()`
 - [ ] Renders and forwards; conditionals inspect display-ready presentation state only, never raw/domain data

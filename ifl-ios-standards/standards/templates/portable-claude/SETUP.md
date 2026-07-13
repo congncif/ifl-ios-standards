@@ -168,20 +168,23 @@ If the project is single-target (no modules), state that explicitly in the Modul
 
 ---
 
-## 6. Optional: Generate `QUICK_REF.md`
+## 6. Optional: Generate routing-only `QUICK_REF.md`
 
-Skip by default. Generate only if the project will have ≥ 3 task-specific specs.
+Skip by default. Generate only when at least three recurring project-specific routing categories make
+a separate navigation aid materially useful. It is derived routing guidance, not an authority or a
+place to create project or Canon obligations.
 
 Path: `<BindingsRoot>/QUICK_REF.md`.
 
 Required sections:
 
-1. **Task → Spec Routing** — table mapping task categories to spec files.
+1. **Task → Spec Routing** — table mapping task categories to existing authoritative bindings or derived guidance.
 2. **Project-specific naming conventions** — module names, file patterns, type-name patterns based on the chosen presentation pattern.
-3. **Project-specific code patterns** — key code snippets the chosen pattern uses.
-4. **Project-specific non-negotiable rules** — pattern-specific invariants that go beyond the generic brain rulebook.
+3. **Project-specific code-pattern links** — concise links to existing project or selected-Profile examples; do not duplicate their obligations.
+4. **Governed local constraints** — links to stricter project bindings or approved transition/exception records; do not invent or silently weaken Canon Rules.
 
-If generated, list it as authority-step 3 in `CLAUDE.md` §2 of the target project (the template already does this).
+If generated, link it from `CLAUDE.md` / `AGENTS.md` as optional routing guidance below Canon and the
+project bindings. The starter intentionally does not predeclare it as an authority source.
 
 ---
 

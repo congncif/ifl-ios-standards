@@ -10,8 +10,9 @@ description: >-
 
 Load the Core Canon Profile first. Add `boardy-vip`, `uikit`, and/or `swiftui` only when the affected
 project surface selects them; Boardy is never an enterprise prerequisite. Then load only the chapters
-matching the task plus their actually implicated prerequisites. Chapters own normative detail; this
-router does not restate or weaken their Rules.
+matching the task plus their actually implicated prerequisites. These chapters apply and explain the
+relevant Canon Rules; Canon owns normative obligations, and this router neither restates nor weakens
+them.
 
 | Concern | Chapter | Dependency closure when implicated |
 |---|---|---|
