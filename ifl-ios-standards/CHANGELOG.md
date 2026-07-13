@@ -4,6 +4,20 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.0-rc.3] — 2026-07-14 (unpublished working candidate)
+
+### Fixed
+- Made project initialization Profile-neutral end to end: Core is the default, Brain Flow is the
+  general next step, and Boardy/VIP routing occurs only when that optional Profile is selected.
+- Aligned `ifl-init` with portable template 2.5.0 so observed Bazel, CocoaPods, and SwiftPM repositories
+  populate `{BuildSystem}` and `{BuildIntegration}` instead of retired placeholder names.
+- Reset field qualification to the exact RC3 candidate. No RC2 result may be inferred or reused;
+  Q1-Q6 remain `not qualified` until observed against the immutable RC3 commit.
+
+### Release boundary
+- Kept the latest published release and public Codex marketplace source pinned to
+  `v1.0.0-rc.1`; RC3 preparation grants no push, tag, publication, installation, or rollout authority.
+
 ## [1.0.0-rc.2] — 2026-07-14 (unpublished working candidate)
 
 ### Changed

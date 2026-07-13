@@ -4,7 +4,7 @@ A dual-provider plugin packaging reusable **iOS engineering standards**: 9 speci
 21 skills including `enterprise-ios`, provider-native Brain Flow, Boardy/VIP task routing, ten
 focused enterprise chapters, and thin build-system-neutral module/board source scaffolders.
 
-> **Release status (2026-07-14):** this payload is the unpublished `1.0.0-rc.2` working candidate.
+> **Release status (2026-07-14):** this payload is the unpublished `1.0.0-rc.3` working candidate.
 > The latest published/tag-installable release remains `v1.0.0-rc.1`; public marketplace references
 > stay on RC1 until a separately authorized release.
 
@@ -73,13 +73,13 @@ codex plugin add ifl-ios-standards@ifl-ios-standards
 ```
 
 The local-checkout scripts described in [INSTALL.md](INSTALL.md) are qualification/development paths,
-not public RC2 installation guidance. Use them only under explicit installation authority that names
+not public candidate installation guidance. Use them only under explicit installation authority that names
 the exact candidate checkout/commit and intended scope.
 
 ## Versioning
 
 Both provider manifests mirror the upstream pack `VERSION`. This branch carries the unpublished
-`1.0.0-rc.2` working candidate; the latest published release and public pin remain
+`1.0.0-rc.3` working candidate; the latest published release and public pin remain
 `v1.0.0-rc.1`. Publication and installation are separately authorized operations.
 
 ## License

@@ -1,8 +1,8 @@
 # Compatibility, Adoption, and Migration
 
-Status: unpublished Standards `1.0.0-rc.2` working candidate
+Status: unpublished Standards `1.0.0-rc.3` working candidate
 
-Published install baseline: `v1.0.0-rc.1`; this document is not a direct GA or RC2-publication claim
+Published install baseline: `v1.0.0-rc.1`; this document is not a direct GA or candidate-publication claim
 
 ## Compatibility contract
 
@@ -27,7 +27,7 @@ differ but cannot change architecture, conformance, or authority meaning. When d
 unavailable, an eligible approved plan may continue inline. Neither provider requires a pack-owned
 kernel, verifier, receipt/manifest chain, CI system, or custom state engine.
 
-The RC2 candidate must complete the provider/profile/build-system qualification matrix in
+The current candidate must complete the provider/profile/build-system qualification matrix in
 `RELEASE.md` before a GA compatibility claim. A listed provider or adapter that has not completed its
 required row is `not qualified`, not silently inferred as GA-supported.
 
@@ -76,7 +76,7 @@ risk-relevant ordinary signals; documentation/binding-only adoption has no artif
 
 Migration is an explicit adoption review, not a forced pattern, UI, provider, or build-system rewrite:
 
-1. Keep the currently published RC1 install unless a separately authorized RC2 artifact/source is
+1. Keep the currently published RC1 install unless a separately authorized candidate artifact/source is
    provided for qualification; do not infer publication from this working-candidate document.
 2. Inventory current modules, boundaries, provider bindings, build graph, policy owners, and known
    deviations.
@@ -86,7 +86,7 @@ Migration is an explicit adoption review, not a forced pattern, UI, provider, or
    Skills, agents, templates, and examples as derived guidance.
 5. Declare full, partial, or transitional scope. Give each gap/exception an owner, approving authority,
    compensating controls where relevant, expiry, and remediation plan.
-6. Retain CocoaPods, SwiftPM, Bazel, or hybrid wiring when it preserves canonical boundaries; RC2 does
+6. Retain CocoaPods, SwiftPM, Bazel, or hybrid wiring when it preserves canonical boundaries; the candidate does
    not require a package-manager or UI-framework migration.
 7. Execute one approved migration plan. Use focused ordinary tests only where product executable code
    changes, semantic commits when authorized, and one joined final AI consistency review.
@@ -103,5 +103,5 @@ owned disposition of real gaps.
 Classify compatibility changes, deprecations, removals, and exceptions under `GOVERNANCE.md`. A
 derived document cannot silently add/drop support, introduce a minimum, or claim field qualification.
 Material changes require governed Canon/ADR decisions, migration guidance, a new candidate, and the
-qualification/sign-offs in `RELEASE.md`. Until those complete, `1.0.0-rc.2` remains an unpublished
+qualification/sign-offs in `RELEASE.md`. Until those complete, `1.0.0-rc.3` remains an unpublished
 working candidate and the marketplace remains on published RC1.

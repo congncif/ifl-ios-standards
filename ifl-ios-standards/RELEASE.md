@@ -1,14 +1,14 @@
-# RC2 Qualification and GA Promotion
+# Current Candidate Qualification and GA Promotion
 
-Target: `1.0.0-rc.2` working candidate
+Target: `1.0.0-rc.3` working candidate
 
 State: unpublished; not approved or represented as `1.0.0` GA
 
-Published marketplace baseline: `v1.0.0-rc.1` until a separate RC2 release is authorized and exists
+Published marketplace baseline: `v1.0.0-rc.1` until a separate candidate release is authorized and exists
 
 ## Boundary
 
-Engineering completion establishes that the approved RC2 content plan and its one joined AI
+Engineering completion establishes that the approved candidate content plan and its one joined AI
 consistency review are complete. It does not authorize a branch merge, push, tag, GitHub release,
 marketplace change, plugin installation, rollout, or GA declaration. Field qualification and the
 sign-offs below are additional promotion inputs, not hidden steps inside Brain-Flow.
@@ -19,7 +19,7 @@ ordinary adopter commands when executable product code is affected, and accounta
 
 ## Candidate sequence
 
-1. Complete one approved RC2 engineering plan through semantic task commits, exactly one joined final
+1. Complete one approved candidate engineering plan through semantic task commits, exactly one joined final
    AI review, and at most one in-scope corrective batch.
 2. Freeze the candidate commit and identify its version, commit SHA, included paths, and published
    baseline. Do not move the public RC1 marketplace reference.
@@ -51,10 +51,10 @@ and qualification severity**. The engineering final review uses the operating-mo
 finding carried into RC qualification keeps the higher applicable severity and cannot be silently
 downgraded merely because its phase changed.
 
-| Severity | Meaning | RC2 / GA effect |
+| Severity | Meaning | Candidate / GA effect |
 |---|---|---|
 | **P0 — stop-ship** | Canon corruption or contradiction that can drive unsafe architecture; security, privacy, legal, data-loss, or destructive automation risk; unusable package/provider path; or release-boundary escape. | Immediately blocks qualification and promotion. De-promote/withdraw the candidate, open a new approved corrective plan, and repeat every affected qualification row plus the final joined review for that new plan. |
-| **P1 — promotion blocker** | Materially wrong conformance outcome, architecture/profile inconsistency, broken full-auto recovery or authority handling, unsupported representative adoption path, or a cross-document contradiction likely to mislead implementation. | Blocks GA and any claim that RC2 is qualification-complete. Resolve in a new semantic candidate revision and repeat affected qualification before sign-off. |
+| **P1 — promotion blocker** | Materially wrong conformance outcome, architecture/profile inconsistency, broken full-auto recovery or authority handling, unsupported representative adoption path, or a cross-document contradiction likely to mislead implementation. | Blocks GA and any claim that the candidate is qualification-complete. Resolve in a new semantic candidate revision and repeat affected qualification before sign-off. |
 | **P2 — non-blocking** | Editorial clarity, low-risk example/link/metadata defect, or improvement that does not change an obligation or supported behavior. | May be corrected only when semantically neutral and explicitly owned; otherwise defer to the next patch/minor plan. Open P2 items must be listed in release notes with owner and disposition. |
 
 Any applicable Organization Policy Owner may raise severity within their decision rights. AI may
@@ -64,11 +64,11 @@ recommend severity but cannot accept organization risk or downgrade a human poli
 
 Allowed before qualification sign-off:
 
-- changes already inside the approved RC2 plan and Definition of Done;
+- changes already inside the approved candidate plan and Definition of Done;
 - corrections that restore Canon/ADR/derived-document agreement without introducing a new decision;
 - P0/P1 fixes through a new approved plan and incremented candidate revision;
 - truly editorial P2 fixes whose owner confirms no semantic or compatibility effect;
-- truthful metadata and release-note updates that continue to identify RC2 as unpublished.
+- truthful metadata and release-note updates that continue to identify the candidate as unpublished.
 
 Prohibited:
 
@@ -111,7 +111,7 @@ One person may hold multiple roles, but each decision right is recorded separate
 
 | Sign-off role | Required decision |
 |---|---|
-| **Standards Owner** | RC2 scope is complete; all P0/P1 are closed; P2 dispositions and the GA version decision are acceptable. |
+| **Standards Owner** | Candidate scope is complete; all P0/P1 are closed; P2 dispositions and the GA version decision are acceptable. |
 | **Canon Maintainer** | Canon, ADRs, Profiles, Rules, indexes, and derived authority are coherent for the engineering-complete candidate. |
 | **Enterprise Adoption Owner** | Every applicable qualification row passed and full/partial/transitional claims are truthful. |
 | **Claude Qualification Owner** | Required Claude Code rows passed on the engineering-complete candidate. |

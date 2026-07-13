@@ -47,7 +47,12 @@ After the Plan Gate is approved, stage and commit only this work item's `require
 **Outcome:** every supported init surface keeps Core-only projects pattern-neutral, while all active
 candidate metadata identifies the same unpublished RC3 revision and keeps public RC1 unchanged.
 
-**Status:** PENDING
+**Status:** COMPLETE
+
+**Focused executable signal:** `bash -n` passed. One generated-output event exercised minimal
+SwiftPM, CocoaPods, and Bazel fixtures; all three emitted identical CLAUDE/AGENTS twins, populated the
+current `{BuildSystem}`/`{BuildIntegration}` contract, retained governed unknowns, routed generally to
+Brain Flow, and kept every Boardy mention conditional. No product build/test or repeated signal ran.
 
 ### Changes
 

@@ -79,14 +79,21 @@ first_glob() {
   return 0
 }
 
-# Dependency manager + module root + module dependency file
-DEP_MGR="{DependencyManager}"; MODULE_ROOT="{ModuleRoot}"; MODULE_DEP_FILE="{ModuleDependencyFile}"
+# Build/package system + integration file + module root
+BUILD_SYSTEM="{BuildSystem}"; BUILD_INTEGRATION="{BuildIntegration}"; MODULE_ROOT="{ModuleRoot}"
 if [ -f "$ROOT/MODULE.bazel" ] || [ -f "$ROOT/WORKSPACE" ] || [ -f "$ROOT/WORKSPACE.bazel" ] || [ -n "$(first_glob "$ROOT/*.bazelrc")" ] || [ -f "$ROOT/.bazelrc" ]; then
-  DEP_MGR="Bazel (bazelisk) + rules_xcodeproj"; MODULE_DEP_FILE="BUILD.bazel"
+  BUILD_SYSTEM="Bazel (bazelisk) + rules_xcodeproj"; BUILD_INTEGRATION="BUILD.bazel"
 elif [ -f "$ROOT/Podfile" ] || [ -n "$(first_glob "$ROOT/*.podspec")" ]; then
-  DEP_MGR="CocoaPods"; MODULE_DEP_FILE="*.podspec"
+  BUILD_SYSTEM="CocoaPods"
+  if [ -f "$ROOT/Podfile" ] && [ -n "$(first_glob "$ROOT/*.podspec")" ]; then
+    BUILD_INTEGRATION="Podfile + *.podspec"
+  elif [ -f "$ROOT/Podfile" ]; then
+    BUILD_INTEGRATION="Podfile"
+  else
+    BUILD_INTEGRATION="*.podspec"
+  fi
 elif [ -f "$ROOT/Package.swift" ]; then
-  DEP_MGR="Swift Package Manager"; MODULE_DEP_FILE="Package.swift"
+  BUILD_SYSTEM="Swift Package Manager"; BUILD_INTEGRATION="Package.swift"
 fi
 
 # Workspace / xcodeproj: fill only when the repository has one unambiguous candidate.
@@ -115,7 +122,8 @@ echo "ifl-init — seeding bindings"
 echo "  root:        $ROOT"
 echo "  template:    $SRC"
 echo "  detected:    project=$PROJECT_NAME  remote=$GIT_REMOTE  branch=$BASE_BRANCH"
-echo "               manager=$DEP_MGR  module-root=$MODULE_ROOT  workspace=$WORKSPACE"
+echo "               system=$BUILD_SYSTEM  integration=$BUILD_INTEGRATION"
+echo "               module-root=$MODULE_ROOT  workspace=$WORKSPACE"
 echo "  dry:         $DRY"
 echo
 
@@ -126,17 +134,17 @@ render() {
   perl -pe '
     BEGIN {
       $pn=shift @ARGV; $ws=shift @ARGV; $bb=shift @ARGV; $gr=shift @ARGV;
-      $gu=shift @ARGV; $dm=shift @ARGV; $mr=shift @ARGV; $mdf=shift @ARGV;
+      $gu=shift @ARGV; $bs=shift @ARGV; $bi=shift @ARGV; $mr=shift @ARGV;
     }
     s/\{ProjectName\}/$pn/g;
     s/\{Workspace\}/$ws/g;
     s/\{BaseBranch\}/$bb/g;
     s/\{GitRemote\}/$gr/g;
     s/\{GitRemoteURL\}/$gu/g;
-    s/\{DependencyManager\}/$dm/g;
+    s/\{BuildSystem\}/$bs/g;
+    s/\{BuildIntegration\}/$bi/g;
     s/\{ModuleRoot\}/$mr/g;
-    s/\{ModuleDependencyFile\}/$mdf/g;
-  ' -- "$PROJECT_NAME" "$WORKSPACE" "$BASE_BRANCH" "$GIT_REMOTE" "$GIT_URL" "$DEP_MGR" "$MODULE_ROOT" "$MODULE_DEP_FILE"
+  ' -- "$PROJECT_NAME" "$WORKSPACE" "$BASE_BRANCH" "$GIT_REMOTE" "$GIT_URL" "$BUILD_SYSTEM" "$BUILD_INTEGRATION" "$MODULE_ROOT"
 }
 
 if [ "$DRY" = 1 ]; then

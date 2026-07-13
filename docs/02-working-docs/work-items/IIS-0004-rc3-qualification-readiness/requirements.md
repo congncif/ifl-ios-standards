@@ -114,17 +114,17 @@ corrective diff passes one joined AI consistency review with no open P0/P1.
 
 ## Definition of Done
 
-- [ ] **D1 — Init is Profile-neutral end to end.** The skill, every active entrypoint it uses, bundled
+- [x] **D1 — Init is Profile-neutral end to end.** The skill, every active entrypoint it uses, bundled
   starter, and observed generated bindings neither require nor recommend Boardy for a Core-only
   project; Boardy routing is conditional on the selected Profile.
-- [ ] **D2 — Routing and generated build bindings are actionable.** The default next step is
+- [x] **D2 — Routing and generated build bindings are actionable.** The default next step is
   pattern-neutral `brain-flow`, with conditional `enterprise-ios` and `boardy-adopt` routes stated
   without ambiguity; Bazel, CocoaPods, and SwiftPM fixtures emit their observed current
   `{BuildSystem}`/`{BuildIntegration}` values and retain governed unknowns as placeholders.
-- [ ] **D3 — RC3 metadata is honest.** Active candidate manifests, version text, changelogs, readmes,
+- [x] **D3 — RC3 metadata is honest.** Active candidate manifests, version text, changelogs, readmes,
   and release-governance text agree on unpublished `1.0.0-rc.3`; public install/marketplace references
   remain on published RC1.
-- [ ] **D4 — Qualification claims are preserved.** Q1-Q6 are unchanged and remain `not qualified`;
+- [x] **D4 — Qualification claims are preserved.** Q1-Q6 are unchanged and remain `not qualified`;
   no support claim is narrowed or declared passed by documentation.
 - [ ] **D5 — Review is conclusive.** One exact baseline-to-implementation `review-input range` is
   writer-frozen for one joined independent AI consistency review. All accepted P0/P1 findings are
