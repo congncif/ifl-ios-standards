@@ -1,4 +1,4 @@
-<!-- template-version: 2.4.0 -->
+<!-- template-version: 2.5.0 -->
 
 # Portable CLAUDE/AGENTS bindings starter
 
@@ -77,3 +77,4 @@ The plugin standard versions independently (see the plugin's `plugin.json` / `VE
 | 2026-06-09 | 2.0.0 | Rewritten for the plugin model: bindings starter only; standard ships in the `ifl-ios-standards` plugin; docs/handoffs follow docs-organization; package-manager-neutral. |
 | 2026-06-16 | 2.1.0 | Generalized wording beyond Boardy-only projects; clarified routing and plugin paths; removed install commands from seeded CLAUDE/AGENTS template. |
 | 2026-07-13 | 2.4.0 | Aligned bindings with Standards 1.0: provider-native auto/co-working Brain Flow, scoped local auto-commit, one full-plan final AI review, enterprise routing, UIKit/SwiftUI humble Views, source-only build-neutral scaffolders, repository-owned commands/CI, and placeholder-only examples. |
+| 2026-07-14 | 2.5.0 | Added Canon authority, optional Boardy routing, explicit operating/organization-policy bindings, resume/disposition ownership, and the engineering-completion boundary for eligible full-auto work. |

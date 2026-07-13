@@ -7,12 +7,12 @@ set -euo pipefail
 # Works like any Codex plugin — add marketplace by repo name, install, done.
 #
 # Run it any of these ways:
-#   curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl-ios-standards/scripts/install-codex.sh | bash
-#   bash install-codex.sh
+#   curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/v1.0.0-rc.1/ifl-ios-standards/scripts/install-codex.sh | bash -s -- --ref=v1.0.0-rc.1
+#   bash install-codex.sh --ref=v1.0.0-rc.1
 #   bash install-codex.sh --ref=v1.0.0-rc.1
 #
 # Flags (all optional):
-#   --ref=BRANCH|TAG|SHA   pin a version (e.g. v1.0.0-rc.1); omit = default branch (main)
+#   --ref=BRANCH|TAG|SHA   pin an explicitly authorized source (published example: v1.0.0-rc.1)
 
 REPO="congncif/ifl-ios-standards"
 MARKETPLACE="ifl-ios-standards"      # the "name" field inside .codex-plugin/marketplace.json

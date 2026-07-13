@@ -4,6 +4,10 @@ A dual-provider plugin packaging reusable **iOS engineering standards**: 9 speci
 21 skills including `enterprise-ios`, provider-native Brain Flow, Boardy/VIP task routing, ten
 focused enterprise chapters, and thin build-system-neutral module/board source scaffolders.
 
+> **Release status (2026-07-14):** this payload is the unpublished `1.0.0-rc.2` working candidate.
+> The latest published/tag-installable release remains `v1.0.0-rc.1`; public marketplace references
+> stay on RC1 until a separately authorized release.
+
 ## What's inside
 
 | Component | What it is |
@@ -33,8 +37,10 @@ data lifecycle, security, privacy, accessibility/global readiness, observability
 performance/resilience, or supply-chain/legal concerns. The enterprise router selects among the ten
 focused chapters; their files remain the single source of detailed standards.
 
-`brain-flow` uses provider-native planning, delegation, and semantic workstreams to execute one approved plan,
-then runs one joined final AI consistency review over the complete result.
+`brain-flow` uses provider-native planning, delegation, and semantic workstreams to execute one
+approved plan, then runs one joined final AI consistency review over the complete result. Eligible
+full-auto delivery ends at engineering completion and release readiness; it does not imply push,
+tag, publication, installation, or rollout.
 
 ## How references resolve
 
@@ -59,8 +65,9 @@ scripts/install-claude.sh --scope=project --project=/path/to/repo
 
 ## Versioning
 
-Both provider manifests mirror the upstream pack `VERSION` (currently `1.0.0-rc.1`). Bump on
-content changes so installs pick up updates.
+Both provider manifests mirror the upstream pack `VERSION`. This branch carries the unpublished
+`1.0.0-rc.2` working candidate; the latest published release and public pin remain
+`v1.0.0-rc.1`. Publication and installation are separately authorized operations.
 
 ## License
 

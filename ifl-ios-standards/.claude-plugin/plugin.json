@@ -1,7 +1,7 @@
 {
   "name": "ifl-ios-standards",
   "description": "Reusable iOS standards with 9 specialist agents, 21 skills including enterprise-ios, provider-native Brain Flow, ten enterprise chapters, and thin build-system-neutral source scaffolders.",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "author": {
     "name": "IFL iOS"
   },

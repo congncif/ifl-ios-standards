@@ -1,4 +1,4 @@
-<!-- template-version: 2.4.0 -->
+<!-- template-version: 2.5.0 -->
 
 # PROJECT_STRUCTURE.example.md — placeholder-only shape reference
 

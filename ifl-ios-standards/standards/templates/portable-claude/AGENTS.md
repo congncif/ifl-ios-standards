@@ -1,4 +1,4 @@
-<!-- template-version: 2.4.0 -->
+<!-- template-version: 2.5.0 -->
 
 # CLAUDE.md — {ProjectName} Project Constitution (starter)
 

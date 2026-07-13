@@ -131,6 +131,12 @@ and UIKit imports and used UIKit `show(_:sender:)`. This signal is not repeated 
 
 **Outcome:** RC2 is a truthful unpublished working candidate with a measurable path to GA and no unsafe release instructions.
 
+**Status:** COMPLETE
+
+**Package signal:** the official Codex plugin validator passed after metadata was finalized. Its first
+launch could not import the bundled YAML dependency; the same validation event completed under the
+available cached dependency without changing candidate content.
+
 ### Changes
 
 - Rewrite `ifl-ios-standards/RELEASE.md` as the RC2-to-GA promotion contract: feedback intake, severity/defect policy, allowed candidate changes, field qualification matrix, named sign-off roles, rollback/de-promotion, and external release authority.

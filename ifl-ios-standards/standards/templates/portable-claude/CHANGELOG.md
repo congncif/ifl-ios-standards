@@ -1,4 +1,4 @@
-<!-- template-version: 2.4.0 -->
+<!-- template-version: 2.5.0 -->
 
 # Changelog — `portable-claude` template
 
@@ -11,6 +11,16 @@ This template follows [SemVer](https://semver.org/), versioned independently of 
 - **Patch (x.y.Z)** — typo, link fix, README clarification with no semantic change.
 - **Minor (x.Y.0)** — new agent, new rule file, new setup step. Adopters confirm at next semi-annual review.
 - **Major (X.0.0)** — removed/renamed agent, breaking change to setup contract, brain major bump. Adopters re-audit + re-run setup.
+
+## [2.5.0] — 2026-07-14 — bundled with the unpublished Standards 1.0.0-rc.2 working candidate
+
+- Made Canon/accepted-ADR authority explicit and kept Boardy routing optional.
+- Added project bindings for default Brain-Flow mode, scoped Git and release authority, organization
+  policy owners, resume/handoff location, and final finding disposition authority.
+- Defined human decision points for co-working and uninterrupted execution for eligible auto mode,
+  with material unknowns and missing authority preserved as setup blockers.
+- Set full-auto's terminal boundary to engineering completion/release readiness and retained the
+  documentation-only no-build/test rule plus one-plan/one-final-review delivery.
 
 ## [2.4.0] — 2026-07-13
 

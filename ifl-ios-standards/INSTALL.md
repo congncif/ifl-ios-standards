@@ -65,11 +65,12 @@ source there instead.
 Same repo serves Codex via its `.codex-plugin/` manifests:
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v1.0.0-rc.1 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards --ref v1.0.0-rc.1
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
-Or the bundled installer: `scripts/install-codex.sh` (`--ref` optional). `codex plugin add`
+Or the bundled installer: `scripts/install-codex.sh --ref=v1.0.0-rc.1`. A branch or commit ref is a
+development/qualification input and requires an explicit instruction naming that ref. `codex plugin add`
 records the install in `~/.codex/config.toml`; the installer also creates `~/.local/bin` shims for
 `ifl-init`, `ifl-new-module`, and `ifl-new-board` because Codex does not currently guarantee plugin
 `bin/` directories are exported to shell `PATH`. The shims resolve the most recently installed

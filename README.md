@@ -7,16 +7,20 @@ ten focused enterprise chapters, and thin build-system-neutral module/board sour
 `.claude-plugin/marketplace.json` (Claude Code) and `.codex-plugin/marketplace.json` (Codex) at its
 root, like a dual-runtime plugin.
 
+> **Release status (2026-07-14):** this branch describes the unpublished `1.0.0-rc.2` working
+> candidate. The latest published/tag-installable release is `v1.0.0-rc.1`; public install pins and
+> the Codex marketplace ref remain on RC1 until a separately authorized RC2 publication.
+
 ## Install — Claude Code
 
 Like any public plugin — two CLI commands, no clone, no drive:
 
 ```bash
-claude plugin marketplace add  congncif/ifl-ios-standards
+claude plugin marketplace add  congncif/ifl-ios-standards#v1.0.0-rc.1
 claude plugin install          ifl-ios-standards@ifl-ios-standards
 ```
 
-Pin the release candidate: `claude plugin marketplace add congncif/ifl-ios-standards#v1.0.0-rc.1`.
+This explicitly pins the latest published release candidate.
 Then `/reload-plugins` (or restart Claude Code).
 
 ### Update installed plugin
@@ -33,18 +37,16 @@ claude plugin marketplace update ifl-ios-standards
 claude plugin update -s project ifl-ios-standards@ifl-ios-standards
 ```
 
-Update from a specific branch, tag, or ref:
+Update from the published RC1 tag:
 
 ```bash
-./install.sh --ref=main --scope=user
-claude plugin marketplace update ifl-ios-standards
-claude plugin update -s user ifl-ios-standards@ifl-ios-standards
-
-# or pin a release tag
 ./install.sh --ref=v1.0.0-rc.1 --scope=user
 claude plugin marketplace update ifl-ios-standards
 claude plugin update -s user ifl-ios-standards@ifl-ios-standards
 ```
+
+A branch or commit ref is a development/qualification input, not a published release. Use one only
+under an explicit qualification or installation instruction that names the exact ref.
 
 Verify:
 
@@ -57,21 +59,22 @@ Run `/reload-plugins` or restart Claude Code after updating.
 One-liner (no clone):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
-# flags: | bash -s -- --ref=v1.0.0-rc.1 --scope=project
+curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/v1.0.0-rc.1/install.sh | \
+  bash -s -- --ref=v1.0.0-rc.1 --scope=user
 ```
 
 ## Install — Codex
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards          # --ref v1.0.0-rc.1 to pin
+codex plugin marketplace add  congncif/ifl-ios-standards --ref v1.0.0-rc.1
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
 One-liner:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/ifl-ios-standards/scripts/install-codex.sh | bash
+curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/v1.0.0-rc.1/ifl-ios-standards/scripts/install-codex.sh | \
+  bash -s -- --ref=v1.0.0-rc.1
 ```
 
 > Codex doesn't expand `${CLAUDE_PLUGIN_ROOT}` — reference paths shown that way in skills/agents
@@ -132,13 +135,15 @@ docs-organization process standard) is optional.
 ## Docs
 
 - [`DEPLOY.md`](DEPLOY.md) — publishing + updating this marketplace on GitHub.
+- [`ROADMAP.md`](ROADMAP.md) — evidence-triggered 1.1 lifecycle topics and the post-1.0 kernel boundary.
 - [`ifl-ios-standards/README.md`](ifl-ios-standards/README.md) — plugin internals + reference layout.
 - [`ifl-ios-standards/INSTALL.md`](ifl-ios-standards/INSTALL.md) — install scopes + drive-source / manual options.
 
 ## Versioning
 
-Plugin `version` in both provider manifests follows the upstream pack `VERSION` (currently
-`1.0.0-rc.1`). Bump on content changes; use `vX.Y.Z` tags so installs can pin.
+Plugin `version` in both provider manifests follows the upstream pack `VERSION`. Local candidate
+metadata is `1.0.0-rc.2`, but it is unpublished; the latest published tag and public install pin are
+still `v1.0.0-rc.1`. A version string never grants push, tag, publication, or installation authority.
 
 ## License
 

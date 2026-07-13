@@ -1,132 +1,200 @@
 # Deploy ifl-ios-standards to GitHub
 
-> CI integration remains owned by DevOps and is outside this repository's plugin workflow. For
-> `1.0.0-rc.1`, the Human Legal/Release Owner has separately authorized MIT public distribution,
-> the Git push/tag, local plugin update, and E2E requested for this release.
+> **Current status (2026-07-14):** this branch contains the unpublished `1.0.0-rc.2` working
+> candidate. The latest published release is `v1.0.0-rc.1`, and the public Codex marketplace source
+> remains pinned to that tag. No RC2 push, tag, marketplace publication, install, or rollout is
+> authorized by candidate preparation.
 
-> **License decision.** The marketplace repository and packaged plugin are distributed under the
-> [MIT License](LICENSE). Both provider manifests declare `MIT`, and the plugin archive carries its
-> own `ifl-ios-standards/LICENSE` copy.
+> **License:** the marketplace repository and packaged plugin remain distributed under the
+> [MIT License](LICENSE). Both provider manifests declare `MIT`, and the plugin payload includes
+> `ifl-ios-standards/LICENSE`.
 
-The marketplace currently lives on a removable drive. Pushing it to GitHub makes it installable
-from anywhere (teammates and fresh machines) with no drive and no clone.
+CI and release automation belong to the consuming organization/DevOps boundary. Treat each external
+effect below as a separate operation with separately recorded authority.
 
-## Repo shape
+## Repository and payload shape
 
-Both runtimes read a marketplace manifest at the **repo root**: Claude Code from
-`.claude-plugin/marketplace.json`, Codex from `.codex-plugin/marketplace.json`. This `marketplace/`
-directory has both:
+Both runtimes read a marketplace manifest at the repository root: Claude Code uses
+`.claude-plugin/marketplace.json`; Codex uses `.codex-plugin/marketplace.json`. The installable payload
+is the `ifl-ios-standards/` subtree. Repository-root working docs, roadmap material, and the inactive
+post-1.0 backlog are not part of that plugin payload.
 
-```
+```text
 <repo root>/
-├── .claude-plugin/marketplace.json     # Claude — plugins[].source = "./ifl-ios-standards"
-├── .codex-plugin/marketplace.json      # Codex  — plugins[].source = git-subdir → ./ifl-ios-standards
-├── ifl-ios-standards/                  # the plugin
-│   ├── .claude-plugin/plugin.json      #   Claude plugin manifest
-│   ├── .codex-plugin/plugin.json       #   Codex plugin manifest
-│   ├── agents/ skills/ standards/ bin/ #   shared content (both runtimes)
+├── .claude-plugin/marketplace.json
+├── .codex-plugin/marketplace.json
+├── ifl-ios-standards/
+│   ├── .claude-plugin/plugin.json
+│   ├── .codex-plugin/plugin.json
+│   ├── agents/ skills/ standards/ bin/
 │   └── scripts/{install-claude,install-codex}.sh
-├── install.sh                          # standalone Claude installer (add-by-repo-name + install)
-├── DEPLOY.md                           # this file
-└── README.md / INSTALL.md
+├── DEPLOY.md
+├── ROADMAP.md
+├── README.md
+└── install.sh
 ```
 
-So the repo root = the **contents of this `marketplace/` dir** (a dedicated marketplace repo,
-separate from the ifl-ios-pack source). One `git push` updates both runtimes.
+## Authority matrix
 
-## One-time public push
+| Operation | Required authority | Never implied by |
+|-----------|--------------------|------------------|
+| Stage and local commit | Scoped repository/worktree/branch and path authority | Plan approval, auto mode, tests, review |
+| Create or switch a branch | Branch authority | Local commit authority |
+| Create a remote repository | Repository-administration authority | Initial local setup |
+| Push a non-distribution candidate branch | Remote Git authority for the exact branch/commit | Local commit or remote creation |
+| Push a ref consumed by an unpinned public channel, including the default branch | Remote Git **and** marketplace/release authority | Ordinary branch-push authority |
+| Create a tag | Tag authority for the exact version/commit | Version metadata |
+| Push a tag | Remote tag authority | Local tag creation |
+| Change marketplace source/ref or publish a release | Marketplace/release authority | Tag creation or push |
+| Install/update a local or project plugin | Machine/project installation authority | Publication |
+| Production rollout | Release/sign-off authority | Any prior operation |
+
+Commands in this document are handoff examples, not standing authorization.
+
+## Initial publication of a new repository
+
+Use this path only when the remote repository does not exist. Repository creation, first push, tag,
+publication, and installation are distinct decisions.
+
+1. Under local repository authority, initialize Git and stage an explicit allowlist. Never stage the
+   current directory, all changes, a wildcard, an implicit path, or a directory whose descendants
+   have not been individually approved.
+
+   ```bash
+   git init
+   git add -- \
+     .claude-plugin/marketplace.json \
+     .codex-plugin/marketplace.json \
+     DEPLOY.md \
+     LICENSE \
+     README.md \
+     ROADMAP.md \
+     install.sh \
+     ifl-ios-standards/.claude-plugin/plugin.json \
+     ifl-ios-standards/.codex-plugin/plugin.json \
+     ifl-ios-standards/CHANGELOG.md \
+     ifl-ios-standards/INSTALL.md \
+     ifl-ios-standards/LICENSE \
+     ifl-ios-standards/README.md \
+     ifl-ios-standards/RELEASE.md \
+     ifl-ios-standards/VERSION
+
+   # Prepare this temporary allowlist with one reviewed, exact repository-relative file path per
+   # line for every approved payload file under agents/, bin/, scripts/, skills/, and standards/.
+   # Do not put directory paths or glob patterns in it.
+   git add --pathspec-from-file=/tmp/ifl-ios-standards-initial-payload-paths.txt
+   git diff --cached --name-only
+   git commit -m "publish ifl-ios-standards <authorized-version>"
+   ```
+
+   Add repository-root backlog or governance paths only when the release owner explicitly includes
+   them; their presence at repository root never places them in the plugin payload.
+
+2. Under repository-administration authority, create the remote without bundling a push:
+
+   ```bash
+   gh repo create congncif/ifl-ios-standards --public --source=. --remote=origin
+   ```
+
+3. Under separate branch-push authority, push only the authorized branch. An unpublished candidate
+   must use a branch that is neither the public default nor referenced by public install guidance.
+   Because Claude resolves the plugin subtree from the fetched repository ref, pushing the public
+   default branch can itself distribute new payload content and therefore also requires
+   marketplace/release authority.
+
+   ```bash
+   git push -u origin <authorized-branch>
+   ```
+
+4. Continue to the tag/publication sections only after their own approvals.
+
+## Update an existing repository
+
+Use this path when the remote already exists. Do not re-run `git init` or repository creation.
+
+1. Inspect the current branch, remote, and working tree. Switching or creating a branch requires its
+   own authority.
+2. Apply the approved candidate changes.
+3. Stage only the exact paths belonging to the semantic update. For the RC2 metadata/roadmap slice,
+   the explicit path form is:
+
+   ```bash
+   git add -- \
+     DEPLOY.md \
+     README.md \
+     ROADMAP.md \
+     ifl-ios-standards/.claude-plugin/plugin.json \
+     ifl-ios-standards/.codex-plugin/plugin.json \
+     ifl-ios-standards/CHANGELOG.md \
+     ifl-ios-standards/README.md \
+     ifl-ios-standards/VERSION \
+     ifl-ios-standards/standards/brain/CHANGELOG.md \
+     ifl-ios-standards/standards/templates/portable-claude/CHANGELOG.md
+   git diff --cached --name-only
+   git commit -m "prepare ifl-ios-standards 1.0.0-rc.2 candidate"
+   ```
+
+4. Stop at the local commit unless branch-push authority is separately granted. For an unpublished
+   candidate, any authorized push must target a non-distribution candidate branch. Pushing a ref used
+   by an unpinned public channel—especially the default branch—also requires marketplace/release
+   authority. A local RC2 candidate commit does not authorize publication.
+
+## Tag and marketplace publication
+
+The current working candidate must not use these commands because no `v1.0.0-rc.2` tag or release
+authority exists. Once a specific version and candidate commit are approved:
+
+1. Confirm `ifl-ios-standards/VERSION` and both provider manifest versions equal the authorized tag.
+2. Confirm the repository and plugin licenses are the approved MIT text.
+3. Run organization-owned qualification and collect the named release sign-offs.
+4. Under tag-creation authority:
+
+   ```bash
+   git tag <authorized-tag> <authorized-commit>
+   ```
+
+5. Under separate remote-tag authority:
+
+   ```bash
+   git push origin <authorized-tag>
+   ```
+
+6. Only under marketplace/release authority, update public marketplace metadata to the published tag
+   and publish the release. Until that step, `.codex-plugin/marketplace.json` remains at
+   `v1.0.0-rc.1`.
+
+## Install a published release
+
+Installation is a consumer or machine operation, not part of candidate preparation or publication.
+The latest published pin remains RC1:
+
+**Claude Code**
 
 ```bash
-cd /Volumes/KingstonXS1000/WORKSPACE/ABC/ifl-ios-pack/marketplace
-
-git init
-git add .
-git commit -m "ifl-ios-standards marketplace v1.0.0-rc.1"
-
-# create the public repo under your account and push (gh is logged in as congncif)
-gh repo create congncif/ifl-ios-standards --public --source=. --remote=origin --push
+claude plugin marketplace add congncif/ifl-ios-standards#v1.0.0-rc.1
+claude plugin install ifl-ios-standards@ifl-ios-standards
 ```
 
-Tag the version so installs can pin it:
+**Codex**
 
 ```bash
-git tag v1.0.0-rc.1
-git push origin v1.0.0-rc.1
+codex plugin marketplace add congncif/ifl-ios-standards --ref v1.0.0-rc.1
+codex plugin add ifl-ios-standards@ifl-ios-standards
 ```
 
-> If `marketplace/` is also tracked by the parent `ifl-ios-pack` repo, keep it ignored there
-> (`echo 'marketplace/' >> ../.gitignore`) so the two repos don't nest — a dedicated marketplace
-> repo is the clean model.
+Register only one marketplace transport at a time under the `ifl-ios-standards` name. Updating or
+removing an existing local registration also requires the relevant machine/project authority.
 
-## Install from GitHub (teammates / fresh machine)
+## DevOps release handoff
 
-Works exactly like any public plugin — **no clone, no drive, no jq**. Two CLI commands by repo name.
+Before declaring a release published, record:
 
-**Claude Code:**
-```bash
-claude plugin marketplace add  congncif/ifl-ios-standards          # default branch
-claude plugin install          ifl-ios-standards@ifl-ios-standards
-# (pin the release candidate: add  congncif/ifl-ios-standards#v1.0.0-rc.1  instead)
-```
+1. Candidate commit and exact included paths.
+2. Qualification results and named engineering, security/privacy, legal, and release sign-offs.
+3. Separate dispositions for local commit, branch push, tag creation, tag push, marketplace
+   publication, installation/update, and rollout.
+4. The published marketplace ref and rollback/de-promotion target.
+5. Confirmation that public install guidance names only a tag that actually exists.
 
-**Codex:**
-```bash
-codex plugin marketplace add   congncif/ifl-ios-standards          # --ref v1.0.0-rc.1 to pin
-codex plugin add               ifl-ios-standards@ifl-ios-standards
-```
-
-`marketplace add` records the marketplace and `install`/`add` enables the plugin — the CLI persists
-both (Claude → settings, Codex → `~/.codex/config.toml`), so nothing manual. Then `/reload-plugins`
-(Claude) or a new thread (Codex).
-
-The repo also ships `install.sh` (the same two commands, with `--ref` / `--scope` flags) for a
-one-liner — it does **not** need the repo cloned:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash
-# or with flags:
-curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/main/install.sh | bash -s -- --ref=v1.0.0-rc.1 --scope=project
-```
-
-Or settings-only auto-enable (`~/.claude/settings.json` for global):
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "ifl-ios-standards": { "source": { "source": "github", "repo": "congncif/ifl-ios-standards" }, "autoUpdate": true }
-  },
-  "enabledPlugins": { "ifl-ios-standards@ifl-ios-standards": true }
-}
-```
-
-## Two transports, one marketplace name
-
-The marketplace declared name is `ifl-ios-standards` whether the source is the drive
-(`directory`) or GitHub (`github`). **Register only one transport at a time** under that name. If a
-drive install already registered it, remove it before adding the GitHub one:
-
-```bash
-claude plugin marketplace remove ifl-ios-standards
-claude plugin marketplace add    congncif/ifl-ios-standards
-```
-
-To go back to the drive, re-run `ifl-ios-standards/scripts/install-claude.sh`.
-
-## DevOps publication handoff
-
-1. Confirm the repository and packaged plugin LICENSE files are identical MIT text and both provider
-   manifests declare `MIT`.
-2. Confirm `ifl-ios-standards/VERSION`, both provider manifest versions, and the Codex marketplace
-   source `ref` match the release tag.
-3. DevOps runs organization-owned CI and publication checks when that boundary is invoked.
-4. Under explicit release authority, perform `git commit` + `git push`; then
-   `git tag vX.Y.Z && git push origin vX.Y.Z`.
-5. Installs with `autoUpdate: true` pick up the default branch; pinned installs move when you
-   re-add with the new `#vX.Y.Z`, or run `claude plugin marketplace update ifl-ios-standards`.
-
-## Private-repo note
-
-If you make the repo private instead, `claude plugin marketplace add congncif/ifl-ios-standards`
-still works as long as the machine has GitHub auth (gh login or SSH key). The `curl | bash`
-one-liner needs a token for a private repo, so for private use the two raw `claude plugin` commands
-above (they use the machine's existing git auth) rather than the curl pipe.
+See [ROADMAP.md](ROADMAP.md) for deferred, evidence-triggered 1.1 work. Roadmap items are not release
+requirements unless a separately approved work item promotes them.

@@ -1,80 +1,107 @@
-# Compatibility and Migration
+# Compatibility, Adoption, and Migration
 
-Status: Standards `1.0.0-rc.1` candidate policy
+Status: unpublished Standards `1.0.0-rc.2` working candidate
+
+Published install baseline: `v1.0.0-rc.1`; this document is not a direct GA or RC2-publication claim
 
 ## Compatibility contract
 
-The Standards define semantic architecture and engineering obligations, not one provider, UI framework,
-package manager, build graph, or organization policy. Compatibility means that an adopter can apply the
-selected Canon Profiles and preserve their Rules through a documented adapter or project binding. It
-does not imply an unstated minimum iOS version, Xcode version, Boardy version, vendor commitment, legal
-classification, security threshold, or support window.
+The Standards define semantic architecture and enterprise engineering obligations, not one provider,
+architecture pattern, UI framework, package manager, build graph, or organization policy. Core is the
+profile-neutral baseline. An adopter adds only the Profiles and enterprise chapters applicable to its
+product and change impact, then binds organization-owned values to named human owners.
+
+Compatibility means those selected Canon Rules can be preserved through documented project adapters
+and bindings. It does not imply an unstated iOS/Xcode/Swift/Boardy/vendor minimum, legal classification,
+security threshold, support window, or field-qualified GA status.
 
 ## Provider compatibility
 
 | Provider | Supported operating model |
 |---|---|
-| Claude Code | Claude plugin metadata, `${CLAUDE_PLUGIN_ROOT}` references, Skills/agents, and provider-native task, delegation, tool, and approval state. |
-| Codex | Codex plugin metadata, plugin-root-relative resolution of the same bundled standards, Skills/subagents, and provider-native task, tool, and approval state. |
+| Claude Code | Claude plugin metadata, plugin-root references, Skills/agents, and provider-native task, delegation, tool, approval, and resume state. |
+| Codex | Codex plugin metadata, plugin-root-relative bundled standards, Skills/subagents, and provider-native task, tool, approval, and resume state. |
 
-Both providers consume the same Canon and derived documents. Provider syntax and available native
-capabilities may differ; those differences must not change architectural meaning or introduce a second
-workflow contract. When delegation is unavailable, the same approved plan may run inline. Neither
-provider requires a pack-owned verifier, receipt/manifest chain, or custom state engine.
+Both providers consume the same Canon and operating contract. Syntax and native capabilities may
+differ but cannot change architecture, conformance, or authority meaning. When delegation is
+unavailable, an eligible approved plan may continue inline. Neither provider requires a pack-owned
+kernel, verifier, receipt/manifest chain, CI system, or custom state engine.
 
-## Architecture and UI Profiles
+The RC2 candidate must complete the provider/profile/build-system qualification matrix in
+`RELEASE.md` before a GA compatibility claim. A listed provider or adapter that has not completed its
+required row is `not qualified`, not silently inferred as GA-supported.
 
-| Context | Profile selection and compatibility |
+## Profile-neutral architecture and UI adoption
+
+| Context | Applicable selection |
 |---|---|
-| Any governed project | `core` applies. It is pattern-, UI-, and build-system-neutral. |
-| Boardy/VIP project or module | Add `boardy-vip`; it extends Core with Boardy lifecycle, IO, composition, communication, and VIP obligations. Boardy is optional outside that scope. |
-| UIKit rendering | Add `uikit`; UIKit remains a rendering adapter and uses the shared presentation/domain boundaries. |
-| SwiftUI rendering | Add `swiftui`; SwiftUI remains a rendering adapter with its Canon-defined state and isolation boundaries. |
-| Mixed UIKit/SwiftUI product | Apply both UI Profiles to their respective surfaces; shared business and presentation meaning remains framework-independent. Add `boardy-vip` only where Boardy/VIP is used. |
+| Any governed project | Select `core`; it is pattern-, UI-, provider-, and build-system-neutral. |
+| Boardy/VIP module | Add `boardy-vip` for that scope; Boardy remains an outward orchestration/presentation profile around framework-neutral Domain/Application policy. |
+| UIKit rendering | Add `uikit`; UIKit is a rendering adapter using shared inward-owned meaning. |
+| SwiftUI rendering | Add `swiftui`; SwiftUI is a rendering adapter with selected state/isolation Rules. |
+| Mixed UIKit/SwiftUI product | Apply both UI Profiles only to their respective surfaces; add Boardy only where used. |
+| Pattern other than Boardy | Keep Core and selected UI/enterprise obligations; bind the pattern adapter locally without treating Boardy guidance as universal. |
 
-The authoritative selections are the Profile files under `standards/canon/profiles/` and their mapped
-Rules. UI guidance does not require a UIKit-to-SwiftUI migration, and adopting Core does not require
-Boardy. See ADR-0008 and ADR-0009 for the rendering-adapter decisions.
+Profile files under `standards/canon/profiles/` and their active Rule mappings are authoritative. UI
+adoption does not require a UIKit-to-SwiftUI migration. Core adoption does not require Boardy, and a
+Boardy module does not permit Boardy or utility frameworks inside Domain/Application policy.
+
+## Conformance semantics
+
+| State | Meaning and claim boundary |
+|---|---|
+| **Full** | Every applicable active Core/Profile Rule and selected enterprise policy binding is satisfied; owners are recorded; no exception is expired. The claim names the assessed product/module scope and candidate/version. |
+| **Partial** | Only a declared subset is assessed/satisfied. The record lists included and excluded scope, non-applicable items, known gaps, owners, and consequences. It cannot be presented as whole-product or organization-wide conformance. |
+| **Transitional** | Time-bounded partial conformance with an approved migration owner, milestones, expiry, and target state. Strict Swift concurrency may be a staged destination for existing code, but the transition is not a permanent weakened standard. |
+| **Non-applicable** | A Profile, Rule, or chapter is outside the declared product/change impact. Record rationale and owner; this is not an exception. |
+| **Exception** | A temporary approved deviation governed by `GOVERNANCE.md`, including risk, compensating controls, approving owners, expiry, and remediation. |
+
+The Consuming-team Conformance Owner owns the claim. AI may assess evidence and identify gaps but
+cannot decide organization-owned policy, approve an exception, or promote partial/transitional status
+to full. Conformance to this working candidate is not a GA claim.
 
 ## Build-system and dependency-manager compatibility
 
-Architecture concepts are expressed as targets/modules and dependency direction. A consuming repo binds
-those concepts to CocoaPods, SwiftPM, Bazel, or a documented combination. No manager may reverse Canon
-dependency direction or make implementation targets public to consumers.
+Architecture concepts are expressed as modules/targets, public contracts, adapters, composition roots,
+and inward dependency direction. A consuming repository binds those concepts to CocoaPods, SwiftPM,
+Bazel, or a documented combination. No adapter may reverse Canon dependency direction, expose an
+implementation target as a consumer contract, or introduce Boardy into framework-neutral policy.
 
-Manager-specific examples and scaffolders are capability-specific conveniences, not universal mandates
-or evidence of feature parity. Projects keep their own workspace, scheme, target labels, module roots,
-and build/test commands in `CLAUDE.md`, `AGENTS.md`, or equivalent project bindings. See
-`standards/specs/PACKAGE_MANAGER.md` for the boundary and `standards/enterprise/supply-chain-legal.md`
-for organization-owned dependency governance.
+Manager-specific examples and scaffolders are conveniences, not universal mandates or proof of field
+qualification. Repositories keep workspace, scheme, target labels, module roots, and normal build/test
+commands in `CLAUDE.md`, `AGENTS.md`, or equivalent bindings. Executable migrations use only their
+risk-relevant ordinary signals; documentation/binding-only adoption has no artificial build/test gate.
 
 ## Migration from `0.18.x`
 
-Migration is an explicit adoption review, not a forced framework or build-system rewrite:
+Migration is an explicit adoption review, not a forced pattern, UI, provider, or build-system rewrite:
 
-1. Update the installed pack through the provider's normal installation mechanism and keep project
-   bindings for workspace, scheme, simulator, module root, build system, and commands project-owned.
-2. Select `core` plus only the applicable `boardy-vip`, `uikit`, and/or `swiftui` Profiles. Record any
-   project-specific interpretation in project bindings; do not fork Canon definitions.
-3. Map existing architecture guidance to Canon Rule IDs and accepted ADR decisions. Treat old specs,
-   Skills, agents, templates, and examples as derived guidance where they overlap Canon.
-4. Retain CocoaPods, SwiftPM, Bazel, or hybrid wiring if it preserves the canonical target boundaries;
-   `1.0.0-rc.1` does not require a dependency-manager migration.
-5. Bind security, privacy, legal, performance, accessibility, retention, and other organization-owned
-   values to the actual human-owned policies. Do not copy placeholder or invented values into adoption
-   documentation.
-6. Give every temporary deviation an owner, approving authority, compensating controls, expiry, and
-   remediation plan as required by `standards/GOVERNANCE.md`.
-7. Run the consuming repository's normal tests when migration changes executable code. Documentation,
-   metadata, and binding-only adoption are assessed in the approved plan's single final joined AI review;
-   they do not require fabricated runtime evidence.
+1. Keep the currently published RC1 install unless a separately authorized RC2 artifact/source is
+   provided for qualification; do not infer publication from this working-candidate document.
+2. Inventory current modules, boundaries, provider bindings, build graph, policy owners, and known
+   deviations.
+3. Select `core` plus only applicable `boardy-vip`, `uikit`, `swiftui`, and enterprise chapters. Do not
+   fork Canon or load Boardy by default.
+4. Map existing obligations to Canon Rule IDs and accepted ADRs. Treat overlapping legacy specs,
+   Skills, agents, templates, and examples as derived guidance.
+5. Declare full, partial, or transitional scope. Give each gap/exception an owner, approving authority,
+   compensating controls where relevant, expiry, and remediation plan.
+6. Retain CocoaPods, SwiftPM, Bazel, or hybrid wiring when it preserves canonical boundaries; RC2 does
+   not require a package-manager or UI-framework migration.
+7. Execute one approved migration plan. Use focused ordinary tests only where product executable code
+   changes, semantic commits when authorized, and one joined final AI consistency review.
+8. Report engineering completion separately from qualification, publication, installation, rollout,
+   and any future GA decision.
 
-Existing `0.18.x` projects are not non-conforming solely because they use UIKit, Boardy, CocoaPods,
-SwiftPM, Bazel, mixed UI, or provider-specific commands. Conformance depends on the selected Profiles,
-canonical boundaries, project bindings, and disposition of actual gaps.
+Existing projects are not non-conforming merely because they use UIKit, SwiftUI, Boardy, another
+pattern, CocoaPods, SwiftPM, Bazel, mixed UI, or provider-specific commands. The result depends on
+selected Profiles, actual boundaries, declared conformance scope, organization policy bindings, and
+owned disposition of real gaps.
 
-## Compatibility changes
+## Compatibility evolution
 
-Classify compatibility changes, deprecations, removals, and exceptions under
-`standards/GOVERNANCE.md`. A derived document cannot silently drop support or add a new minimum. Any
-such material decision requires the governed Canon/ADR change and migration guidance.
+Classify compatibility changes, deprecations, removals, and exceptions under `GOVERNANCE.md`. A
+derived document cannot silently add/drop support, introduce a minimum, or claim field qualification.
+Material changes require governed Canon/ADR decisions, migration guidance, a new candidate, and the
+qualification/sign-offs in `RELEASE.md`. Until those complete, `1.0.0-rc.2` remains an unpublished
+working candidate and the marketplace remains on published RC1.

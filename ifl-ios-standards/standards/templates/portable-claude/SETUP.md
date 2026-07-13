@@ -1,4 +1,4 @@
-<!-- template-version: 2.4.0 -->
+<!-- template-version: 2.5.0 -->
 <!-- Created by claude-sonnet-4-6 on 2026-05-18 -->
 
 # SETUP.md — One-Time Project Setup Playbook

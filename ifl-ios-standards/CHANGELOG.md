@@ -4,6 +4,25 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.0-rc.2] — 2026-07-14 (unpublished working candidate)
+
+### Changed
+- Quarantined the frozen custom-kernel backlog outside the installable plugin while preserving active
+  Canon schemas, registries, Rules, Profiles, and accepted ADR authority.
+- Converged Canon/ADR lifecycle data and derived guidance around one authority hierarchy and a
+  risk-based executable verification model.
+- Kept Domain and Services/Application policy framework-neutral; scoped Boardy to the selected
+  orchestration/presentation adapter profile; removed blanket utility-framework approval and unused
+  generated imports; retained equivalent UIKit/SwiftUI humble-View adapters.
+- Defined provider-native co-working/full-auto eligibility, independent gates, scoped authority,
+  bounded recovery/resume, enterprise conformance, one complete plan, and one joined final AI review.
+- Versioned the portable project-binding template as `2.5.0` and pinned public install guidance to
+  immutable RC1 while RC2 remains unpublished.
+- Added RC-to-GA qualification governance and an evidence-triggered 1.1/post-1.0 roadmap without
+  introducing a custom runtime, verifier, evidence system, or CI framework.
+- Marked RC2 as an unpublished candidate. The latest published release and the public Codex
+  marketplace source remain pinned to `v1.0.0-rc.1` pending separate release authority.
+
 ## [1.0.0-rc.1] — 2026-07-13
 
 ### Changed
