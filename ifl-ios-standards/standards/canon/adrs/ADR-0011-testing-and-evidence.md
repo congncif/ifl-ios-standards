@@ -1,6 +1,6 @@
 # ADR-0011 — Testing and evidence boundary
 
-- Status: In review
+- Status: Accepted
 - Decision date: 2026-07-13
 - Owner: Testing Owner
 

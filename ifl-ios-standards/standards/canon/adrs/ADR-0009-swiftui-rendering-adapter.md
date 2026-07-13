@@ -1,6 +1,6 @@
 # ADR-0009 — SwiftUI rendering adapter
 
-- Status: In review
+- Status: Accepted
 - Decision date: 2026-07-13
 - Owner: SwiftUI Profile Owner
 

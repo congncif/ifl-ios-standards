@@ -1,6 +1,6 @@
 # ADR-0002: Module Boundaries and Dependency Direction
 
-Status: In Review
+Status: Accepted
 
 Owner: Chief Architecture Owner
 

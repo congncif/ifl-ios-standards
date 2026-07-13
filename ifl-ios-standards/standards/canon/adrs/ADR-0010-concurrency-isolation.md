@@ -1,6 +1,6 @@
 # ADR-0010: Concurrency and Isolation
 
-Status: In Review
+Status: Accepted
 
 Owner: Concurrency Chapter Owner
 
@@ -49,4 +49,3 @@ stores apply the same isolation and cancellation contract.
 4. Convert fire-and-forget work to structured or explicitly owned tasks and add cancellation cleanup.
 5. Wrap remaining callback/delegate boundaries in checked adapters, documenting temporary unchecked
    conformances with owners and removal dates.
-

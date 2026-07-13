@@ -1,6 +1,6 @@
 # ADR-0001: Standards Authority and Evolution
 
-Status: In Review
+Status: Accepted
 
 Owner: Canon Maintainer
 
@@ -44,4 +44,3 @@ Standards 1.0 consistency is assessed once through the final joined AI review of
 3. Resolve contradictory guidance in the same semantic change that introduces the governing Rule or ADR.
 4. Use superseding ADRs and replacement Rule IDs for future material changes; do not edit history into a
    different decision.
-

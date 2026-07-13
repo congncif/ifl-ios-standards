@@ -1,6 +1,6 @@
 # ADR-0004 — Board identity, ownership, and lifecycle
 
-- Status: In review
+- Status: Accepted
 - Decision date: 2026-07-13
 - Owner: iOS Profile Owner
 

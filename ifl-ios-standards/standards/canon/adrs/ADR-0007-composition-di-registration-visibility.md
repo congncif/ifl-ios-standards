@@ -1,6 +1,6 @@
 # ADR-0007 — Composition, DI, registration, and visibility
 
-- Status: In review
+- Status: Accepted
 - Decision date: 2026-07-13
 - Owner: iOS Profile Owner
 

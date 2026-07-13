@@ -101,8 +101,8 @@ Close the authority, package-boundary, architecture, conformance, and operating-
 
 ## Definition of Done
 
-- [ ] **D1 — Installable payload is lean.** No frozen custom-kernel backlog or kernel-owned tooling, verification, schema, or registry implementation remains under `ifl-ios-standards/`; the frozen material exists only in an explicitly inactive repository-root post-1.0 backlog, while active Canon schemas and registries remain in the plugin.
-- [ ] **D2 — ADR state is coherent.** All eleven ADR Markdown and JSON records are Accepted, every JSON `markdown_digest` matches its Markdown document, and the ADR index digests match their records.
+- [x] **D1 — Installable payload is lean.** No frozen custom-kernel backlog or kernel-owned tooling, verification, schema, or registry implementation remains under `ifl-ios-standards/`; the frozen material exists only in an explicitly inactive repository-root post-1.0 backlog, while active Canon schemas and registries remain in the plugin.
+- [x] **D2 — ADR state is coherent.** All eleven ADR Markdown and JSON records are Accepted, every JSON `markdown_digest` matches its Markdown document, and the ADR index digests match their records.
 - [ ] **D3 — Canon has one voice.** Loaded quick references, rulebooks, templates, examples, and reviewer aids either map mandates to the correct Canon/ADR authority or label them as guidance; the known domain-purity mapping and unconditional per-task build/test contradictions are removed.
 - [ ] **D4 — Architecture is consistent.** Domain and application policy are framework-neutral; Boardy is profile-scoped; SiFUtilities has no blanket exception; scaffolds do not emit unused dependency imports; UIKit/SwiftUI and humble-view rules remain aligned.
 - [ ] **D5 — Agent roles are executable.** Coder and tester can run their promised commands, base roles are pattern-neutral, auto gates have an independent owner and measurable rubric, and model-tiering/agent contracts agree.

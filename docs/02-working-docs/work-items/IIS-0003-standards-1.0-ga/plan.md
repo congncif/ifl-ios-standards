@@ -39,6 +39,8 @@ After the Plan Gate is approved, commit only this work item's `requirements.md` 
 
 **Outcome:** the installable plugin contains only active standards/skills/agents/scaffolders, while Canon's eleven accepted ADRs have one coherent lifecycle representation.
 
+**Status:** COMPLETE
+
 ### Changes
 
 - Move `ifl-ios-standards/backlog/post-1.0/custom-kernel/` to repository-root `backlog/post-1.0/custom-kernel/`.
