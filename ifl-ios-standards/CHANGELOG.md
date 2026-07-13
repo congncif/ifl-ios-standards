@@ -10,7 +10,9 @@ auto-update for installed plugins — bump it on every content change so install
 - Made project initialization Profile-neutral end to end: Core is the default, Brain Flow is the
   general next step, and Boardy/VIP routing occurs only when that optional Profile is selected.
 - Aligned `ifl-init` with portable template 2.5.0 so observed Bazel, CocoaPods, and SwiftPM repositories
-  populate `{BuildSystem}` and `{BuildIntegration}` instead of retired placeholder names.
+  populate `{BuildSystem}` and `{BuildIntegration}` instead of retired placeholder names; ambiguous
+  multi-system repositories retain placeholders for owned resolution, and Bazel integration names an
+  observed file rather than an inferred one.
 - Reset field qualification to the exact RC3 candidate. No RC2 result may be inferred or reused;
   Q1-Q6 remain `not qualified` until observed against the immutable RC3 commit.
 

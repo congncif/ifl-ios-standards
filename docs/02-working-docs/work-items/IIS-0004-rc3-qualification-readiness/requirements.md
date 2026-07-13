@@ -126,7 +126,7 @@ corrective diff passes one joined AI consistency review with no open P0/P1.
   remain on published RC1.
 - [x] **D4 — Qualification claims are preserved.** Q1-Q6 are unchanged and remain `not qualified`;
   no support claim is narrowed or declared passed by documentation.
-- [ ] **D5 — Review is conclusive.** One exact baseline-to-implementation `review-input range` is
+- [x] **D5 — Review is conclusive.** One exact baseline-to-implementation `review-input range` is
   writer-frozen for one joined independent AI consistency review. All accepted P0/P1 findings are
   resolved in at most one batch, no routine second review runs, and the resulting post-review commit
   is recorded separately as the immutable RC3 qualification candidate.

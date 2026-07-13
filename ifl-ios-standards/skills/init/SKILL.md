@@ -62,13 +62,18 @@ Before routing the first change, select Profiles from repository and change evid
 - select `boardy-vip` only when the repository/change already uses Boardy or explicitly adopts it;
 - route enterprise chapters only when their governed concern applies.
 
-Record that selection in the repository's owned adoption/work-item location when one exists. Do not
-invent a permanent Boardy selection from the presence of Boardy examples in the starter, and do not
-load a Boardy skill for a Core-only change.
+Always persist the selection in both generated bindings. Under `## 3. Identity and project authority`,
+add or update one row named `Selected Standards Profiles` whose value contains `core` plus only the
+observed `uikit`, `swiftui`, and `boardy-vip` selections. If the repository also owns an adoption or
+work-item record, keep its selection consistent with that binding. Do not invent a Boardy selection
+from the presence of Boardy examples in the starter, and do not load a Boardy skill for a Core-only
+change. Mirror the completed `CLAUDE.md` to `AGENTS.md` after adding the row.
 
 ## 3. Confirm
 
 - Both files exist at repo root, identical.
+- `Selected Standards Profiles` exists in both twins and contains `core` plus only observed optional
+  Profiles.
 - The `Module root` row parses as a single token (the scaffolders read it — no extra backticks/prose in the value cell).
 - No remaining `{MainScheme}`/`{BuildSystem}`/`{BuildIntegration}`/`{BuildCommand}`/`{TestCommand}`
   placeholders (those break real use).

@@ -126,7 +126,11 @@ the allowlist is a plan amendment, not an implicit expansion.
 **Outcome:** the correction has one conclusive independent review, one bounded disposition event, and
 one immutable Task-2 commit for the separate field-qualification work item.
 
-**Status:** PENDING
+**Status:** COMPLETE
+
+**Joined result:** three read-only lanes produced 0 P0, 2 unique P1, and 0 P2. Both P1 findings were
+accepted and corrected in one Task-2 batch. The affected helper received one focused hybrid/Bazel
+corrective signal, which passed. No routine second review ran; Q1-Q6 remain `not qualified`.
 
 ### Review input
 
@@ -220,4 +224,4 @@ Task-2 SHA without changing the candidate being qualified.
   - Verdict: AUTO_APPROVED by independent agent `iis0004_amendment_gate_fast`; no P0/P1/P2 remained.
 - Open material questions: none
 
-STATUS: READY_FOR_EXECUTION
+STATUS: TASK_2_CANDIDATE_COMMIT_PENDING

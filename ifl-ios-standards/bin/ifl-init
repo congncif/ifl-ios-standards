@@ -81,9 +81,33 @@ first_glob() {
 
 # Build/package system + integration file + module root
 BUILD_SYSTEM="{BuildSystem}"; BUILD_INTEGRATION="{BuildIntegration}"; MODULE_ROOT="{ModuleRoot}"
-if [ -f "$ROOT/MODULE.bazel" ] || [ -f "$ROOT/WORKSPACE" ] || [ -f "$ROOT/WORKSPACE.bazel" ] || [ -n "$(first_glob "$ROOT/*.bazelrc")" ] || [ -f "$ROOT/.bazelrc" ]; then
-  BUILD_SYSTEM="Bazel (bazelisk) + rules_xcodeproj"; BUILD_INTEGRATION="BUILD.bazel"
-elif [ -f "$ROOT/Podfile" ] || [ -n "$(first_glob "$ROOT/*.podspec")" ]; then
+HAS_BAZEL=0; HAS_COCOAPODS=0; HAS_SWIFTPM=0
+[ -f "$ROOT/BUILD" ] || [ -f "$ROOT/BUILD.bazel" ] || [ -f "$ROOT/MODULE.bazel" ] || \
+  [ -f "$ROOT/WORKSPACE" ] || [ -f "$ROOT/WORKSPACE.bazel" ] || [ -f "$ROOT/.bazelrc" ] || \
+  [ -n "$(first_glob "$ROOT/*.bazelrc")" ] && HAS_BAZEL=1
+[ -f "$ROOT/Podfile" ] || [ -n "$(first_glob "$ROOT/*.podspec")" ] && HAS_COCOAPODS=1
+[ -f "$ROOT/Package.swift" ] && HAS_SWIFTPM=1
+
+SYSTEM_COUNT=$((HAS_BAZEL + HAS_COCOAPODS + HAS_SWIFTPM))
+if [ "$SYSTEM_COUNT" = 1 ] && [ "$HAS_BAZEL" = 1 ]; then
+  BUILD_SYSTEM="Bazel"
+  if [ -f "$ROOT/BUILD.bazel" ]; then
+    BUILD_INTEGRATION="BUILD.bazel"
+  elif [ -f "$ROOT/BUILD" ]; then
+    BUILD_INTEGRATION="BUILD"
+  elif [ -f "$ROOT/MODULE.bazel" ]; then
+    BUILD_INTEGRATION="MODULE.bazel"
+  elif [ -f "$ROOT/WORKSPACE.bazel" ]; then
+    BUILD_INTEGRATION="WORKSPACE.bazel"
+  elif [ -f "$ROOT/WORKSPACE" ]; then
+    BUILD_INTEGRATION="WORKSPACE"
+  elif [ -f "$ROOT/.bazelrc" ]; then
+    BUILD_INTEGRATION=".bazelrc"
+  else
+    BAZELRC="$(first_glob "$ROOT/*.bazelrc")"
+    BUILD_INTEGRATION="$(basename "$BAZELRC")"
+  fi
+elif [ "$SYSTEM_COUNT" = 1 ] && [ "$HAS_COCOAPODS" = 1 ]; then
   BUILD_SYSTEM="CocoaPods"
   if [ -f "$ROOT/Podfile" ] && [ -n "$(first_glob "$ROOT/*.podspec")" ]; then
     BUILD_INTEGRATION="Podfile + *.podspec"
@@ -92,7 +116,7 @@ elif [ -f "$ROOT/Podfile" ] || [ -n "$(first_glob "$ROOT/*.podspec")" ]; then
   else
     BUILD_INTEGRATION="*.podspec"
   fi
-elif [ -f "$ROOT/Package.swift" ]; then
+elif [ "$SYSTEM_COUNT" = 1 ] && [ "$HAS_SWIFTPM" = 1 ]; then
   BUILD_SYSTEM="Swift Package Manager"; BUILD_INTEGRATION="Package.swift"
 fi
 
