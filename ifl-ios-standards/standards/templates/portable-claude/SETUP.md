@@ -9,7 +9,9 @@
 > **Goal**: Generate `PROJECT_CONFIG.md`, `PROJECT_STRUCTURE.md`, and (optionally) `QUICK_REF.md` by
 > combining user input with project introspection. After this playbook completes, the plugin
 > standard + the project's bindings form a complete agentic baseline.
-> **Authority**: This file is a one-shot procedure. Once bindings exist, do not re-read SETUP.md per session.
+> **Authority**: This file is a one-shot procedure. Active Canon Rules/Profiles and accepted ADRs are
+> the normative reusable authority; this setup playbook only binds them to a consuming project. Once
+> bindings exist, do not re-read SETUP.md per session.
 
 ---
 
@@ -26,10 +28,12 @@ If any precondition fails, stop and report what is missing.
 
 ---
 
-## 2. Information Gathering (ask the user)
+## 2. Information Gathering
 
-Ask **all** of these in one batch. Do not guess. Group them as one structured question set and offer
-only values already supported by repository evidence.
+Resolve these bindings from explicit instructions, existing repository governance, and read-only
+evidence first. In eligible auto mode, do not pause to reconfirm values that evidence resolves. Ask
+one consolidated question set only for unresolved required choices; in co-working mode, include the
+human in the project and policy decisions. Never guess a material authority or organization policy.
 
 ### 2.1 Project identity
 - **Project name** — the repository's human-readable product/project name.
@@ -60,9 +64,18 @@ only values already supported by repository evidence.
   `${CLAUDE_PLUGIN_ROOT}/standards/process/docs-organization.md`.
 - **Brain-Flow mode** — `co-working` or `auto`; if the repository declares no default, co-working is
   the runtime fallback.
+- **Auto eligibility and blocker policy** — record repository constraints that make a task ineligible
+  for auto and any organization decision that must interrupt execution. Eligible auto must not add
+  routine wait/confirm/ask pauses.
 - **Git authority** — whether a scoped local auto-commit grant exists for semantic tasks, and its exact
   repository/worktree/branch scope. Record branch, amend/rewrite, push, PR, merge, tag, publish,
   install, and release authority separately; never infer them from auto mode or Plan approval.
+- **Resume/handoff location** — the repository path or provider-native location that carries approved
+  plan position, candidate identity, current blockers, and the next safe action across sessions.
+- **Final finding disposition authority** — the named person, role, or project rule that may accept,
+  reject, defer, or reopen scope for joined final-review findings.
+- **Organization policy owners** — name the owner or governed source for deployment/platform targets,
+  privacy/security, accessibility, observability/operability, data retention, and release sign-off.
 - **Applicable enterprise concerns** — identify only the relevant chapters among Swift 6 concurrency,
   SwiftUI production, data lifecycle, mobile security, privacy/compliance, accessibility/global
   readiness, observability/operability, modern testing, performance/resilience, and supply-chain/legal.
@@ -71,7 +84,10 @@ only values already supported by repository evidence.
 - **Localization** — does the project use string-generation (SwiftGen, etc.)? If yes, capture the command.
 - **Trace header convention** — required on new source files? Format?
 
-If the user cannot answer an item, mark it `TBD` in the generated file and surface a final list of TBDs for follow-up.
+If the user cannot answer an optional, non-blocking item, mark it `TBD` and surface it in the final
+report. An unresolved required authority, organization-policy owner, repository identity, or other
+value needed for safe operation is a material setup blocker: do not report setup complete until its
+owner resolves it.
 
 ---
 
@@ -89,7 +105,8 @@ this template. A typical discovery checklist is:
 {RepositoryIdentityCommand}
 ```
 
-Reconcile output with user answers. If the repository and a user-provided value conflict, stop and ask.
+Reconcile output with user answers. If a conflict could change repository identity, scope, authority,
+or safety, stop and ask its bound owner; do not turn a material conflict into an auto-mode guess.
 Do not install tools, regenerate projects, or mutate dependencies during discovery.
 
 ---
@@ -109,14 +126,20 @@ Required sections (in order):
    Do not manufacture commands, ship plugin-owned verifier/lint/smoke scripts, or duplicate CI.
 5. **Dependency / Project-Generation Configuration** — the consuming repository's real triggers and
    actions. The source scaffolders do not edit build/package files or invoke these actions.
-6. **Brain-Flow Configuration** — co-working/auto default, provider-native progress, one approved plan,
-   one full-plan final AI review, and repository-owned executable tests/CI.
-7. **File Trace Header Configuration** — if user opted in.
-8. **Git Authority Configuration** — semantic task cadence, scoped local auto-commit or per-operation
+6. **Brain-Flow Configuration** — co-working/auto default; co-working human decision points; auto
+   eligibility, independent gates, and material-blocker threshold; provider-native progress and
+   resume/handoff location; one approved plan; one full-plan final AI review; final finding
+   disposition authority; engineering-completion terminal boundary; and repository-owned executable
+   tests/CI. Eligible auto proceeds without routine wait/confirm/ask pauses.
+7. **Organization Policy Owner Configuration** — named owner or governed source for
+   deployment/platform targets, privacy/security, accessibility, observability/operability, data
+   retention, release sign-off, and any other applicable enterprise policy AI cannot decide.
+8. **File Trace Header Configuration** — if user opted in.
+9. **Git Authority Configuration** — semantic task cadence, scoped local auto-commit or per-operation
    authority, separately scoped branch/amend/rewrite/push/PR/merge/tag/publish/install/release
    authority, and explicit-path staging discipline.
-9. **Placeholder Resolution Map** — single table resolving every `{Placeholder}` used by generic specs.
-10. **Update Procedure** — one paragraph: when a value changes, update this file only; do not scatter values.
+10. **Placeholder Resolution Map** — single table resolving every `{Placeholder}` used by generic specs.
+11. **Update Procedure** — one paragraph: when a value changes, update this file only; do not scatter values.
 
 Style:
 - Use Markdown tables for key/value rows.
@@ -170,7 +193,10 @@ Inspect the generated files against the repository and confirm:
 - `Module root` is one repository-relative token and matches the real source location;
 - build/test commands and CI ownership point to the consuming repository's existing paths;
 - scaffolders are described as source-only and build-system-neutral;
-- Brain Flow records co-working/auto behavior, scoped Git authority, and one full-plan final AI review;
+- Brain Flow records co-working human decisions, eligible-auto continuity, the material-blocker
+  threshold, engineering-completion boundary, resume/handoff, final disposition authority, scoped
+  Git/release authority, and one full-plan final AI review;
+- every required organization policy has a named owner or governed source;
 - no provider profiles, verifier/lint/smoke scripts, receipts, manifests, fingerprints, evidence
   ledgers, or custom workflow-state files were introduced.
 
@@ -205,7 +231,11 @@ push from setup approval, auto mode, or local commit authority; push always requ
 - [ ] `QUICK_REF.md` exists only if the project actually needs it.
 - [ ] Canonical build/test commands and CI ownership were copied from repository governance, not invented.
 - [ ] No build or test was run solely for this documentation-only setup.
-- [ ] Brain Flow mode, one-plan/one-final-review behavior, and scoped Git authority are explicit.
+- [ ] Brain Flow mode, co-working decisions, eligible-auto continuity, material blockers,
+  engineering-completion boundary, resume/handoff, one-plan/one-final-review behavior, and final
+  finding disposition authority are explicit.
+- [ ] Git and external release authorities are separately scoped; auto mode grants neither.
+- [ ] Required organization policy owners are resolved; no material setup binding remains `TBD`.
 - [ ] Enterprise concerns route through `/ifl-ios-standards:enterprise-ios` without copying chapter rules.
 - [ ] Scaffolders are recorded as source-only/build-system-neutral and module-root-bound.
 - [ ] No verifier scripts, receipts, manifests, fingerprints, evidence ledgers, or custom state were added.

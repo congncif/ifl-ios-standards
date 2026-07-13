@@ -1,38 +1,49 @@
 # Agent model tiering
 
-> Combo aliases: `giao-su` = Opus class (judgement / orchestration / final review). `huy-diet` = Sonnet class (architecture / coding). `giup-viec` = Haiku class (lookup / triage / mechanical writes).
+Model names express reasoning classes, not provider-specific IDs. Runtime providers resolve the
+available equivalent and preserve role responsibilities across resume/handoff.
 
 ## Tier matrix
 
 | Agent | Model alias | Why this tier |
 |-------|-------------|---------------|
-| `ios-orchestrator` | `opus` | Irreversible decisions (branch/commit/PR), cross-hop arbitration, ambiguity resolution |
-| `ios-planner` | `opus` | PRD → phased plan; tradeoff judgement |
-| `ios-reviewer` | `opus` | Final correctness gate; must reason about logic, not text |
-| `ios-architect` | `sonnet` | Designs IO contracts; structured but not open-ended |
-| `ios-coder` | `sonnet` | Implements against a contract; long context, structured |
-| `ios-tester` | `haiku` | Mechanical: derive tests from implementation report + TESTING.compact |
-| `ios-researcher` | `haiku` | One-shot codegraph / find / grep; sole discovery-cache writer |
-| `ios-review-triage` | `haiku` | Surface-level diff nits (naming, whitespace, unused) before reviewer |
-| `ios-doc-scribe` | `haiku` | Append spec changelogs + ADR stubs from briefing reports |
+| `ios-orchestrator` | `opus` | Cross-workstream integration, recovery, authority boundaries, and joined disposition |
+| `ios-planner` | `opus` | One complete dependency-ordered plan and material tradeoff judgement |
+| `ios-reviewer` | `opus` | Independent Requirement/Plan gates and principal final architecture/behavior review |
+| `ios-architect` | `sonnet` | Designs selected-Profile contracts and dependency boundaries |
+| `ios-coder` | `sonnet` | Implements bounded executable or standards changes with repository context |
+| `ios-tester` | `sonnet` | Designs causal, risk-based tests and interprets executable results |
+| `ios-researcher` | `haiku` | One bounded structural or textual lookup with source-cited facts |
+| `ios-review-triage` | `haiku` | Concurrent mechanical consistency lane in the joined final review |
+| `ios-doc-scribe` | `haiku` | Bounded mechanical documentation updates from approved facts |
 
 ## Superpowers verb → agent mapping
 
 | Verb | Default agent | Notes |
 |------|---------------|-------|
-| `plan` | `ios-planner` | PRD path required |
-| `architect` | `ios-architect` | After plan, before code |
-| `code` | `ios-coder` | After architect contract |
-| `test` | `ios-tester` | After coder implementation report |
-| `triage` | `ios-review-triage` | Before reviewer, on `diff.patch` |
-| `review` | `ios-reviewer` | After tests pass |
-| `research` | `ios-researcher` | Any-hop: refresh discovery cache or one-shot lookup |
-| `scribe` | `ios-doc-scribe` | Post-review, before PR open |
-| `orchestrate` | `ios-orchestrator` | Wraps the whole pipeline |
+| `plan` | `ios-planner` | Produces one plan; an independent reviewer decides the gate |
+| `architect` | `ios-architect` | Selected-Profile contract or boundary assignment |
+| `code` | `ios-coder` | Bounded implementation from the approved plan |
+| `test` | `ios-tester` | Risk-relevant executable behavior assignment |
+| `triage` | `ios-review-triage` | Concurrent lane in the one joined final review |
+| `review` | `ios-reviewer` | Independent gate assignment or principal final-review lane |
+| `research` | `ios-researcher` | One bounded lookup at any plan stage |
+| `scribe` | `ios-doc-scribe` | Bounded durable documentation assignment |
+| `orchestrate` | `ios-orchestrator` | Owns provider-native continuity and plan integration |
 
 ## Rules
 
-1. Never use a higher tier than required — wastes budget, no quality gain on mechanical tasks.
-2. Never use a lower tier on irreversible decisions — branch/commit/PR mistakes can't be undone cheaply.
-3. The orchestrator may temporarily promote a haiku agent (e.g. `ios-tester`) one tier up if the task scope explicitly flags `escalate: true` in the briefing meta block.
-4. Model alias resolution is handled by the runtime — agents do not hard-code provider/model IDs.
+1. Select the lowest reasoning tier that can safely own the assigned judgement; runtime availability may
+   substitute an equivalent or stronger model.
+2. Model tier never grants repository or external authority. Semantic task commits occur only under an
+   explicit per-operation or scoped auto-commit grant; push, PR, merge, tag, publish, install, and
+   release remain separate.
+3. Track assignments and resume/handoff with provider-native task/thread state and the approved plan.
+   If delegation is unavailable, the orchestrator may execute a bounded assignment inline.
+4. Requirement and Plan gates use an independent reviewer who did not author the artifact. Execution
+   then follows one approved plan continuously.
+5. After all planned mutations, the principal and mechanical lanes inspect the same frozen candidate
+   as exactly one joined final review. Findings are joined once and corrected in at most one batch;
+   routine re-review is prohibited.
+6. The workflow ends at engineering completion and release readiness. External release operations are
+   never implied by a role, model, gate, test, or final-review result.

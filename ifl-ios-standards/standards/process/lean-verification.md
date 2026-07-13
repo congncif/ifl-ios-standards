@@ -2,6 +2,9 @@
 
 **Trigger:** Use when planning or executing a non-trivial change through Brain-Flow.
 
+Use `full-auto-operating-model.md` for eligibility, authority, recovery/resume, exact candidate
+identity, finding disposition, and the engineering-completion boundary.
+
 ## Core rule
 
 Complete one approved plan before running one final AI consistency review. Internal workstreams,
@@ -48,8 +51,10 @@ material product behavior changes.
 
 ## Single final AI review
 
-Run exactly one AI consistency review after the last planned mutation. Review the complete branch diff
-and the final repository state against the approved plan and Definition of Done.
+Run exactly one AI consistency review after the last planned Task commit. Freeze and record the
+approved authority inputs, exact baseline and candidate HEAD SHAs, explicit included tracked paths,
+excluded unrelated paths, and writer stop. Review outputs and later corrections are outside that input
+identity. Review the complete frozen range/state against the approved plan and Definition of Done.
 
 The review may use parallel specialist lanes, but all lanes are one review event over the same final
 candidate. Collect all findings before any remediation. Cover at least:
@@ -62,8 +67,9 @@ candidate. Collect all findings before any remediation. Cover at least:
 
 Return one joined finding list with severity, evidence, and recommended disposition. Apply accepted
 in-scope findings in one corrective batch. Do not schedule routine re-review, per-finding review, or
-duplicate green-signal runs. A corrective change that materially changes scope or architecture becomes
-a new plan; it is not another loop inside the completed plan.
+duplicate green-signal runs. If the batch changes executable code, run only the smallest affected
+signal. A corrective change that materially changes goal, scope, public contract, architecture,
+security, or authority becomes a new plan; it is not another loop inside the completed plan.
 
 ## Completion and Git authority
 
@@ -74,7 +80,8 @@ workflow gates.
 
 Plan approval, auto mode, review completion, and test success never grant Git authority. Staging,
 committing, pushing, tagging, publishing, and releasing remain distinct native operations requiring
-the authority defined by project governance. Commit cadence is not standing authority.
+the authority defined by project governance. An explicit scoped auto-commit grant is reusable only for
+the named semantic tasks/repository/worktree/branch; it grants no other operation.
 
 ## Prohibited reintroductions
 

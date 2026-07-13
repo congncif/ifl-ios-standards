@@ -13,16 +13,17 @@ or evidence system.
 
 Read:
 
+- `${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/process/approval-modes.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/rules/COMMIT_WORKFLOW.md`
 
 ## 0. Bind mode, repository, and pattern
 
-- Explicit `auto`/`full auto` → auto mode. Explicit `co-working`/`review with me` → co-working mode.
-  Otherwise use the consuming repository's configured default, falling back to co-working.
+- Resolve mode, auto eligibility, preflight, authority matrix, and terminal boundary through
+  `full-auto-operating-model.md`. Explicit `review with me` includes the user in final disposition.
 - Use provider-native continuity and delegation. If a native feature is unavailable, continue inline
-  when safe; escalate only when the missing capability is essential.
+  when safe; an unavailable independent gate reviewer makes that auto gate ineligible.
 - Read the consuming repository's `CLAUDE.md`/`AGENTS.md` bindings. Ask only for a missing value that
   would materially change the result.
 - Detect Boardy+VIP or another bound pattern and forward relevant stages to its skills.
@@ -31,6 +32,8 @@ Read:
   duplicate it in Brain-Flow artifacts.
 - Use the approved plan checklist and provider-native task state for progress. Do not create canonical
   progress schemas, receipts, manifests, fingerprints, or evidence ledgers.
+- On resume, rehydrate from the approved requirements/plan, last semantic commit, provider task state,
+  current Git status, and allowed path boundary before writing.
 
 ## 1. Requirements and Definition of Done
 
@@ -38,7 +41,8 @@ Capture the goal, scope, exclusions, product/API/data/UI requirements, risks, as
 questions, and measurable Definition of Done.
 
 - Co-working: obtain user approval.
-- Auto: obtain one AI requirement-gate decision.
+- Auto: obtain one independent read-only AI requirement-gate decision; the requirements author cannot
+  self-approve a non-trivial artifact.
 - Both: ask the user when product intent, security, money, permissions, public behavior, or destructive
   scope is materially ambiguous.
 
@@ -59,7 +63,7 @@ Internal workstreams are not approval, review, or verification checkpoints. Do n
 verifier/lint/smoke scripts, manifests, hashes, receipts, or custom runtime state.
 
 - Co-working: obtain one user Plan approval.
-- Auto: obtain one AI Plan-gate decision.
+- Auto: obtain one independent read-only AI Plan-gate decision; the plan author cannot self-approve.
 
 After approval, reopen the plan only for a material goal, scope, public-contract, architecture,
 security, or authority change.
@@ -78,18 +82,22 @@ Use `brain-execute` until the complete Definition of Done is implemented.
   Git authority. A commit does not trigger an intermediate consistency review.
 - In auto mode, continue without routine questions. Escalate only material ambiguity, missing required
   authority, an external hold, or a real blocker.
+- Classify failures and use the bounded retry/reassignment/inline/resume rules in the operating model;
+  never repeat an unchanged failing action or create a checkpoint to recover.
 
 ## 5. One final AI consistency review
 
-After every workstream in the approved plan is complete and the last planned mutation has landed,
-invoke `brain-review` exactly once over the complete branch diff and final repository state. Parallel
-specialist lanes may participate, but they form one joined AI consistency review event over the same
-candidate.
+After every workstream is complete and committed when authorized, freeze writers and record exact
+authority inputs, baseline SHA, candidate HEAD SHA, included tracked paths, and excluded unrelated
+paths. Invoke `brain-review` exactly once over that frozen candidate. Review outputs and corrective
+mutations are not part of the input candidate. Parallel specialist lanes inspect the same identity and
+form one joined event.
 
 Collect all findings before editing. Join and deduplicate them, then apply accepted in-scope findings
 in one corrective batch. Do not schedule routine re-review, per-finding review, confirmation review,
-or duplicate build/test runs. A correction that materially changes the approved plan starts a new plan
-rather than another loop inside this one.
+or duplicate build/test runs. If the batch changes executable code, run only its smallest affected
+signal. A correction that materially changes the approved goal, scope, public contract, architecture,
+security, or authority starts a new plan rather than another loop inside this one.
 
 ## 6. Complete
 
@@ -105,6 +113,7 @@ Report:
 Never claim unrun tests, CI, publication, or release. Consume only the authority granted by the
 project: scoped auto-commit may cover local stage+commit for semantic tasks, while branch changes,
 amend/history rewrite, push, PR, merge, tag, publish, install, and release remain separate.
+Engineering completion/release readiness is Brain-Flow's terminal state.
 
 ## Non-negotiable operating constraints
 

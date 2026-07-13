@@ -154,9 +154,17 @@ observable behavior.
 
 ## 8. Provider-Native Delivery
 
+- Canon Rules/Profiles and accepted ADRs are normative; this quick reference is optional routing
+  guidance for a project that selected Boardy+VIP.
 - Brain Flow supports co-working and auto mode with one requirements decision and one plan decision.
+  Co-working includes human product, architecture, policy, plan, and finding-disposition decisions.
+- After eligibility and authority preflight, auto mode proceeds without routine wait/confirm/ask
+  pauses and interrupts only for a material blocker defined in `PROJECT_CONFIG.md`.
 - Execute the complete approved plan before exactly one joined final AI consistency review.
+- Resume/handoff location and final finding disposition authority come from `PROJECT_CONFIG.md`.
 - Scoped auto-commit may authorize local stage+commit for conforming semantic tasks only; all other
   Git/external effects remain separately governed.
+- Full-auto ends at engineering completion and release readiness; it never implies push, tag,
+  publish, install, release, or production rollout.
 - Use repository-owned code tests and CI. Do not add verifier/lint/smoke scripts, receipts, manifests,
   fingerprints, evidence ledgers, custom workflow state, or per-workstream review gates.

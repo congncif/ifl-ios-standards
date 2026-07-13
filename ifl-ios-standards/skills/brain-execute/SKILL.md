@@ -13,6 +13,7 @@ requires escalation. Read:
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/13-agentic-coding-rules.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`
+- `${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md`
 
 ## Operating loop
 
@@ -26,8 +27,12 @@ For each work slice: **understand → locate → preserve → implement → code
 - Do not add plugin-owned verifier/lint/smoke scripts or custom state/evidence machinery.
 - Commit complete semantic tasks when separately authorized; never commit by file, finding, or agent
   assignment.
+- Classify failures before retrying. Reassign a stalled disjoint lane or execute it inline, recover
+  context from the approved plan/provider state/Git history, and escalate only the material blockers
+  defined by the operating model.
 
-After the last planned mutation, hand the complete branch diff to one final AI consistency review.
+After the last planned Task commit, freeze exact baseline/HEAD SHAs and included/excluded paths, then
+hand that same candidate identity to one final AI consistency review.
 Collect all findings before editing and apply accepted in-scope findings in one corrective batch. Do
 not schedule routine re-review. A material scope, public-contract, architecture, or security change
 reopens planning instead of starting an ad-hoc loop.

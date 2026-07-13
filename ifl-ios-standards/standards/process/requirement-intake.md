@@ -3,6 +3,9 @@
 **Trigger:** Stage 1 of `/ifl-ios-standards:brain-flow`, before design, architecture, planning, or
 implementation begins.
 
+Use `full-auto-operating-model.md` for mode eligibility, gate independence, authority, recovery, and
+the engineering-completion boundary.
+
 The requirement intake gate prevents the pipeline from implementing a misunderstood request. It
 turns the user's prompt, ticket, and supporting documents into a concise requirement summary, records
 assumptions, defines a Definition of Done checklist, and decides whether the pipeline can continue.
@@ -28,9 +31,9 @@ Produce this summary before moving past Stage 1:
 ```
 
 Keep it concise. Prefer bullets over prose. If a field is not applicable, write `N/A` with a short
-reason instead of omitting it. The Definition of Done checklist is the downstream agent loop goal:
-every plan phase, execution loop, checkpoint, review, and final report maps back to these items until
-each item is completed, explicitly deferred, or blocked with a reason.
+reason instead of omitting it. The Definition of Done checklist is the downstream goal: every semantic
+plan task and the final report maps to these items until each is completed, explicitly deferred by its
+owner, or blocked with a reason. Work slices and findings are not approval/checkpoint boundaries.
 
 ### Ticket/work item ID generation
 
@@ -77,10 +80,12 @@ continuing.
 ### Auto mode
 
 1. Present or record the requirement summary and Definition of Done checklist.
-2. Spawn requirement gate reviewers/subagents when the work is non-trivial.
+2. Assign one independent read-only requirement reviewer who did not author the artifact. Add a
+   specialist only when the requirement domain needs it.
 3. Continue only when the requirement gate verdict is `AUTO_APPROVED` and the Definition of Done is
    measurable enough to drive the loop.
-4. Ask the user only for material ambiguity, material proposals, missing bindings, destructive or hard-to-reverse actions, standards conflicts, or blockers.
+4. Ask the user only for material ambiguity/proposals, a missing binding that changes the result,
+   destructive or hard-to-reverse scope, a standards conflict, unavailable owning authority, or a blocker.
 5. Write the approved summary, Definition of Done, downstream mode (`auto`), and gate verdict to the
    task briefing/spec file.
 
@@ -89,8 +94,9 @@ internal implementation choices.
 
 ## 4. Suggested auto reviewers
 
-Use the smallest reviewer set that fits the task. For trivial/docs-only work, a single self-review may
-be enough; for medium/large work, use independent subagents.
+Use the smallest independent reviewer set that fits the task. The artifact author cannot approve its
+own auto gate. If no independent provider lane is available, auto is ineligible for the gate and the
+user supplies co-working approval.
 
 | Reviewer | Purpose |
 |----------|---------|
@@ -123,6 +129,7 @@ Findings:
 - no unresolved material requirement ambiguity;
 - a measurable Definition of Done checklist exists;
 - all blocking standards satisfied;
+- the reviewer is independent from the artifact author;
 - any non-blocking assumptions recorded in the briefing/spec.
 
 Use `APPROVED` only for an explicit human/co-working gate decision. Use `AUTO_APPROVED` only for an
@@ -157,5 +164,5 @@ This process is being followed when:
 
 - the requirement summary exists before Design/Architect/Plan;
 - material ambiguity is resolved by the user, not guessed;
-- auto mode records reviewer verdicts or a justified self-review for trivial work;
+- auto mode records an independent reviewer verdict;
 - the approved summary is written to the work-item `requirements.md` artifact.

@@ -43,7 +43,9 @@ There is **no `.ai/brain/` to copy** — the rulebook + specs live in the plugin
    `/ifl-ios-standards:boardy-vip` for Boardy/VIP work, or route enterprise concerns through
    `/ifl-ios-standards:enterprise-ios`. End-to-end `brain-flow` uses provider-native capabilities in
    co-working or auto mode, executes one approved full plan, and runs exactly one joined final AI
-   consistency review over the complete result.
+   consistency review over the complete result. Eligible auto mode has no routine confirmation
+   pauses and ends at engineering completion/release readiness; external Git and release effects
+   remain separately authorized.
 
 The plugin's `ifl-new-module` and `ifl-new-board` commands are additive, source-only,
 build-system-neutral scaffolders. They resolve the module root from the consuming project's bindings
@@ -59,8 +61,8 @@ CI. The consuming repository owns all of those values and all executable verific
 
 ## Authority order (downstream project)
 
-User instruction > root `CLAUDE.md` (= `AGENTS.md`, project bindings) > the relevant `ifl-ios-standards`
-skill/spec/process docs > existing code.
+User instruction > root `CLAUDE.md` (= `AGENTS.md`, project bindings) > active Canon Rules/Profiles
+and accepted ADRs > the relevant `ifl-ios-standards` skill/spec/process guidance > existing code.
 
 ## Versioning
 

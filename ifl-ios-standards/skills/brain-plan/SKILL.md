@@ -13,6 +13,7 @@ Create one complete plan for the requested outcome. Read:
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/18-decision-heuristics.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/rules/PLAN_EXECUTION.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/process/approval-modes.md`
+- `${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md`
 
 ## Plan shape
 
@@ -34,8 +35,9 @@ Do not plan verifier/lint/smoke scripts, RR/G gates, manifests, fingerprints, re
 ledgers, or custom workflow state. Use provider-native task/thread management and keep plan progress in
 the plan itself.
 
-Get Plan approval before execution: human approval in co-working mode, AI approval in auto mode. Ask
-the user only for material ambiguity, missing authority, or a real blocker.
+Get Plan approval before execution: human approval in co-working mode, independent read-only AI
+approval in eligible auto mode. The plan author cannot approve its own non-trivial Plan Gate. Use the
+operating model's rubric and ask the user only for material ambiguity, missing authority, or a real blocker.
 
 When Boardy+VIP is bound, sequence work along its IO, implementation, composition, and test seams, but
 do not turn each seam into an administrative checkpoint.

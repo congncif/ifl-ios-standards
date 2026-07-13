@@ -48,27 +48,34 @@ The plugin's agents/skills read **this file** for everything project-specific be
 
 1. User's explicit current instruction.
 2. This constitution (project bindings, §3–§5).
-3. Relevant `ifl-ios-standards` plugin skill/spec/process docs.
-4. Existing code patterns in the target module.
+3. Active Canon Rules and Profiles plus accepted ADRs shipped by `ifl-ios-standards` (normative
+   reusable authority).
+4. Relevant `ifl-ios-standards` skill/spec/process docs (derived operating guidance; they may not
+   override Canon or an accepted ADR).
+5. Existing code patterns in the target module.
 
 ---
 
 ## 2. Non-negotiable boundaries
 
-Full architecture rules live in `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/` and the task-specific specs in `${CLAUDE_PLUGIN_ROOT}/standards/specs/`. The hard floor:
+The selected Canon Rules are authoritative. Brain/rulebook and task-specific specs provide derived
+guidance. These prompts summarize common Rules and do not create a separate hard floor:
 
-1. Domain is pure Swift — no UIKit, networking, persistence, or vendor SDKs.
-2. Dependencies point inward: Infrastructure → Business → Domain. Never reverse.
-3. Public contract boundary: Consumers depend only on another module's public contract, normally its IO target or documented public API surface. Allowed public imports include IO/contract targets, documented library APIs, shared value-model/contracts, design-system primitives, platform abstractions, and generated schema contracts; test-support imports are allowed only from test targets. Never import internal composition, plugin registry, feature implementation, concrete adapter, mock, or private targets. If no clear contract exists, introduce an IO/facade boundary before adding new cross-module dependencies.
-4. UIKit and SwiftUI Views are humble. The Presenter prepares immutable, display-ready semantic
+1. `CORE-DEP-001`: Domain is pure Swift — no UI, orchestration, networking, persistence, or vendor SDKs.
+2. `CORE-DEP-002`/`003`: dependencies point inward from adapters → Application → Domain.
+3. `CORE-API-001`/`CORE-COMP-001`: consumers depend only on another module's public contract, normally its IO target or documented public API surface. Allowed public imports include IO/contract targets, documented library APIs, shared value-model/contracts, design-system primitives, platform abstractions, and generated schema contracts; test-support imports are allowed only from test targets. Never import internal composition, plugin registry, feature implementation, concrete adapter, mock, or private targets. If no clear contract exists, introduce an IO/facade boundary before adding new cross-module dependencies.
+4. `UI-HUMBLE-001`…`004`: UIKit and SwiftUI Views are humble. The Presenter prepares immutable, display-ready semantic
    state. A UIKit controller renders it through a display port; a SwiftUI View observes an equivalent
    MainActor presentation store and keeps `@State` UX-only. Views may select a Presenter-encoded
    presentation phase and own small interaction/geometry state, but never format raw/domain values,
    derive product or analytics meaning, choose business/navigation policy, perform business I/O, or
    construct dependencies. Identical domain input yields equivalent semantic display state in both.
-5. One state, one writer. Concrete types built only at composition roots.
-6. No speculative abstraction, no unrelated changes. Verify with real signals — empty output ≠ success.
-7. When in doubt, stop and ask.
+5. Apply the selected state/ownership Rules and `CORE-COMP-001`: one state has one writer and concrete types are built only at composition roots.
+6. No speculative abstraction or unrelated changes. Executable changes use the smallest risk-relevant
+   observed signal; documentation-only changes have no build/test gate.
+7. Do not guess a material unknown. Stop and ask when a choice would change scope, architecture,
+   public contracts, security/compliance posture, organization policy, or required authority.
+   Otherwise make the smallest reversible decision and continue in eligible auto mode.
 
 ### 2.1 Modern large-scale iOS development rules
 
@@ -90,7 +97,7 @@ Apply these rules when translating product work into iOS architecture:
 
 ---
 
-## 3. Identity
+## 3. Identity and project authority
 
 | Key | Value |
 |-----|-------|
@@ -101,6 +108,23 @@ Apply these rules when translating product work into iOS architecture:
 | Git remote | `{GitRemote}` → `{GitRemoteURL}` |
 | Simulator / destination | `{Simulator}` / `{Destination}` |
 | Module prefix | `{ModulePrefix}` *(empty if none)* |
+
+| Operating binding | Value |
+|-------------------|-------|
+| Default Brain-Flow mode | `{BrainFlowMode}` (`co-working` or `auto`) |
+| Local stage+commit authority | `{CommitAuthority}` |
+| Scoped auto-commit scope | `{AutoCommitScope}` |
+| Branch / amend / rewrite authority | `{LocalGitAuthority}` |
+| Push / PR / merge authority | `{RemoteGitAuthority}` |
+| Tag / publish / install / release authority | `{ReleaseEffectAuthority}` |
+| Deployment/platform policy owner | `{DeploymentPolicyOwner}` |
+| Privacy/security policy owner | `{PrivacySecurityOwner}` |
+| Accessibility policy owner | `{AccessibilityOwner}` |
+| Observability/operability policy owner | `{ObservabilityOwner}` |
+| Data-retention policy owner | `{DataRetentionOwner}` |
+| Release sign-off owner | `{ReleaseSignoffOwner}` |
+| Resume / handoff location | `{ResumeHandoffLocation}` |
+| Final finding disposition authority | `{FinalDispositionAuthority}` |
 
 ---
 
@@ -134,6 +158,8 @@ These commands come from this repository's governance; the plugin and its scaffo
 or replace them. CI and release automation remain owned by the consuming repository/DevOps boundary.
 Plan-scale execution and the one final AI review: see
 `${CLAUDE_PLUGIN_ROOT}/standards/process/lean-verification.md`.
+Full-auto eligibility, authority, recovery/resume, candidate identity, disposition, and terminal
+boundary: `${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md`.
 
 ---
 
@@ -145,19 +171,28 @@ Plan-scale execution and the one final AI review: see
   and approval capabilities.
 - Explicit `auto` / `full auto` selects auto mode; explicit `co-working` / `review with me` selects
   co-working. Otherwise use the repository's configured default, falling back to co-working.
-- In co-working mode, obtain user approval for requirements/Definition of Done and for the complete
-  plan. In auto mode, record AI decisions at those two gates and continue without routine questions;
-  escalate only material ambiguity, a real blocker, an external hold, or missing authority.
+- In co-working mode, the human participates in requirements, product/architecture/policy decisions,
+  the complete plan, and final finding dispositions. In auto mode, independent AI owners decide the
+  Requirement and Plan gates; once eligibility and authority preflight pass, continue without routine
+  wait/confirm/ask pauses.
+- Interrupt eligible auto mode only for a material blocker: a decision that changes approved scope,
+  architecture, public contract, security/compliance posture, or organization policy; an external
+  hold; or missing authority/tool access that bounded recovery cannot resolve. Record provider-native
+  resume state at `{ResumeHandoffLocation}` before handing off.
 - Keep one approved full-plan checklist and provider-native task state. Do not add provider profiles,
   verifier/lint/smoke scripts, progress schemas, receipts, manifests, fingerprints, evidence ledgers,
   or a provider-independent workflow engine.
-- Complete every workstream and the last planned mutation before exactly one joined final AI
-  consistency review over the complete branch diff and final repository state. Parallel specialist
+- Complete every workstream and its authorized semantic commit, freeze exact baseline/HEAD SHAs and
+  included/excluded paths, then run exactly one joined final AI consistency review over that candidate. Parallel specialist
   lanes are part of that one event. Collect findings first, apply accepted in-scope findings in one
-  corrective batch, and do not schedule routine per-workstream, per-finding, or confirmation re-review.
+  corrective batch under `{FinalDispositionAuthority}`, and do not schedule routine per-workstream,
+  per-finding, or confirmation re-review.
 - Use repository-owned code tests for executable behavior where risk warrants them. Do not run builds
   or tests for template/documentation-only changes merely to manufacture evidence, and do not
   duplicate repository CI.
+- Full-auto Brain Flow ends at engineering completion and release readiness. It never implies branch
+  integration, push, PR, merge, tag, publish, install, release, or production rollout; each remains a
+  separately bound operation even when local stage+commit is authorized.
 
 ### Core directives
 
@@ -165,8 +200,10 @@ Plan-scale execution and the one final AI review: see
 
 - State assumptions explicitly before writing any code.
 - Surface ambiguity and tradeoffs — don't silently pick one.
-- If a simpler path exists, suggest it first and wait for confirmation.
-- When the intent is unclear, ask rather than guess.
+- Prefer the simplest conforming path. In co-working mode, involve the human in material choices; in
+  eligible auto mode, record bounded choices and continue without a routine confirmation pause.
+- Ask only when unclear intent is a material blocker under the Brain-Flow rule above; do not guess
+  missing authority or organization policy.
 
 #### 2. Simplicity First
 
@@ -187,7 +224,8 @@ Plan-scale execution and the one final AI review: see
 - Before starting multi-step work, create one complete plan with dependency-ordered workstreams,
   shared-writer ownership, semantic commit tasks, and one final AI review.
 - Convert every request into a concrete, testable success criterion before touching files.
-- For ambiguous requests, state your interpretation as a success criterion and confirm before proceeding.
+- For non-material ambiguity, state the bounded interpretation as a success criterion and continue in
+  eligible auto mode. Material ambiguity requires the bound human/organization decision owner.
 - Strong upfront criteria reduce rewrites more than any amount of careful coding.
 
 ### Project operations

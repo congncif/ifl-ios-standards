@@ -30,7 +30,8 @@ two supported forms:
 Scoped auto-commit never covers branch creation/switch, amend, history rewrite, push, PR, merge, tag,
 publish, install, or release. Those remain distinct operations under project governance.
 
-Before a Git mutation, confirm:
+Before a Git mutation, resolve these facts from current state and the authority binding. In auto mode,
+do not ask again when an existing scoped grant covers them:
 
 - repository/worktree and branch;
 - semantic task or corrective batch;

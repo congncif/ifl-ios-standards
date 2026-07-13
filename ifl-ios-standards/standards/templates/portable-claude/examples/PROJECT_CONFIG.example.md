@@ -15,7 +15,8 @@
 > agents read these bindings instead of hard-coding project details.
 >
 > **Boundary**: current schemes, modules, purposes, and topology live in
-> `<BindingsRoot>/PROJECT_STRUCTURE.md`. Normative reusable rules remain in the plugin.
+> `<BindingsRoot>/PROJECT_STRUCTURE.md`. Active Canon Rules/Profiles and accepted ADRs are the
+> normative reusable authority; plugin skills/specs/process docs are derived operating guidance.
 
 ---
 
@@ -119,12 +120,18 @@ following an existing neighboring target and these repository-owned bindings.
 | Concern | Binding |
 |---------|---------|
 | Default mode | `{BrainFlowMode}` (`co-working` or `auto`) |
-| Requirements decision | co-working: user approval; auto: AI gate decision |
-| Plan decision | co-working: user approval; auto: AI gate decision |
+| Co-working decisions | human participates in requirements, product/architecture/policy choices, plan, and final finding dispositions |
+| Requirements decision | co-working: user approval; auto: independent AI gate decision |
+| Plan decision | co-working: user approval; auto: independent AI gate decision |
+| Auto eligibility | `{AutoEligibilityPolicy}` |
+| Auto interruption threshold | material blocker only; no routine wait/confirm/ask pauses |
 | Progress source | approved full-plan checklist + provider-native task state |
-| Final AI review | exactly one joined review after the complete plan and last planned mutation |
+| Resume/handoff location | `{ResumeHandoffLocation}` |
+| Final AI review | exactly one joined review after semantic Task commits and exact baseline/HEAD/path freeze |
+| Final finding disposition authority | `{FinalDispositionAuthority}` |
 | Executable tests | repository-owned code tests where behavior/risk warrants them |
 | CI/release | consuming repository/DevOps owned |
+| Full-auto terminal boundary | engineering completion and release readiness; no implicit push/tag/publish/install/release |
 
 Do not add provider profiles, verifier/lint/smoke scripts, canonical progress schemas, receipts,
 manifests, fingerprints, evidence ledgers, or a provider-independent workflow engine. Route relevant
@@ -132,7 +139,24 @@ enterprise work through `/ifl-ios-standards:enterprise-ios` and load only the ap
 
 ---
 
-## 7. File Trace Header Configuration
+## 7. Organization Policy Owner Configuration
+
+| Policy | Owner or governed source |
+|--------|--------------------------|
+| Deployment/platform targets | `{DeploymentPolicyOwner}` |
+| Privacy/security | `{PrivacySecurityOwner}` |
+| Accessibility | `{AccessibilityOwner}` |
+| Observability/operability | `{ObservabilityOwner}` |
+| Data retention | `{DataRetentionOwner}` |
+| Release sign-off | `{ReleaseSignoffOwner}` |
+| Other applicable enterprise policy | `{OtherPolicyOwners}` |
+
+AI may apply a bound policy but may not invent its thresholds, risk acceptance, or sign-off owner.
+Any unresolved owner required by the current project is a material setup blocker.
+
+---
+
+## 8. File Trace Header Configuration
 
 | Concern | Binding |
 |---------|---------|
@@ -144,7 +168,7 @@ Do not invent a trace convention. Record the consuming repository's existing rul
 
 ---
 
-## 8. Git Authority Configuration
+## 9. Git Authority Configuration
 
 | Rule | Binding |
 |------|---------|
@@ -163,7 +187,7 @@ approved plan, repository, worktree, and branch. It never extends to any other o
 
 ---
 
-## 9. Placeholder Resolution Map
+## 10. Placeholder Resolution Map
 
 | Placeholder family | Resolution source |
 |--------------------|-------------------|
@@ -173,13 +197,16 @@ approved plan, repository, worktree, and branch. It never extends to any other o
 | Commands and success signals | §4, from repository governance |
 | Generation triggers/actions | §5, from repository governance |
 | Brain-Flow mode | §6, from project/user choice; runtime fallback is co-working |
-| Git authority | §8, from explicit project/user governance |
+| Auto eligibility, resume, and disposition | §6, from project/user governance |
+| Organization policy owners | §7, from project/organization governance |
+| Git and release authority | §9, from explicit project/user governance |
 | Per-task module/board names | approved task scope + current structure inventory |
 
 ---
 
-## 10. Update Procedure
+## 11. Update Procedure
 
 When a project-wide value changes, update its binding here and the topology inventory when applicable.
-Do not scatter project values into plugin standards, examples, skills, or agents. If a new required
-value is unresolved, record `TBD` and ask instead of inventing it.
+Do not scatter project values into plugin standards, examples, skills, or agents. A non-blocking
+optional value may be recorded as `TBD`; a required authority, policy owner, identity, or safety
+binding must be resolved before setup is complete.

@@ -95,6 +95,8 @@ and UIKit imports and used UIKit `show(_:sender:)`. This signal is not repeated 
 
 **Outcome:** active roles can execute what they promise, auto gates are independently owned, provider-native recovery/resume is specified, and enterprise adoption works with or without Boardy.
 
+**Status:** COMPLETE
+
 ### Changes
 
 - Add one concise active operating contract under `standards/process/` covering:

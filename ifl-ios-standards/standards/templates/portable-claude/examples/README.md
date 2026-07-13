@@ -21,7 +21,7 @@ When generating real bindings:
 
 | File | Mirrors | Purpose |
 |------|---------|---------|
-| `PROJECT_CONFIG.example.md` | `<BindingsRoot>/PROJECT_CONFIG.md` | Identity/path/tooling placeholders, repository-owned commands/CI, Brain-Flow mode, and Git authority shape. |
+| `PROJECT_CONFIG.example.md` | `<BindingsRoot>/PROJECT_CONFIG.md` | Identity/path/tooling placeholders, repository-owned commands/CI, Brain-Flow mode, policy owners, resume/disposition, and Git/release authority shape. |
 | `PROJECT_STRUCTURE.example.md` | `<BindingsRoot>/PROJECT_STRUCTURE.md` | Placeholder scheme/target/module inventory and repository-owned discovery commands. |
 | `QUICK_REF.example.md` | `<BindingsRoot>/QUICK_REF.md` | Optional Boardy+VIP routing, humble-View contract, and source-only scaffold shape. |
 
@@ -34,6 +34,8 @@ When generating real bindings:
 | `{ModuleRoot}`, `{ModuleName}`, `{BoardName}` | repository/task values, never example defaults |
 | `{BuildCommand}`, `{TestCommand}`, `{CIOwner}` | consuming-repository governance values |
 | `{CommitAuthority}`, `{AutoCommitScope}` | explicit project/user Git authority |
+| `{ResumeHandoffLocation}`, `{FinalDispositionAuthority}` | provider/project workflow governance |
+| `{DeploymentPolicyOwner}` and other `*Owner` placeholders | organization policy governance |
 
 These examples are not snapshots of any working project and are not a second source of truth. Real
 project topology and policy belong in that project's bindings and governance.

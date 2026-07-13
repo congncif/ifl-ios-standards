@@ -1,7 +1,8 @@
 # SPEC: Provider-native briefing and handoff
 
 Use the host provider's native task/thread and subagent mechanisms. The approved plan is the shared
-engineering contract; do not build an additional workflow state machine.
+engineering contract; do not build an additional workflow state machine. Follow
+`${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md` for recovery and resume.
 
 ## Briefing
 
@@ -50,13 +51,20 @@ Return one of:
 Do not create per-assignment receipt files, digests, manifests, fingerprints, verification reports, or
 custom status schemas. The orchestrator updates the plan checklist from the returned result.
 
+## Resume after provider/context interruption
+
+Rehydrate before mutation from: work-item and approved-plan path, exact last completed semantic commit,
+active task, allowed write paths, provider-native task state, current Git status, last affected
+executable signal, and any material blocker. Store only missing durable context in an existing plan or
+compact handoff; do not create an evidence ledger.
+
 ## Execution and review cadence
 
 - Complete all plan workstreams before consistency review.
 - Commit complete semantic tasks when separately authorized; assignments and work slices are not commit
   boundaries by themselves.
-- After the final planned mutation, dispatch read-only specialist lanes over the same complete branch
-  diff. They form one final AI review event.
+- After the final planned Task commit, freeze exact baseline/HEAD SHAs and included/excluded paths,
+  then dispatch read-only specialist lanes over that same candidate. They form one final AI review event.
 - Collect all findings before mutation, join and deduplicate once, and assign one corrective batch.
 - Do not issue confirmation lanes or routine re-review. Material contract/scope change reopens planning
   as a new plan.
