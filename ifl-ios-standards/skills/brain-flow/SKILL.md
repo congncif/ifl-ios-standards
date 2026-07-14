@@ -81,6 +81,11 @@ Use `brain-execute` until the complete Definition of Done is implemented.
   templates, metadata, or documentation-only schemas.
 - Use the consuming project's ordinary code tests when code changes. Do not ship plugin-owned
   verification scripts or duplicate CI; CI/release automation is outside the plugin boundary.
+- Select the smallest representative configuration set: changed behavior, common/default supported
+  configuration, and directly impacted surfaces. Do not exhaust every iOS scheme/destination or
+  Android flavor/build-type permutation unless the DoD or bound policy requires it. Record explicit
+  waivers and unproven target coverage as defined by `lean-verification.md`. The Android example is
+  verification-selection guidance only; it creates no Android architecture or compatibility claim.
 - Commit complete semantic tasks for traceability. If the user/project granted scoped auto-commit,
   stage and commit each conforming task without another prompt; otherwise obtain the required local
   Git authority. A commit does not trigger an intermediate consistency review.

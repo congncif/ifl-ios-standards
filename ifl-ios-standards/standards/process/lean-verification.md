@@ -49,6 +49,35 @@ material product behavior changes.
 7. Continue until the entire plan and Definition of Done are implemented. Do not stop for routine
    approval, review, or verification cycles in auto mode.
 
+## Representative configuration selection
+
+For executable changes, default to the smallest representative set that covers all three dimensions:
+
+1. the changed behavior;
+2. the common supported configuration for each affected platform; and
+3. every directly impacted configuration-specific build surface.
+
+Do not enumerate every configuration permutation unless the approved Definition of Done or a bound
+project/release policy explicitly requires it. Each additional signal must close a distinct risk; do
+not collect equivalent green results from multiple build systems, destinations, or variants.
+
+- **iOS example:** select the affected or common scheme and destination, plus an impacted package or
+  build-system path only when it exercises a distinct changed surface. Do not test every scheme,
+  simulator, package manager, and build-system permutation by default.
+- **Android example:** select the default/common build variant plus the directly impacted build type or
+  product flavor. Do not test every flavor × build-type permutation by default. This is portable
+  verification-selection guidance, not an Android architecture or compatibility claim by this pack.
+
+Expand the set only when observable risk requires it: configuration/build logic changed; platform or
+toolchain behavior changed; the change crosses configuration-specific code; bound policy or release
+risk requires broader coverage; or a failure proves the current representative set insufficient.
+
+A nonstandard configuration may be waived only by a named user/project owner with authority over that
+boundary, when an accepted representative platform signal is bound to the same exact implementation or
+candidate state. Record the omitted boundary, accepted signal, rationale, coverage that remains
+unproven, residual risk, and owner. A waiver never converts unobserved target-specific coverage into a
+green result and never hides or downgrades P0/P1 evidence.
+
 ## Single final AI review
 
 Run exactly one AI consistency review after the last planned Task commit. Freeze and record the

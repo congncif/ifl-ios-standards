@@ -50,7 +50,7 @@ records the deduplicated feedback state and promotion-readiness matrix.
 
 **Commit:** `docs: close RC4 qualification matrix`
 
-**Status:** COMPLETE — pending this semantic commit.
+**Status:** COMPLETE — committed at `a93dc1b899a967f15da8284693b14a80c543ad2e`.
 
 ## Task 3 — Optimize Brain Flow verification scope
 
@@ -78,6 +78,8 @@ configuration permutation.
   exists, the waived boundary and residual risk are recorded, and no P0/P1 evidence is hidden.
 
 **Commit:** `docs: scope verification to representative configurations`
+
+**Status:** COMPLETE — pending this semantic commit.
 
 ## Task 4 — Run one joined review and close the handoff
 

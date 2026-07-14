@@ -58,7 +58,9 @@ Before mutation, record in the requirements/plan or provider-native task state:
 - semantic commit authority, if any;
 - final technical finding-disposition authority;
 - organization-policy owners and unresolved bindings;
-- executable commands that belong to the consuming repository, if code may change; and
+- executable commands that belong to the consuming repository, if code may change;
+- the smallest representative configuration set, expansion triggers, and any owner-controlled waiver
+  boundary, if code may change; and
 - a maximum attempt count or timebox for deterministic executable-signal recovery, if code may change;
 - the intended final-review baseline/path boundary.
 
@@ -105,7 +107,9 @@ cannot supply an independent lane, auto is ineligible for that gate; obtain huma
 
 - every DoD item has one owning semantic task and completion signal;
 - dependency order, shared writers, integration owner, and commit boundaries are explicit;
-- testing applies only to changed executable behavior and avoids duplicate green signals;
+- testing applies only to changed executable behavior, selects representative/common and directly
+  impacted configurations, and avoids exhaustive permutations or duplicate green signals unless the
+  DoD or bound policy requires them;
 - one exact frozen review-input identity and one final review event are planned; and
 - no task silently expands architecture, security, authority, or release scope.
 
@@ -123,6 +127,9 @@ gate. `USER_INPUT_REQUIRED` or a material conflict stops the gate; it is not con
   inline without changing the plan.
 - Apply TDD/testing only to executable behavior where risk warrants it. Documentation-only work has no
   build/test gate.
+- Select executable configurations through `lean-verification.md`: changed behavior, common supported
+  configurations, and directly impacted build surfaces, with risk-based expansion. Do not infer target
+  coverage from an accepted waiver.
 - After a complete semantic task, stage explicit intended paths and commit once when scoped authority
   exists. Do not request another approval already covered by that grant.
 
@@ -148,7 +155,9 @@ observed executable signal, and material blocker. It is not a receipt or evidenc
 A deterministic recovery budget is a maximum attempt count or timebox bound before execution. It
 includes reruns after corrective executable mutations. When exhausted, stop that path and report the
 observed failure as a material blocker unless the approved plan explicitly authorizes one different
-signal because the original signal itself was proven invalid.
+signal because the original signal itself was proven invalid, or a named owner with authority over the
+boundary accepts a waiver meeting `lean-verification.md`. The waiver retains the failed/unobserved
+boundary and cannot relabel it green.
 
 ## 8. Frozen review input and engineering-complete candidate
 
@@ -204,7 +213,8 @@ Report only observed facts:
 - semantic task commits, exact frozen review-input identity, and the post-correction
   engineering-complete candidate identity or explicit pending-commit state;
 - joined findings and dispositions;
-- executable signals actually run and whether Task 5 changed code;
+- executable signals actually run, any explicit waiver and residual owner, and whether the corrective
+  batch changed code;
 - deferred items with owner/trigger;
 - external/release operations not performed; and
 - the next separately authorized action, if any.

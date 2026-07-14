@@ -85,12 +85,22 @@ Prohibited:
 
 ## Field-qualification matrix
 
-Every row is required for every provider, Profile, build-system, and adoption-mode combination claimed
-for GA. The Standards Owner and relevant Profile/Policy Owner may mark a row non-applicable only when
+Every distinct provider/Profile/build-system/adoption scenario advertised for GA must be represented
+by and pass a row. The six rows are scenario boundaries, not a requirement to exhaust every internal
+scheme, destination, simulator, or other configuration permutation. Within a row,
+select the smallest representative set covering changed behavior, common supported configurations, and
+directly impacted build surfaces. Expand only for distinct configuration risk or when the approved DoD
+or bound release policy requires it; do not duplicate equivalent platform signals across build systems.
+
+The Standards Owner and relevant Profile/Policy Owner may mark a scenario row non-applicable only when
 the corresponding support claim is narrowed or removed consistently from compatibility guidance,
-README/manifests, and release notes. Otherwise an unexercised row is `not qualified` and blocks GA.
-Qualification may use representative internal or consenting pilot repositories; protected product data
-must remain in its owning environment.
+README/manifests, and release notes. A named owner with authority over that boundary may waive a
+nonstandard configuration inside an otherwise observed row when an accepted exact-candidate platform
+signal exists and the omitted boundary, accepted signal, rationale, unproven target coverage, residual
+risk, and owner are recorded. The waiver does not prove the omitted target and cannot hide P0/P1
+evidence. Otherwise an unexercised required row is `not qualified` and blocks GA. Qualification may use
+representative internal or consenting pilot repositories; protected product data must remain in its
+owning environment.
 
 | ID | Provider | Selected architecture/UI Profiles | Build system | Adoption mode | Required qualification outcome |
 |---|---|---|---|---|---|
@@ -104,8 +114,9 @@ must remain in its owning environment.
 For each row, the Qualification Owner records candidate identity, repository class, scenario, selected
 Profiles/chapters, mode, result, P0/P1/P2 findings, dispositions, and residual risk. “Passed” means the
 required outcome was observed with no open P0/P1; it does not require copying adopter source or building
-a new evidence framework. Provider availability or a build-system adapter not yet exercised must be
-reported as `not qualified`, not inferred as compatible or relabeled non-applicable while its support
+a new evidence framework. An entirely unobserved provider, advertised scenario, or build-system adapter
+remains `not qualified`. An inside-row configuration waiver cannot substitute for observing the row's
+required outcome. Do not infer compatibility or relabel the scenario non-applicable while its support
 claim remains advertised.
 
 ## Required sign-offs

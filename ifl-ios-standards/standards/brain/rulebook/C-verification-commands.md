@@ -5,9 +5,13 @@
 
 Resolve project-specific values (workspace name, scheme, simulator) from the project binding document (`PROJECT_CONFIG.md` or equivalent).
 
-These are adapter examples for executable iOS changes, not a universal completion gate. Select only
-the smallest command relevant to the changed behavior and consuming repository. Documentation-only
-changes require neither command, and unchanged code is not rerun for a duplicate green signal.
+These are adapter examples for executable iOS changes, not a universal completion gate. Select the
+smallest representative set covering the changed behavior, the common supported configuration, and
+directly impacted configuration-specific surfaces. Do not enumerate every scheme, destination,
+package-manager, or build-system permutation unless the approved DoD or bound project/release policy
+requires it. Do not collect equivalent signals across build systems unless changed build logic creates
+a distinct risk. Documentation-only changes require neither command, and unchanged code is not rerun
+for a duplicate green signal.
 
 ```bash
 # Build with filtered output
@@ -25,6 +29,12 @@ xcodebuild test -workspace {Workspace} -scheme {Scheme} \
 
 When one of these commands is applicable, do not use `-quiet` or output suppressors that hide
 failures. Report only the result actually observed.
+
+Add another configuration only when it closes a distinct risk. A named owner with authority over the
+boundary may waive a nonstandard configuration when an accepted representative platform signal is
+bound to the same exact implementation or candidate state. The record must state the omitted boundary,
+accepted signal, rationale, unproven target coverage, residual risk, and owner. Never report waived
+target coverage as observed or hide/downgrade P0/P1 evidence.
 
 ---
 
