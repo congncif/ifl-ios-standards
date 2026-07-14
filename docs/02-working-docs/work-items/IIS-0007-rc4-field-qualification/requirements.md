@@ -117,12 +117,14 @@ run a Codex substitute.
   only on a historyless sanitized baseline, or truthfully remains not qualified.
 - [x] **D7 — Q6 is dispositioned.** Claude authentication skip and residual qualification status are
   explicit, with no protected fixture exposure.
-- [ ] **D8 — Findings and signals converge.** No open P0/P1 is hidden; one final signal per code row,
+- [x] **D8 — Findings and signals converge.** No open P0/P1 is hidden; one final signal per code row,
   at most one correction batch, and no duplicate review/test are used.
-- [ ] **D9 — Review and history are conclusive.** Semantic task commits and exactly one joined final
+- [x] **D9 — Review and history are conclusive.** Semantic task commits and exactly one joined final
   review produce a truthful Q1-Q6 matrix and release-readiness result.
-- [ ] **D10 — External boundary is preserved.** Public RC1, remote branches, tags, releases,
+- [x] **D10 — External boundary is preserved.** Public RC1, remote branches, tags, releases,
   marketplace, local installed plugin, and GA state are unchanged by qualification.
+
+Work-item status: **COMPLETE — RELEASE NOT QUALIFIED (1/6 rows passed)**
 
 ## Requirement Gate
 

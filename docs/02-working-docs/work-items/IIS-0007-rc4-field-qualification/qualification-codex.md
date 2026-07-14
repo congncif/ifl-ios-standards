@@ -7,7 +7,8 @@
 - Runtime: ChatGPT-bundled `codex-cli 0.144.2`
 - Group disposition: **NOT QUALIFIED**
 - Row results: Q1 `NOT QUALIFIED`, Q3 `PASSED`, Q5 `NOT QUALIFIED`
-- Candidate-attributed findings before the joined review: P0/P1/P2 = `0/1/0`
+- Candidate-attributed findings after the joined review: P0/P1/P2 = `0/0/0` proven
+- Open qualification/fixture findings: P0/P1/P2 = `0/2/0`
 
 Every Codex row ran in an independent temporary `HOME` and `CODEX_HOME`, with a row-owned auth
 linkage and candidate-only marketplace. The only shared provider input was the read-only extraction of
@@ -23,7 +24,8 @@ attributed to the Standards candidate.
 ## Q1 — Core-only / SwiftPM / greenfield
 
 - Official result: **NOT QUALIFIED — Core-only Profile routing was violated**.
-- Candidate finding: `F-RC4-QUAL-001` (proposed P1 pending the joined review).
+- Qualification finding: `F-IIS0007-001` (P1 provider/Profile-routing failure; not accepted as a
+  candidate defect).
 - Fixture baseline: `7871194d07eec6e18eae27b5c30c1f81919755ff`.
 - Fixture HEAD: `79b4a38904e41d61fff8a31484bdeeed8ca361a9`; worktree clean.
 - Semantic commits:
@@ -39,12 +41,13 @@ attributed to the Standards candidate.
   findings; one consolidated executable correction batch resolved them. The second signal was
   required because that batch changed executable code. No final-review rerun followed.
 
-`F-RC4-QUAL-001` — The corrective provider session explicitly selected and loaded
+`F-IIS0007-001` — The corrective provider session explicitly selected and loaded
 `/ifl-ios-standards:boardy-vip` while describing Q1 as Core-only. `RELEASE.md` requires Q1 to complete
 without loading Boardy. The produced code remained pattern-neutral, but qualification observes the
-agent route as well as the source result; therefore the row cannot pass. The joined review must decide
-the final severity and whether the candidate needs an explicit negative Core-only routing guard in a
-new revision. No third Q1 session is allowed inside IIS-0007.
+agent route as well as the source result; therefore the row cannot pass. The joined review classified
+this as a P1 provider/Profile-routing failure but found insufficient causal evidence to attribute it
+to the RC4 payload. A future controlled qualification plan may isolate that cause; any proven semantic
+candidate fix requires a new candidate plan/revision. No third Q1 session is allowed inside IIS-0007.
 
 ## Q3 — Boardy/VIP + SwiftUI / SwiftPM / greenfield
 
@@ -78,9 +81,11 @@ new revision. No third Q1 session is allowed inside IIS-0007.
 ## Q5 — enterprise transition / CocoaPods + SwiftPM hybrid
 
 - Official result: **NOT QUALIFIED — final executable signal failed to compile**.
-- Provider-reported row findings before joined adjudication: P0/P1/P2 = `1/organization-owned/0`.
-- Candidate attribution: the compile failure is an implementation/fixture blocker; no causal RC4
-  defect is claimed without joined-review evidence.
+- Provider-reported preliminary finding: P0 `1`; organization-owned promotion blockers were also
+  recorded separately.
+- Joined disposition: `F-IIS0007-002`, P1 fixture/execution blocker; candidate P0/P1/P2 = `0/0/0`
+  proven for this failure. The provider's preliminary P0 label remains in the record but is not
+  accepted as a candidate P0 because causal RC4 evidence is absent.
 - Product provenance baseline: `d00e842905a53de17be65c134d40c15d58dfde0b`.
 - Sanitized historyless fixture baseline: `5141f1156c4227da4f75847fd00f8e4ab0becc5b`.
 - Fixture HEAD: `3cbf36cfd5369fcc2bf95eca3571ab1665d6662f`; worktree clean.

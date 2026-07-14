@@ -85,7 +85,7 @@ exposure.
 
 **Outcome:** one deduplicated Q1-Q6 matrix and an accountable next boundary.
 
-**Status:** PENDING
+**Status:** COMPLETE — joined verdict NOT QUALIFIED; reporting batch applied
 
 - Freeze exact planning, Codex-result, and Claude-result commits.
 - Run one joined independent AI review across candidate identity, provider fidelity, architecture,
