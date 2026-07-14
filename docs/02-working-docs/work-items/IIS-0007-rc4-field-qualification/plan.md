@@ -71,7 +71,7 @@
 **Outcome:** unavailable provider rows are closed truthfully without a permission loop or data
 exposure.
 
-**Status:** PENDING
+**Status:** COMPLETE — Q2/Q4/Q6 SKIPPED; NOT QUALIFIED
 
 - Record the single Claude probe command boundary, runtime version, pre-inference 401 result, zero
   fixture exposure, zero mutation, and no retry.

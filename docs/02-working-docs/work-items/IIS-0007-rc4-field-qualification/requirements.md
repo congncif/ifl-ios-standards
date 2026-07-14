@@ -107,15 +107,15 @@ run a Codex substitute.
   RC4 at `f7cd2cf…` as its standards payload and owns separate writable provider state.
 - [x] **D2 — Q1 is dispositioned.** The required Codex Core-only behavior is observed or truthfully
   remains not qualified.
-- [ ] **D3 — Q2 is dispositioned.** Claude authentication skip and residual qualification status are
+- [x] **D3 — Q2 is dispositioned.** Claude authentication skip and residual qualification status are
   explicit, with no provider substitution.
 - [x] **D4 — Q3 is dispositioned.** The required Codex Boardy/SwiftUI behavior is observed or
   truthfully remains not qualified.
-- [ ] **D5 — Q4 is dispositioned.** Claude authentication skip and residual qualification status are
+- [x] **D5 — Q4 is dispositioned.** Claude authentication skip and residual qualification status are
   explicit, with no protected fixture exposure.
 - [x] **D6 — Q5 is dispositioned safely.** The required Codex hybrid-transition behavior is observed
   only on a historyless sanitized baseline, or truthfully remains not qualified.
-- [ ] **D7 — Q6 is dispositioned.** Claude authentication skip and residual qualification status are
+- [x] **D7 — Q6 is dispositioned.** Claude authentication skip and residual qualification status are
   explicit, with no protected fixture exposure.
 - [ ] **D8 — Findings and signals converge.** No open P0/P1 is hidden; one final signal per code row,
   at most one correction batch, and no duplicate review/test are used.
