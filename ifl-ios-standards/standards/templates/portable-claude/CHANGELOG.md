@@ -9,7 +9,7 @@ the standards themselves (rulebook, specs, agents, skills) ship in the plugin.
 This template follows [SemVer](https://semver.org/), versioned independently of the plugin standard.
 
 Current packaging status: template `2.5.0` is retained unchanged in the unpublished Standards
-`1.0.0-rc.5` working candidate.
+`1.0.0-rc.6` working candidate.
 
 - **Patch (x.y.Z)** — typo, link fix, README clarification with no semantic change.
 - **Minor (x.Y.0)** — new agent, new rule file, new setup step. Adopters confirm at next semi-annual review.

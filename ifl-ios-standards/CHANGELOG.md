@@ -4,6 +4,19 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.0-rc.6] — 2026-07-14 (unpublished working candidate)
+
+### Fixed
+- Replaced hyphens with underscores in all project-scoped Codex agent IDs and filenames so the
+  runtime can spawn them, while retaining Claude Code's packaged `ios-*` agent IDs.
+- Made the provider-specific role mapping explicit in init, routing, review, model-tier, and portable
+  project-binding guidance.
+
+### Qualification and release boundary
+- Reset exact-candidate qualification after the RC5 Codex runtime probe exposed the agent-ID
+  restriction. Q1-Q6 remain not qualified for RC6; published `v1.0.0-rc.1` and public install refs
+  remain unchanged.
+
 ## [1.0.0-rc.5] — 2026-07-14 (unpublished working candidate)
 
 ### Added
