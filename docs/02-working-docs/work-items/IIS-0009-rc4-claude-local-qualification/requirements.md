@@ -106,9 +106,11 @@ already passing Q1, Q3, and Q5 results without rerunning them.
 ## Definition of Done
 
 - [ ] **D1 — Exact candidate and isolated inputs.** Every row demonstrably loads RC4 at `f7cd2cf…`;
-  each new fixture starts at its specified baseline and has one writer.
-- [ ] **D2 — Local-provider boundary.** Claude CLI execution is observed directly; auth metadata is not
-  used as a gate or reported as product compatibility evidence.
+  each new fixture starts at its specified baseline and has one writer. Inputs are exact and isolated;
+  direct row loading remains pending.
+- [x] **D2 — Local-provider boundary.** Claude CLI execution is observed directly; auth metadata is not
+  used as a gate or reported as product compatibility evidence. Automated transport investigation is
+  closed with a direct operator runbook.
 - [ ] **D3 — Q2 is observed.** Incremental `0.18.x` binding/adoption migration and Boardy/UIKit shell
   assessment complete without artificial build/test or product/package-manager change.
 - [ ] **D4 — Q4 is observed.** Core-only mixed-UI executable policy adoption, focused coverage, one
@@ -116,16 +118,16 @@ already passing Q1, Q3, and Q5 results without rerunning them.
 - [ ] **D5 — Q6 is observed.** Boardy/mixed-UI/enterprise flow, portable binding migration,
   handoff/resume, contract correction, one final Bazel signal, semantic commits, and policy boundaries
   are recorded.
-- [ ] **D6 — Existing passes are retained.** Q1/Q3/Q5 remain bound to unchanged exact RC4 with no rerun.
+- [x] **D6 — Existing passes are retained.** Q1/Q3/Q5 remain bound to unchanged exact RC4 with no rerun.
 - [ ] **D7 — Review converges once.** One joined final AI review deduplicates candidate, provider,
   fixture, signal, authority, privacy, and release findings; at most one reporting correction follows.
-- [ ] **D8 — Release result is truthful.** The final Q1-Q6 matrix uses only observed row outcomes and
+- [x] **D8 — Release result is truthful.** The final Q1-Q6 matrix uses only observed row outcomes and
   does not claim qualification, GA, or compatibility while any required row remains unpassed.
-- [ ] **D9 — External boundary and history are preserved.** Semantic commits use explicit paths;
+- [x] **D9 — External boundary and history are preserved.** Semantic commits use explicit paths;
   candidate/public RC1/remotes/tags/releases/marketplace/install/rollout and unrelated files are
   unchanged.
 
-Work-item status: **IN PROGRESS**
+Work-item status: **IN PROGRESS — DIRECT CLI HANDOFF READY; JOINED REVIEW PENDING**
 
 ## Requirement Gate
 

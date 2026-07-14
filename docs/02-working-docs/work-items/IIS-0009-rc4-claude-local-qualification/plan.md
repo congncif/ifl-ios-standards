@@ -28,7 +28,7 @@
 
 **Outcome:** one approved boundary, exact read-only RC4, and three clean one-writer fixtures.
 
-**Status:** PENDING
+**Status:** COMPLETE
 
 - Obtain one independent combined requirements/plan gate.
 - Commit only this work item's `requirements.md` and `plan.md`.
@@ -45,7 +45,7 @@
 
 **Outcome:** each remaining Claude row has one provider-native exact-candidate result.
 
-**Status:** PENDING
+**Status:** COMPLETE — automated transport stopped pre-inference; direct CLI handoff ready
 
 - Launch one Claude CLI process per fixture with exact RC4 `--plugin-dir`, an empty row-owned
   `CLAUDE_CONFIG_DIR`, non-persistent print mode, `--setting-sources ""`, neutral inline settings with
@@ -61,6 +61,9 @@
   semantic commits, final signal where applicable, worktree cleanliness, findings, and final response.
 - Write one `qualification-claude.md` using neutral fixture aliases and factual command/result summaries;
   do not copy protected source or raw transcripts into the Standards repository.
+- When the configured local transport prevents inference, stop automated investigation, retain clean
+  fixtures, and provide one direct operator runbook plus fixed row prompts. Do not count startup errors
+  as row execution or candidate findings.
 
 **Commit:** `docs: record RC4 Claude local qualification`
 
