@@ -79,7 +79,7 @@ configuration permutation.
 
 **Commit:** `docs: scope verification to representative configurations`
 
-**Status:** COMPLETE — pending this semantic commit.
+**Status:** COMPLETE — committed at `baebe80c0a519138ed11ecbebe25909357e6a725`.
 
 ## Task 4 — Run one joined review and close the handoff
 
@@ -103,6 +103,9 @@ truthful release-readiness boundary.
 
 **Commit:** `docs: close RC4 qualification ingestion`
 
+**Status:** COMPLETE — one frozen joined review, one reporting-only correction batch in this closeout
+commit, and no routine re-review. The resulting commit SHA is emitted in the completion handoff.
+
 ## Plan Gate
 
 - Mode: auto
@@ -112,4 +115,4 @@ truthful release-readiness boundary.
 - Retained amendment: applied once without changing goal, scope, or external authority.
 - Final verdict: `AUTO_APPROVED`
 
-STATUS: APPROVED — TASK 1 COMPLETE
+STATUS: ENGINEERING COMPLETE — EXTERNAL PROMOTION DECISIONS PENDING

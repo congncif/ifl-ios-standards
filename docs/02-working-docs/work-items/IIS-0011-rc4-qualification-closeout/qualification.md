@@ -34,9 +34,10 @@
   public-contract changes. The user accepted the same retained Q3 signal and waived target execution.
   No Q6 build/test ran; Q6 target-specific compilation/tests are unproven.
 
-For both waivers, the qualification/release decision boundary owns the residual target coverage. The
-known nonstandard build graph is not an RC4 candidate defect. No row is rerun and no duplicate green
-signal is manufactured.
+For both waivers, the Qualification Owner owns the residual target coverage. The selected Standards
+and Release decision owners must explicitly accept or resolve it before promotion. The known
+nonstandard build graph is not an RC4 candidate defect. No row is rerun and no duplicate green signal
+is manufactured.
 
 ## Transport and authority
 

@@ -1,5 +1,5 @@
 <!-- Created by claude-sonnet-4-6 on 2026-05-18 -->
-<!-- brain-version: 1.0.0 · last-updated: 2026-05-18 -->
+<!-- brain-version: 1.0.0 · last-updated: 2026-07-14 -->
 
 # Appendix C — Generic Verification Commands
 

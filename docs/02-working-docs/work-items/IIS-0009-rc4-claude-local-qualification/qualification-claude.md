@@ -23,7 +23,8 @@ Q2 reported no candidate findings and separately reported `0/5/1` findings again
 adopter boundary. Q4 and Q6 reported no candidate P0/P1/P2. The accepted representative platform
 signal is retained Q3's native `xcodebuild test` result, 5 tests with 0 failures. It does not prove Q4
 or Q6 target-specific compilation/tests; that unobserved coverage remains an explicit residual owned by
-the qualification/release decision boundary.
+the Qualification Owner. The selected Standards and Release decision owners must explicitly accept or
+resolve it before promotion.
 
 No row is rerun. No candidate mutation, persistent provider/plugin change, push, tag, release,
 marketplace update, install, rollout, GA declaration, or organization risk acceptance occurred.

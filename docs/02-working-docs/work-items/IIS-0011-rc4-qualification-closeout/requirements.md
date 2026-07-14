@@ -70,15 +70,16 @@ Brain Flow without introducing tooling, build matrices, or another execution/rev
   neither claims an unrun target-specific test.
 - [x] IIS-0009 commands omit empty setting sources and separate operator transport from Standards
   authority.
-- [ ] Brain Flow selects representative/impacted configurations rather than exhaustive matrices,
+- [x] Brain Flow selects representative/impacted configurations rather than exhaustive matrices,
   with risk-based expansion and iOS/Android examples.
-- [ ] Promotion readiness, feedback state, sign-off prerequisites, external authority, and frozen-RC4
+- [x] Promotion readiness, feedback state, sign-off prerequisites, external authority, and frozen-RC4
   versus post-freeze-delta identity are unambiguous.
-- [ ] One joined final AI review is recorded; accepted in-scope findings, if any, are handled once.
-- [ ] Each semantic task is committed with explicit path staging; unrelated `.superpowers/` files are
+- [x] One joined final AI review is recorded; accepted in-scope findings are handled once without
+  routine re-review.
+- [x] Each semantic task is committed with explicit path staging; unrelated `.superpowers/` files are
   untouched.
 
-Work-item status: **IN PROGRESS — AUTO GATES APPROVED**
+Work-item status: **ENGINEERING COMPLETE — FROZEN RC4 QUALIFIED; PROMOTION AUTHORITY PENDING**
 
 ## Requirement Gate
 

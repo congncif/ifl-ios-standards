@@ -10,7 +10,7 @@
 | Qualification | **QUALIFIED — 6/6 for frozen RC4 only** |
 | Passed rows | Q1-Q6; Q4/Q6 use the explicit representative-platform-signal waiver |
 | Pending rows | None |
-| Retained verification residual | Q4/Q6 target-specific compilation/tests unobserved; Q3 native 5/0 does not prove them |
+| Retained verification residual | Q4/Q6 target-specific compilation/tests unobserved; Q3 native 5/0 does not prove them; Qualification Owner owns the residual pending explicit Standards/Release acceptance or resolution |
 | Exact promotion target | **UNSET — choose frozen `f7cd2cf…` or a later versioned candidate** |
 | Open candidate P0/P1 | `0/0` |
 | Open owned P2 | Frozen release-status snapshot; defer to promotion metadata plan |

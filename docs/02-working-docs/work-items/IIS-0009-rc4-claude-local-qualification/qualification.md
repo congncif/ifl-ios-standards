@@ -14,7 +14,8 @@ Candidate: `1.0.0-rc.4` at `f7cd2cf87711f1a757d2fbdec5be9be02ee69173`
 Overall: **QUALIFIED — 6/6 rows passed for frozen RC4.** Q2 also reported `0/5/1` findings against the
 existing adopter boundary; those are not candidate findings. The Q3 native signal does not prove Q4 or
 Q6 target-specific compilation/tests. Their unobserved coverage remains an explicit residual owned by
-the qualification/release decision boundary.
+the Qualification Owner. The selected Standards and Release decision owners must explicitly accept or
+resolve that residual before promotion.
 
 This result qualifies only frozen RC4 `f7cd2cf…`; it does not transfer to later Standards deltas. It is
 not a sign-off, GA declaration, or external release authority.

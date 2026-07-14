@@ -109,7 +109,7 @@
 | Affected authority artifact | Fixture build graph and qualification coverage only; candidate payload N/A. |
 | Impact / relevance | Q4/Q6 behavior was reviewed and committed, but their exact targets were not compiled/tested. The Q3 signal cannot be transferred as target-specific proof. |
 | Severity / disposition | Candidate severity N/A / explicit user-owned representative-signal waiver. |
-| Rationale / owner / state | Exhaustive/nonstandard configuration validation was out of scope once a native iOS platform signal existed. Residual target coverage is recorded and owned by the qualification/release decision boundary. **ACCEPTED RESIDUAL — not a candidate defect**. |
+| Rationale / owner / state | Exhaustive/nonstandard configuration validation was out of scope once a native iOS platform signal existed. Qualification Owner owns the recorded residual; the selected Standards and Release decision owners must accept or resolve it before promotion. **ACCEPTED RESIDUAL — not a candidate defect**. |
 
 ## External visibility audit
 
