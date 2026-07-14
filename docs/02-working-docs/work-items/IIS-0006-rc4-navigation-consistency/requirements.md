@@ -124,7 +124,7 @@ joined review.
 - [x] **D6 — Review is conclusive and lean.** One frozen-range joined AI review has no open P0/P1
   after at most one corrective batch; no routine re-review, build/test, verifier, script, CI, or
   duplicate signal runs.
-- [ ] **D7 — History is traceable.** Planning, implementation, review/candidate-freeze, and closeout
+- [x] **D7 — History is traceable.** Planning, implementation, review/candidate-freeze, and closeout
   are semantic commits using explicit paths; no external release or destructive Git effect occurs.
 
 ## Requirement gate
@@ -142,4 +142,4 @@ joined review.
   same pre-exposure-sequence correction; P0/P1/P2 after retention = `0/0/0`.
 - Open material questions: none
 
-STATUS: READY_FOR_CLOSEOUT
+STATUS: COMPLETE

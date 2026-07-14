@@ -166,7 +166,7 @@ a new plan.
 
 **Outcome:** a closeout record names the Task-2 candidate without changing its payload.
 
-**Status:** PENDING
+**Status:** COMPLETE
 
 ### Changes and boundary
 
@@ -177,6 +177,15 @@ a new plan.
 - Mark D7 and the plan complete. Do not edit candidate payload or qualification claims.
 - Commit only this work item's `final-report.md`, `requirements.md`, and `plan.md` with intent
   `docs: record RC4 qualification candidate`.
+
+### Observed closeout
+
+- Immutable RC4 engineering candidate:
+  `f7cd2cf87711f1a757d2fbdec5be9be02ee69173`.
+- This closeout changes only IIS-0006 status/reporting. Candidate payload, public RC1 marketplace pin,
+  and Q1-Q6 not-qualified state remain unchanged.
+- No external Git, publication, installation, rollout, destructive-history, or risk-acceptance effect
+  occurred.
 
 ## Plan gate
 
@@ -193,4 +202,4 @@ a new plan.
   allowlist; P0/P1/P2 after retention = `0/0/0`.
 - Open material questions: none
 
-STATUS: READY_FOR_TASK_3
+STATUS: COMPLETE
