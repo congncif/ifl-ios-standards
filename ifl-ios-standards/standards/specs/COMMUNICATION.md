@@ -34,7 +34,8 @@ Sources/Microboards/{Board}/{Board}Protocols.swift   ← delegate methods consum
 
 - `private let {action}Bus = Bus<{Type}>()` — bus per action; navigation names reveal destination
   semantics (`cancelBus`/`closeBus` for current-screen back, `returnBus` for targeted return), while
-  `finishBus` remains the input-completion callback channel.
+  `finishBus` remains the input-completion callback channel. A plain `returnBus: Bus<Void>` requires
+  one live destination; concurrent destinations use typed destination identity.
 - `registerFlows()` — private extension method; the only legal place flow listeners are wired.
 - Delegate methods on the Board map 1:1 to bus transports or service-map activations; no business logic inside the delegate.
 
@@ -71,6 +72,7 @@ Pushing into an already-active child or sibling in the same motherboard? → Com
 
 ```swift
 private let cancelBus = Bus<UIViewController>()
+// This example guarantees at most one live destination session.
 private let returnBus = Bus<Void>()
 private let finishBus = Bus<Void>()
 
@@ -106,6 +108,28 @@ finishBus.transport()
 Connection order in `activate`: build → watch controller → connect navigation buses to concrete
 targets and register input callbacks → put in context → show/expose. `rootViewController` is the
 outward presentation root, never the target of `backToPrevious()` or `returnHere()`.
+
+The plain `returnBus` in this example and the flow below are valid only under the stated one-live-
+destination invariant. A Board designed for concurrent destinations routes a stable typed identity
+through child input/output and filters it at the destination:
+
+```swift
+private let returnBus = Bus<ReturnDestinationID>()
+
+let destinationID = input.returnDestinationID
+returnBus.connect(target: viewController) { destinationViewController, requestedID in
+    guard requestedID == destinationID else { return }
+    destinationViewController.returnHere()
+}
+
+// Child output round-trips the typed ID; it never carries a ViewController reference.
+func handleChildOutput(_ output: ChildOutput) {
+    switch output {
+    case let .done(destinationID): returnBus.transport(input: destinationID)
+    case .cancelled: break
+    }
+}
+```
 
 ### registerFlows pattern
 
@@ -166,7 +190,11 @@ its own `returnBus`.
 
 - All flow listeners and bus consumers fire on the main thread (Boardy convention). Long-running work must be dispatched inside the consumer with `Task { ... await MainActor.run { ... } }`.
 - `transport(input:)` is synchronous — observers run before it returns.
-- A Board is event-driven and **stateless** by design. Multiple concurrent activations share one bus channel; events are distinguished by **payload content**, not by which activation produced them. The one exception: `BlockTaskBoard` routes results to the originating `BlockTaskParameter` callbacks.
+- A Board is event-driven and **stateless** by design. Multiple concurrent activations share one bus
+  channel; target-selecting events are distinguished by **payload content**, not by which activation
+  produced them. `Bus<Void>` therefore means intentional fan-out or an enforced one-live-target
+  invariant, never implicit destination selection. The one exception is `BlockTaskBoard`, which routes
+  results to the originating `BlockTaskParameter` callbacks.
 
 ## Composition
 

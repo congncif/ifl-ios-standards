@@ -109,7 +109,7 @@ allowlist is a plan amendment, not an implicit expansion.
   wiring. The only root-targeted back/return strings are explicit prohibited examples.
 - Active candidate identity is `1.0.0-rc.4` in `VERSION` and both provider manifests; public
   marketplace source remains `v1.0.0-rc.1`; Q1-Q6 are explicitly not qualified for RC4.
-- Current payload paths and filenames contain no OneMount/VinOne brand string or local adopter
+- Current payload paths and filenames contain no protected adopter-brand string or local adopter
   identity. Canon/ADR, public marketplace metadata, historical refs, and `.superpowers/` are unchanged.
 - Author inspection found no whitespace error or mutable-path escape. No build, test, verifier,
   provider call, CI, or duplicate green signal was run for this documentation/metadata task.
@@ -118,7 +118,7 @@ allowlist is a plan amendment, not an implicit expansion.
 
 **Outcome:** the complete correction has one conclusive disposition and one immutable candidate SHA.
 
-**Status:** PENDING
+**Status:** COMPLETE
 
 ### Frozen input
 
@@ -141,6 +141,19 @@ One independent AI event joins and deduplicates the lanes. Apply accepted in-sco
 in at most one corrective batch, record all dispositions in `review.md`, and do not run a routine
 second review. A finding that changes architecture, Canon, security, release authority, or scope starts
 a new plan.
+
+### Observed joined review and disposition
+
+- Independent reviewer `iis0006_joined_final_review` inspected frozen range `f910326..7ecc0c6` once,
+  read-only, and collected `P0/P1/P2 = 0/2/1` without fail-fast behavior.
+- Both P1 findings and the P2 finding were accepted: constrain Board-originated `Bus<Void>` to
+  intentional fan-out/one-live-target cases and require typed identity for targeted concurrency;
+  genericize one protected-brand status line; synchronize two compact-cheatsheet statements.
+- All accepted findings were applied together to `BUS_PATTERNS.md`, `COMMUNICATION.md`, the compact
+  Boardy cheatsheet, and this work item. No finding changed Canon, ADR, public contracts, security,
+  authority, or approved scope; planning did not reopen.
+- Post-disposition open `P0/P1/P2 = 0/0/0`. This status follows the exact accepted correction list;
+  no routine re-review, build, test, verifier, script, CI, provider call, or duplicate signal ran.
 
 ### Candidate freeze and commit
 
@@ -180,4 +193,4 @@ a new plan.
   allowlist; P0/P1/P2 after retention = `0/0/0`.
 - Open material questions: none
 
-STATUS: EXECUTING_TASK_2
+STATUS: READY_FOR_TASK_3

@@ -4,7 +4,7 @@ Derived from the selected `boardy-vip` Canon Profile through `MICROBOARD_UI.md`,
 and `COMMUNICATION.md`. This cheatsheet is routing/guidance only and cannot invent or weaken a Rule.
 Load full specs only when the affected pattern needs them.
 
-Last sync: 2026-07-13 for Standards 1.0 candidate.
+Last sync: 2026-07-14 for Standards 1.0.0-rc.4 working candidate.
 
 ## File layout per module
 
@@ -182,7 +182,8 @@ composer exposure.
 - `registerFlows()` last in `init`; never in `activate`.
 - `context` in Input is `weak`; activation backedges are `weak`.
 - `MainActor.run` for UI mutations from `Task`; never touch UIKit off-MainActor.
-- `public init` on every public `Input` struct; private helper `complete(_:)` maps `Bool → sendOutput(_:)`.
+- `public init` on every public `Input` struct; private helper `sendResult(_:)` maps
+  `Bool → sendOutput(_:)`; reserve `complete()` for Board lifecycle release.
 - Test methods camelCase: `testScenarioExpectation`, not `test_<scenario>_<expectation>`.
 
 ## Checklist (paste into PR / review briefing)

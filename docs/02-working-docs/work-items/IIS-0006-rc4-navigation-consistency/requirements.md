@@ -121,7 +121,7 @@ joined review.
   unpublished `1.0.0-rc.4`; public RC1 pins remain unchanged; Q1-Q6 are not qualified for RC4.
 - [x] **D5 — Content boundary is safe.** New/current Standards output contains no adopter brand
   identity or protected source; historical/remote refs and `.superpowers/` remain untouched.
-- [ ] **D6 — Review is conclusive and lean.** One frozen-range joined AI review has no open P0/P1
+- [x] **D6 — Review is conclusive and lean.** One frozen-range joined AI review has no open P0/P1
   after at most one corrective batch; no routine re-review, build/test, verifier, script, CI, or
   duplicate signal runs.
 - [ ] **D7 — History is traceable.** Planning, implementation, review/candidate-freeze, and closeout
@@ -142,4 +142,4 @@ joined review.
   same pre-exposure-sequence correction; P0/P1/P2 after retention = `0/0/0`.
 - Open material questions: none
 
-STATUS: READY_FOR_JOINED_REVIEW
+STATUS: READY_FOR_CLOSEOUT

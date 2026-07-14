@@ -17,7 +17,7 @@ Two distinct shapes exist; pick by **where the trigger comes from**:
 | Shape | Trigger origin | Bus payload | Why |
 |-------|---------------|-------------|-----|
 | **A — Round-trip** | Object → Board delegate → Bus → Object | Carries the source object (`Bus<{Name}Controllable>` or tuple containing it) | Re-activation can leave older targets connected to the same Bus; payload-carried source + `target === source` is the only correct identity filter |
-| **B — Board-originated** | External event (child flow, `complete()` deliver, timer) → Board → Bus → Object | Plain `Bus<Void>` or payload-only | No identity to forward; `bus.connect(target:)` weak-binds the live target — that's enough |
+| **B — Board-originated** | External event (child flow, `complete()` deliver, timer) → Board → Bus → Object | Plain `Bus<Void>` for intentional fan-out or a one-live-target invariant; typed destination payload when one of several live targets must be selected | Weak binding removes dead targets; payload filtering, not weak binding, selects one live destination |
 
 ## When NOT to use
 
@@ -29,8 +29,16 @@ Two distinct shapes exist; pick by **where the trigger comes from**:
 
 - **Buses persist across activations.** `bus.connect(target:)` weak-binds the target, but `bus.transport(input:)` fires every connected closure. Re-activation creates a new target and registers a new closure — the previous closure may still hold a live weak reference. Without an identity filter on round-trip buses, every subscriber receives every event.
 - **Closing over a local controller is not a filter.** `guard target === component.controller` where `component.controller` is captured from the enclosing `activate(...)` scope only proves that the closure is the closure created during *that* activation — not that the *event* originated from *that* Controller. Re-activations of an upstream caller can fire the bus and pass the wrong source.
-- **`Bus<Void>` is fine when the trigger has no identity.** When a child board's `.flow` fires, there is no Controller to forward — just the Board's own state. The weak-target binding on `bus.connect(target:)` ensures the dead Controllers don't receive the call.
-- **Don't fabricate identity.** Calling `attachedObject(_:)` to "look up the current Controller" so you can put it in the bus payload is a retrieved-controller-reference — explicitly forbidden by the Viewless rules. If you don't have an identity at the trigger site, use Shape B.
+- **`Bus<Void>` does not select among live targets.** It is correct only when delivery intentionally
+  fans out to every live subscriber or the Board guarantees at most one live target. Weak binding
+  prevents delivery to dead targets; it does not distinguish two targets that are both alive.
+- **Targeted Board-originated delivery carries typed destination identity.** A child flow has no
+  Controller reference to forward, but its typed input/output can round-trip a stable activation or
+  destination ID. Each subscriber filters that ID before acting.
+- **Don't fabricate identity.** Calling `attachedObject(_:)` to "look up the current Controller" so
+  you can put it in the payload is a retrieved-controller-reference — explicitly forbidden by the
+  Viewless rules. Use a stable typed ID originating at the activation boundary, intentional fan-out,
+  or an explicit one-live-target invariant.
 
 ## Files
 
@@ -83,15 +91,16 @@ extension {Board}Controller: {Board}Controllable {
 }
 ```
 
-### Shape B — Board-originated
+### Shape B — Board-originated fan-out or one live target
 
 ```swift
+// This event intentionally reaches every live controller.
 private let childFlowBus = Bus<Void>()
 
 func activate(withGuaranteedInput input: {Board}Input) {
     let component = builder.build(withDelegate: self, input: input)
     childFlowBus.connect(target: component.controller) { target, _ in
-        target.didReceiveChildOutput()   // weak target binding — only live target fires
+        target.didReceiveChildOutput()   // intentional fan-out; dead targets no-op
     }
     attachObject(component.controller, context: input.context ?? rootViewController)
     component.controller.start()
@@ -105,13 +114,44 @@ private func registerFlows() {
 }
 ```
 
+When one event must select exactly one of several live destinations, use payload identity instead:
+
+```swift
+private let returnBus = Bus<ReturnDestinationID>()
+
+func activate(withGuaranteedInput input: {Board}Input) {
+    let component = builder.build(withDelegate: self, input: input)
+    let destinationID = input.returnDestinationID
+
+    watch(content: component.controller)
+    returnBus.connect(target: component.userInterface) { destinationViewController, requestedID in
+        guard requestedID == destinationID else { return }
+        destinationViewController.returnHere()
+    }
+    motherboard.putIntoContext(component.userInterface)
+    rootViewController.show(component.userInterface, sender: self)
+}
+
+private func registerFlows() {
+    motherboard.serviceMap.mod{Module}Plugins
+        .ioChildBoard.flow.addTarget(self) { target, output in
+            guard case let .completed(destinationID) = output else { return }
+            target.returnBus.transport(input: destinationID)
+        }
+}
+```
+
+`ReturnDestinationID` is a stable, value-typed activation/session identifier carried through the
+child's typed input/output. It is not a ViewController reference.
+
 ### Direction matrix
 
 | Mechanism | Direction | Shape |
 |-----------|-----------|-------|
 | `Delegate` method (`from controller:`) | Object → Board | n/a — direct call |
 | `Bus<{Controllable}>.transport(input: controller)` | Board → object (round-trip) | A |
-| `Bus<Void>.transport(input: ())` | Board → object (Board-originated) | B |
+| `Bus<Void>.transport(input: ())` | Board → every live object, or the sole live object | B |
+| `Bus<{DestinationID}>.transport(input: destinationID)` | Board → one identity-filtered live destination | B |
 | `sendOutput(_:)` / `flow.addTarget` | Board → caller Motherboard | n/a |
 | `interaction.send(command:)` | Motherboard → child Board | n/a |
 
@@ -133,19 +173,26 @@ private func registerFlows() {
 - For UI targets, build → `watch(content:)` → connect buses to the concrete ViewController → put it
   into context → expose it through `show()` or the composer. The presentation root is not a valid
   back/return target.
-- A Bus may have multiple subscribers across re-activations. The target is held weakly; transport fires every still-live closure. Shape A's identity filter is what makes this safe; Shape B trusts the weak binding alone.
+- A Bus may have multiple subscribers across re-activations. The target is held weakly and transport
+  fires every still-live closure. Shape A filters by source identity. Shape B either intentionally
+  fans out, guarantees one live target, or filters a typed destination ID; weak binding alone is only
+  a lifetime rule.
 - Buses are not explicitly disconnected. Subscriber lifetime = target lifetime (weak). On `complete()` the Board's bus property is released too.
 
 ## Testing
 
 - Round-trip buses: unit-test the Controller's delegate call passes `self`; integration-test that the bus filter actually drops events with a non-matching source (instantiate two Controllers; transport with the wrong source; assert the other Controller's handler did not fire).
-- Board-originated buses: assert `bus.transport(input: ())` inside the `registerFlows()` closure delivers to the connected target via a recording mock.
+- Board-originated buses: for intentional fan-out/one-live delivery, assert the expected live targets
+  receive `transport(input: ())`; for targeted delivery, instantiate two live destinations and assert
+  only the matching typed destination ID acts.
 - Do not test `Bus<T>` itself — it's a Boardy primitive; trust the framework.
 
 ## Pitfalls
 
 - ❌ **Shape A bus with closed-over local controller as the "filter source"** — `guard target === component.controller` captured from `activate()` scope. The capture is per-activation, not per-event. Re-activations of upstream callers can fire the bus with a different source and pass the guard incorrectly. Carry the source in the payload instead.
-- ❌ **Calling `attachedObject(_:)` to fabricate a source** for Shape B — that's a retrieved controller reference (forbidden). If the trigger has no identity, use plain `Bus<Void>` and trust `bus.connect(target:)`'s weak binding.
+- ❌ **Calling `attachedObject(_:)` to fabricate a source** for Shape B — that's a retrieved
+  controller reference (forbidden). Use plain `Bus<Void>` only for intentional fan-out/one live
+  target; targeted delivery round-trips a stable typed destination ID through the event contract.
 - ❌ **Connecting the bus in `init`** — target doesn't exist yet; you'll connect to a captured-nil target.
 - ❌ **Connecting in `registerFlows()`** — registerFlows runs once per init, but if you re-call it from `activate()` (also wrong), you stack subscribers; if you call it correctly from `init`, the target doesn't exist yet.
 - ❌ **Strong target capture inside the closure** (`[target] in ...`) — defeats the weak binding; target stays alive after the Controller would naturally release.
