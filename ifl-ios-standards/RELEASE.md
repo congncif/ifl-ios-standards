@@ -1,33 +1,40 @@
-# Current Candidate Qualification and GA Promotion
+# Standards 1.0 Release and Future Promotion
 
-Target: `1.0.0-rc.7` working candidate
+Target: `1.0.0` General Availability
 
-State: unpublished; not approved or represented as `1.0.0` GA
+State: GA release at immutable tag `v1.0.0`
 
-Published marketplace baseline: `v1.0.0-rc.1` until a separate candidate release is authorized and exists
+Published marketplace baseline: `v1.0.0`
 
-Candidate qualification: Q1-Q6 are `not qualified` for RC7 until one exact-candidate qualification
-event closes them. The submitted RC6 Claude CLI smoke observed plugin load, 9/9 Claude agents,
-single-pass Boardy review, no P0/P1, and no release crossing, but it explicitly did not run Q2, Q4,
-or Q6. That smoke is baseline context only; no RC6 outcome transfers silently to RC7 or closes a row.
+Qualification: **Q1-Q6 6/6 — qualified by explicit impact retention**. The engineering-complete RC7
+payload is `2fc508b8d943fe4ef439bdcbbd86585e398cc513`; the post-freeze ledger is
+`docs/02-working-docs/work-items/IIS-0012-rc7-qualification-retention/qualification.md`. Open P0/P1
+is `0/0`. Q4 Bazel-target and Q6 target-specific compilation/tests remain unproven; the Release Owner
+accepts that disclosed residual for 1.0 without relabeling either target as observed.
+
+GA decision: the task owner explicitly authorized publishing `1.0.0`, updating marketplace/install
+references, pushing `main`, creating and pushing `v1.0.0`, and publishing the GitHub Release.
+Administrative sign-off consolidation is deferred as post-release documentation. The exact operation
+set and rollback target are recorded in
+`docs/02-working-docs/work-items/IIS-0013-1.0-ga-publication/release-decision.md`.
 
 ## Boundary
 
-Engineering completion establishes that the approved candidate content plan and its one joined AI
-consistency review are complete. It does not authorize a branch merge, push, tag, GitHub release,
-marketplace change, plugin installation, rollout, or GA declaration. Field qualification and the
-sign-offs below are additional promotion inputs, not hidden steps inside Brain-Flow.
+Engineering completion alone establishes only that the approved content plan and its joined AI review
+are complete. Standards 1.0 crossed the external release boundary through the explicit GA decision
+above; that decision does not become standing authority for any future branch, tag, publication,
+installation, or rollout.
 
 No release stage requires a pack-owned verifier, receipt/evidence system, CI implementation, release
 script, or custom workflow state. Qualification uses provider-native task state, the candidate commit,
 ordinary adopter commands when executable product code is affected, and accountable human decisions.
 
-## Candidate sequence
+## Future candidate sequence
 
 1. Complete one approved candidate engineering plan through semantic task commits, exactly one joined final
    AI review, and at most one in-scope corrective batch.
 2. Freeze the candidate commit and identify its version, commit SHA, included paths, and published
-   baseline. Do not move the public RC1 marketplace reference.
+   baseline. Do not move the current public marketplace reference before the new release is authorized.
 3. Intake and disposition RC feedback against that exact candidate.
 4. Complete every required field-qualification row and resolve its P0/P1 findings.
 5. Collect the named sign-offs. A conditional or missing sign-off is not approval.
@@ -73,14 +80,14 @@ Allowed before qualification sign-off:
 - corrections that restore Canon/ADR/derived-document agreement without introducing a new decision;
 - P0/P1 fixes through a new approved plan and incremented candidate revision;
 - truly editorial P2 fixes whose owner confirms no semantic or compatibility effect;
-- truthful metadata and release-note updates that continue to identify the candidate as unpublished.
+- truthful metadata and release-note updates that preserve the candidate/release state.
 
 Prohibited:
 
 - adding unqualified architecture features, enterprise chapters, providers, or compatibility claims;
 - activating the custom kernel, workflow tooling, verifier, evidence pipeline, CI, or release automation;
 - hiding a new obligation, breaking change, security decision, or exception in an editorial correction;
-- changing the public marketplace from `v1.0.0-rc.1` before the new tag and exact release operation are
+- changing the public marketplace from the current `v1.0.0` baseline before a new tag and exact release operation are
   separately authorized;
 - changing version text to `1.0.0` or claiming GA before qualification and all sign-offs;
 - treating an AI gate, test result, local commit, or candidate approval as external release authority.
@@ -125,6 +132,11 @@ claim remains advertised.
 
 One person may hold multiple roles, but each decision right is recorded separately.
 
+For `1.0.0`, the task/Release Owner accepted the Q4/Q6 residual and explicitly deferred the
+administrative consolidation of the role records below until after publication. This is a scoped GA
+decision, not evidence that omitted target tests ran and not a precedent that weakens future release
+authority.
+
 | Sign-off role | Required decision |
 |---|---|
 | **Standards Owner** | Candidate scope is complete; all P0/P1 are closed; P2 dispositions and the GA version decision are acceptable. |
@@ -136,6 +148,12 @@ One person may hold multiple roles, but each decision right is recorded separate
 | **DevOps/Release Owner** | Exact external operations, target commit/version/tag/remote/marketplace scope, operator, timing, and rollback route are authorized. |
 
 ## External release authority
+
+The exact `1.0.0` authority is recorded in the IIS-0013 release decision: promotion commit on `main`,
+remote `origin` (`congncif/ifl-ios-standards`), atomic push of `main` and `v1.0.0`, public GitHub
+Release publication, and marketplace/install ref `v1.0.0`. Local plugin installation and adopter
+rollout are not included. Rollback/de-promotion returns public guidance to `v1.0.0-rc.1` through a new
+explicit operation; the published `v1.0.0` tag remains immutable.
 
 External release authority must be an explicit instruction from the DevOps/Release Owner (and Legal
 Owner where license/distribution scope requires it) that names all of:
@@ -156,8 +174,8 @@ must stop at release readiness when a required field or accountable approval is 
 
 ## Rollback and de-promotion
 
-- **Before publication:** freeze further promotion, label the candidate not qualified, retain public
-  RC1, and open the corrective plan. Do not rewrite history or delete tags without explicit Git/release
+- **Before publication:** freeze further promotion, label the candidate not qualified, retain the
+  last known-good published ref, and open the corrective plan. Do not rewrite history or delete tags without explicit Git/release
   authority.
 - **After RC publication:** suspend promotion to GA. Publish a corrected incremented RC or restore the
   marketplace reference to the last known-good published version through a separately authorized

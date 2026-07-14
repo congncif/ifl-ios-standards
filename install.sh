@@ -7,12 +7,12 @@ set -euo pipefail
 # Works like any public plugin — add marketplace by repo name, install, done.
 #
 # Run it any of these ways:
-#   curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/v1.0.0-rc.1/install.sh | bash -s -- --ref=v1.0.0-rc.1
-#   bash install.sh --ref=v1.0.0-rc.1
-#   bash install.sh --ref=v1.0.0-rc.1 --scope=project
+#   curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/v1.0.0/install.sh | bash -s -- --ref=v1.0.0
+#   bash install.sh --ref=v1.0.0
+#   bash install.sh --ref=v1.0.0 --scope=project
 #
 # Flags (all optional):
-#   --ref=BRANCH|TAG|SHA   pin an explicitly authorized source (published example: v1.0.0-rc.1)
+#   --ref=BRANCH|TAG|SHA   pin an explicitly authorized source (published example: v1.0.0)
 #   --scope=user|project|local   default user (global, all projects)
 
 REPO="congncif/ifl-ios-standards"

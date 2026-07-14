@@ -1,7 +1,6 @@
 # Governance and Evolution
 
-Status: unpublished Standards `1.0.0-rc.7` working-candidate policy; published marketplace remains
-`v1.0.0-rc.1`
+Status: Standards `1.0.0` General Availability; published marketplace ref `v1.0.0`
 
 ## Purpose and authority
 
@@ -114,10 +113,10 @@ breaking unless a governing security/legal policy requires a separately approved
 
 ## Candidate and backlog boundaries
 
-`1.0.0-rc.7` is an unpublished working candidate. Engineering completion, Canon coherence, or AI
-review does not make it GA. `RELEASE.md` owns RC feedback, field qualification, sign-offs,
-de-promotion, and exact external release authority. The public marketplace stays at published RC1
-until an authorized candidate release operation occurs.
+Standards `1.0.0` is the published GA baseline. Its qualification, accepted residual target coverage,
+deferred administrative consolidation, and exact publication authority are recorded in `RELEASE.md`
+and the linked release decision. Engineering completion, Canon coherence, or AI review still does not
+authorize a future push, tag, publication, installation, or rollout.
 
 Frozen custom-kernel material lives only at repository-root
 `backlog/post-1.0/custom-kernel/`, outside the installable `ifl-ios-standards/` plugin subtree. It is

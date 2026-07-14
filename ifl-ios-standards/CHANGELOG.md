@@ -4,6 +4,21 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.0] — 2026-07-14
+
+### Released
+- Promoted the qualified RC7 content to Standards 1.0 General Availability without changing Canon,
+  Boardy/VIP architecture, enterprise chapters, or executable product behavior.
+- Published the dual-provider package with 9 Claude specialist agents, 21 skills, provider-native
+  Brain Flow, Boardy/VIP routing, ten enterprise chapters, and thin source scaffolders.
+
+### Qualification and distribution
+- Retained Q1-Q6 at 6/6 through the explicit RC4-to-RC7 impact decision with open P0/P1 at 0/0.
+  Q4/Q6 target-specific coverage remains unproven and is accepted as a disclosed GA residual; it is
+  not represented as an observed target result.
+- Pinned public Claude, Codex marketplace, and install guidance to immutable tag `v1.0.0` under the
+  MIT License. Administrative sign-off consolidation is a documented post-release follow-up.
+
 ## [1.0.0-rc.7] — 2026-07-14 (unpublished working candidate)
 
 ### Changed

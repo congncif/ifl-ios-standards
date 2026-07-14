@@ -1,6 +1,7 @@
 # Install ifl-ios-standards
 
-Public/release installation uses the immutable RC1-pinned provider commands in [README.md](README.md).
+Public/release installation uses the immutable `v1.0.0`-pinned provider commands in
+[README.md](README.md).
 The local-checkout paths below are only for qualification or development under explicit installation
 authority that names the exact checkout commit and scope. Do not treat an unpublished candidate
 working tree as a published release.
@@ -70,11 +71,11 @@ source there instead.
 Same repo serves Codex via its `.codex-plugin/` manifests:
 
 ```bash
-codex plugin marketplace add  congncif/ifl-ios-standards --ref v1.0.0-rc.1
+codex plugin marketplace add  congncif/ifl-ios-standards --ref v1.0.0
 codex plugin add              ifl-ios-standards@ifl-ios-standards
 ```
 
-Or the bundled installer: `scripts/install-codex.sh --ref=v1.0.0-rc.1`. A branch or commit ref is a
+Or the bundled installer: `scripts/install-codex.sh --ref=v1.0.0`. A branch or commit ref is a
 development/qualification input and requires an explicit instruction naming that ref. `codex plugin add`
 records the install in `~/.codex/config.toml`; the installer also creates `~/.local/bin` shims for
 `ifl-init`, `ifl-new-module`, and `ifl-new-board` because Codex does not currently guarantee plugin

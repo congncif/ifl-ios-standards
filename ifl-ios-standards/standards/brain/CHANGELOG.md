@@ -10,7 +10,7 @@ contract remains at a stable major version.
 - **Minor (x.Y.0)** — new rulebook chapter, new pattern doc, new example. Bindings must confirm at next review but auto-inherit.
 - **Major (X.0.0)** — renamed/removed rulebook chapter, changed a hard rule, removed a pattern doc. Bindings must re-audit before bumping.
 
-## [Unreleased] — Standards 1.0.0-rc.7 working candidate
+## [1.0.0] — 2026-07-14 — Standards 1.0.0 GA
 
 - Made active Canon Rules/Profiles and accepted ADRs explicit over derived rulebook, pattern, and
   review guidance.
@@ -22,8 +22,6 @@ contract remains at a stable major version.
   display-ready meaning and own only ephemeral framework-local UX state.
 - Aligned derived Boardy navigation guidance with explicit current/destination ViewController
   semantics and one pre-exposure activation sequence; Canon and accepted ADR meaning are unchanged.
-
-## [1.0.0] — 2026-07-13
 
 - Established provider-native Brain Flow for co-working and auto modes.
 - Replaced custom workflow state/evidence machinery with one approved plan, semantic task commits,

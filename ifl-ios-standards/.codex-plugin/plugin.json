@@ -1,6 +1,6 @@
 {
   "name": "ifl-ios-standards",
-  "version": "1.0.0-rc.7",
+  "version": "1.0.0",
   "description": "Reusable iOS standards with 21 skills including enterprise-ios, provider-native Brain Flow, ten enterprise chapters, and thin build-system-neutral source scaffolders.",
   "author": {
     "name": "IFL iOS"

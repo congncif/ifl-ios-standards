@@ -4,7 +4,7 @@ Derived from the selected `boardy-vip` Canon Profile through `MICROBOARD_UI.md`,
 and `COMMUNICATION.md`. This cheatsheet is routing/guidance only and cannot invent or weaken a Rule.
 Load full specs only when the affected pattern needs them.
 
-Last sync: 2026-07-14 for Standards 1.0.0-rc.7 working candidate.
+Last sync: 2026-07-14 for Standards 1.0.0 GA.
 
 ## File layout per module
 

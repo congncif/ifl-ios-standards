@@ -1,8 +1,8 @@
 # Compatibility, Adoption, and Migration
 
-Status: unpublished Standards `1.0.0-rc.7` working candidate
+Status: Standards `1.0.0` General Availability
 
-Published install baseline: `v1.0.0-rc.1`; this document is not a direct GA or candidate-publication claim
+Published install baseline: immutable tag `v1.0.0`
 
 ## Compatibility contract
 
@@ -27,9 +27,9 @@ differ but cannot change architecture, conformance, or authority meaning. When d
 unavailable, an eligible approved plan may continue inline. Neither provider requires a pack-owned
 kernel, verifier, receipt/manifest chain, CI system, or custom state engine.
 
-The current candidate must complete the provider/profile/build-system qualification matrix in
-`RELEASE.md` before a GA compatibility claim. A listed provider or adapter that has not completed its
-required row is `not qualified`, not silently inferred as GA-supported.
+The Standards 1.0 provider/profile/build-system matrix is qualified Q1-Q6 through the retained-impact
+decision referenced by `RELEASE.md`. Q4 and Q6 retain explicit unproven target-specific coverage;
+their accepted residual does not convert those omitted targets into observed results.
 
 ## Profile-neutral architecture and UI adoption
 
@@ -58,7 +58,7 @@ Boardy module does not permit Boardy or utility frameworks inside Domain/Applica
 
 The Consuming-team Conformance Owner owns the claim. AI may assess evidence and identify gaps but
 cannot decide organization-owned policy, approve an exception, or promote partial/transitional status
-to full. Conformance to this working candidate is not a GA claim.
+to full. Availability of the GA standard does not itself make an adopter fully conformant.
 
 ## Build-system and dependency-manager compatibility
 
@@ -76,8 +76,8 @@ risk-relevant ordinary signals; documentation/binding-only adoption has no artif
 
 Migration is an explicit adoption review, not a forced pattern, UI, provider, or build-system rewrite:
 
-1. Keep the currently published RC1 install unless a separately authorized candidate artifact/source is
-   provided for qualification; do not infer publication from this working-candidate document.
+1. Pin the published `v1.0.0` release unless a separately authorized later artifact/source is provided
+   for qualification or migration rehearsal.
 2. Inventory current modules, boundaries, provider bindings, build graph, policy owners, and known
    deviations.
 3. Select `core` plus only applicable `boardy-vip`, `uikit`, `swiftui`, and enterprise chapters. Do not
@@ -90,8 +90,7 @@ Migration is an explicit adoption review, not a forced pattern, UI, provider, or
    not require a package-manager or UI-framework migration.
 7. Execute one approved migration plan. Use focused ordinary tests only where product executable code
    changes, semantic commits when authorized, and one joined final AI consistency review.
-8. Report engineering completion separately from qualification, publication, installation, rollout,
-   and any future GA decision.
+8. Report adopter engineering completion separately from qualification, installation, and rollout.
 
 Existing projects are not non-conforming merely because they use UIKit, SwiftUI, Boardy, another
 pattern, CocoaPods, SwiftPM, Bazel, mixed UI, or provider-specific commands. The result depends on
@@ -103,5 +102,5 @@ owned disposition of real gaps.
 Classify compatibility changes, deprecations, removals, and exceptions under `GOVERNANCE.md`. A
 derived document cannot silently add/drop support, introduce a minimum, or claim field qualification.
 Material changes require governed Canon/ADR decisions, migration guidance, a new candidate, and the
-qualification/sign-offs in `RELEASE.md`. Until those complete, `1.0.0-rc.7` remains an unpublished
-working candidate and the marketplace remains on published RC1.
+qualification/release decision in `RELEASE.md`. Standards `1.0.0` and marketplace ref `v1.0.0`
+remain the published baseline until a later release is explicitly authorized.

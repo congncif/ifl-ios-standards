@@ -8,15 +8,15 @@ the standards themselves (rulebook, specs, agents, skills) ship in the plugin.
 
 This template follows [SemVer](https://semver.org/), versioned independently of the plugin standard.
 
-Current packaging status: template `2.5.0` remains the binding contract in the unpublished Standards
-`1.0.0-rc.7` working candidate; unsupported RC5/RC6-only Codex profile wording was removed before
-publication without changing the template's project-binding schema.
+Current packaging status: template `2.5.0` is the binding contract in Standards `1.0.0` GA;
+unsupported RC5/RC6-only Codex profile wording was removed before publication without changing the
+template's project-binding schema.
 
 - **Patch (x.y.Z)** — typo, link fix, README clarification with no semantic change.
 - **Minor (x.Y.0)** — new agent, new rule file, new setup step. Adopters confirm at next semi-annual review.
 - **Major (X.0.0)** — removed/renamed agent, breaking change to setup contract, brain major bump. Adopters re-audit + re-run setup.
 
-## [2.5.0] — 2026-07-14 — bundled with the unpublished Standards 1.0.0-rc.2 working candidate
+## [2.5.0] — 2026-07-14 — bundled with Standards 1.0.0 GA
 
 - Made Canon/accepted-ADR authority explicit and kept Boardy routing optional.
 - Added project bindings for default Brain-Flow mode, scoped Git and release authority, organization

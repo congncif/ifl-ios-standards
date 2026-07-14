@@ -4,9 +4,8 @@ A dual-provider plugin packaging reusable **iOS engineering standards**: 9 Claud
 21 skills including `enterprise-ios`, provider-native Brain Flow, Boardy/VIP task routing, ten
 focused enterprise chapters, and thin build-system-neutral module/board source scaffolders.
 
-> **Release status (2026-07-14):** this payload is the unpublished `1.0.0-rc.7` working candidate.
-> The latest published/tag-installable release remains `v1.0.0-rc.1`; public marketplace references
-> stay on RC1 until a separately authorized release.
+> **Release status (2026-07-14):** this payload is Standards `1.0.0` General Availability. Public
+> marketplace and installation references are pinned to immutable tag `v1.0.0`.
 
 ## What's inside
 
@@ -58,19 +57,19 @@ standard) is **optional**, used only by the orchestrator pipeline.
 
 ## Install the published release
 
-Public installation remains pinned to the immutable published `v1.0.0-rc.1` tag:
+Public installation is pinned to the immutable published `v1.0.0` tag:
 
 **Claude Code**
 
 ```bash
-claude plugin marketplace add congncif/ifl-ios-standards#v1.0.0-rc.1
+claude plugin marketplace add congncif/ifl-ios-standards#v1.0.0
 claude plugin install ifl-ios-standards@ifl-ios-standards
 ```
 
 **Codex**
 
 ```bash
-codex plugin marketplace add congncif/ifl-ios-standards --ref v1.0.0-rc.1
+codex plugin marketplace add congncif/ifl-ios-standards --ref v1.0.0
 codex plugin add ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -80,9 +79,8 @@ the exact candidate checkout/commit and intended scope.
 
 ## Versioning
 
-Both provider manifests mirror the upstream pack `VERSION`. This branch carries the unpublished
-`1.0.0-rc.7` working candidate; the latest published release and public pin remain
-`v1.0.0-rc.1`. Publication and installation are separately authorized operations.
+Both provider manifests mirror the upstream pack `VERSION`. The published release and public pin are
+`1.0.0` / `v1.0.0`. Future publication and installation remain separately authorized operations.
 
 ## License
 

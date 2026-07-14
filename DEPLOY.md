@@ -1,9 +1,9 @@
 # Deploy ifl-ios-standards to GitHub
 
-> **Current status (2026-07-14):** this branch contains the unpublished `1.0.0-rc.7` working
-> candidate. The latest published release is `v1.0.0-rc.1`, and the public Codex marketplace source
-> remains pinned to that tag. No candidate push, tag, marketplace publication, install, or rollout is
-> authorized by candidate preparation.
+> **Current status (2026-07-14):** Standards `1.0.0` is the GA release. The public Codex marketplace
+> source and install guidance are pinned to immutable tag `v1.0.0`. The exact 1.0 publication
+> decision and deferred administrative follow-up are recorded in
+> `docs/02-working-docs/work-items/IIS-0013-1.0-ga-publication/release-decision.md`.
 
 > **License:** the marketplace repository and packaged plugin remain distributed under the
 > [MIT License](LICENSE). Both provider manifests declare `MIT`, and the plugin payload includes
@@ -137,12 +137,14 @@ Use this path when the remote already exists. Do not re-run `git init` or reposi
 
 ## Tag and marketplace publication
 
-The current working candidate must not use these commands because no `v1.0.0-rc.7` tag or release
-authority exists. Once a specific version and candidate commit are approved:
+Standards 1.0 used an atomic push of `main` and `v1.0.0`, followed by a published GitHub Release.
+For future releases, once a specific version and candidate commit are approved:
 
 1. Confirm `ifl-ios-standards/VERSION` and both provider manifest versions equal the authorized tag.
 2. Confirm the repository and plugin licenses are the approved MIT text.
-3. Run organization-owned qualification and collect the named release sign-offs.
+3. Complete the applicable qualification and record the accountable release decision. Administrative
+   consolidation may follow only when the Release Owner explicitly accepts that ordering and records
+   all residual risk without representing unrun coverage as passed.
 4. Under tag-creation authority:
 
    ```bash
@@ -156,25 +158,24 @@ authority exists. Once a specific version and candidate commit are approved:
    ```
 
 6. Only under marketplace/release authority, update public marketplace metadata to the published tag
-   and publish the release. Until that step, `.codex-plugin/marketplace.json` remains at
-   `v1.0.0-rc.1`.
+   and publish the release. Until that step, keep the last known-good published ref.
 
 ## Install a published release
 
 Installation is a consumer or machine operation, not part of candidate preparation or publication.
-The latest published pin remains RC1:
+The latest published pin is `v1.0.0`:
 
 **Claude Code**
 
 ```bash
-claude plugin marketplace add congncif/ifl-ios-standards#v1.0.0-rc.1
+claude plugin marketplace add congncif/ifl-ios-standards#v1.0.0
 claude plugin install ifl-ios-standards@ifl-ios-standards
 ```
 
 **Codex**
 
 ```bash
-codex plugin marketplace add congncif/ifl-ios-standards --ref v1.0.0-rc.1
+codex plugin marketplace add congncif/ifl-ios-standards --ref v1.0.0
 codex plugin add ifl-ios-standards@ifl-ios-standards
 ```
 
@@ -183,7 +184,13 @@ removing an existing local registration also requires the relevant machine/proje
 
 ## DevOps release handoff
 
-Before declaring a release published, record:
+For Standards `1.0.0`, IIS-0013 is the release handoff: the task/Release Owner accepted the disclosed
+Q4/Q6 residual, authorized the exact Git/tag/GitHub/marketplace operations, and deferred named-role
+sign-off consolidation until after publication. The publication report records the observed release
+commit, tag, marketplace ref, and rollback posture; later administrative consolidation cannot rewrite
+those facts.
+
+For future releases, record before declaring publication:
 
 1. Candidate commit and exact included paths.
 2. Qualification results and named engineering, security/privacy, legal, and release sign-offs.
