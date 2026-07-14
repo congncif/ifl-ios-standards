@@ -27,7 +27,10 @@ Reviewer fatigue degrades quality as files pile up. Most reviews silently follow
 | 8 | `Sources/Services/**` (Domain, Application, Infra) | Service layer. Read last because the Board/VIP work above tells you what the service contract needs to support. |
 | 9 | Tests | After reading impl, ask: do tests cover the failure modes the impl introduces? |
 
-If the PR is large (>500 lines), stop at step 4 and request a split. Reviews of large PRs are not reviews — they're rubber-stamping.
+Do not stop or request a split solely because of line, file, or module count. For a large change,
+partition the reading order into coherent semantic slices inside the same review event and join the
+findings once. Reopen planning only when the candidate lacks a coherent evaluable boundary or the
+review discovers a material scope, architecture, public-contract, or security change.
 
 ---
 
@@ -262,7 +265,7 @@ You can't review a PR — escalate instead of approving on faith.
 | The PR description doesn't explain the intent and you can't infer it | Author — ask for a description rewrite |
 | The PR changes a pattern the pack doesn't yet codify (new Board type, new bus shape) | Architecture owner — propose a spec ADR before merging |
 | The PR touches a module owned by a team you're not on, and the change isn't trivial | Module owner — they should be a required reviewer |
-| The diff is >500 lines or spans more than 3 modules | Author — request a split into smaller PRs |
+| A large diff has no coherent goal, contract boundary, or sufficient ownership context to evaluate safely | Planning/owner — restore an evaluable semantic boundary; size alone is not a blocker |
 | A Blocker reveals a wider problem (e.g. a violation that probably exists elsewhere too) | Document the discovery in `TROUBLESHOOTING.md` or `17-anti-patterns.md` after the PR is fixed |
 
 Don't approve a PR you genuinely can't evaluate. "LGTM" on a PR you didn't understand is a future incident.
@@ -273,7 +276,7 @@ Don't approve a PR you genuinely can't evaluate. "LGTM" on a PR you didn't under
 
 | Outcome | When to use |
 |---------|-------------|
-| **Approve** | Zero Blockers, Majors acknowledged or fixed, Nits author's call. CI green. |
+| **Approve** | Zero Blockers; Majors dispositioned; Nits author's call. Required project-owned executable signals for changed code are observed or their absence/failure is explicitly dispositioned. Documentation-only changes need no signal ritual. |
 | **Approve with comments** | Same as Approve but you want the author to see Nits / future-work notes. Do NOT use this for Majors — request changes instead. |
 | **Request changes** | At least one Blocker, OR multiple Majors that change the impl shape. State the Blocker(s) explicitly in the review summary. |
 | **Comment** | You're not the gating reviewer but want to flag something. Don't use Comment when you ARE the gating reviewer — it leaves the PR in limbo. |
@@ -290,8 +293,9 @@ Requesting changes — {N} blocker(s), {M} major(s).
 ⚠️ Majors:
 - {file}:{line} — {one-line summary}
 
-Once the blockers are addressed I'll re-review the {N} affected files; the rest can stay
-unchanged unless you want to address the majors in this PR vs. a follow-up.
+Disposition these findings together, then apply the accepted in-scope items in one corrective batch.
+Do not schedule a confirmation review. If a correction materially changes scope, architecture,
+public contracts, or security, reopen planning as a new plan.
 ```
 
 Summary template for "approve":
@@ -308,13 +312,15 @@ Nits inline; author's call.
 
 ---
 
-## Re-review etiquette
+## Corrective-batch boundary
 
-When the author pushes fixes:
+For Brain Flow, the joined review is the only routine review event. Freeze the complete candidate,
+collect and deduplicate all lanes, disposition once, then apply accepted in-scope findings in at most
+one corrective batch. Do not add per-finding review, confirmation review, or full re-review.
 
-- **Look at the diff since your last review** — GitHub's "Changes since you last reviewed" view. Don't re-read the entire PR.
-- **Resolve threads you opened** when the fix lands — don't make the author chase your acknowledgement.
-- **Don't introduce new Blockers in a re-review** unless the fix itself introduces them. New issues that existed in the original PR but you missed → Major or Nit, not Blocker; flag and either approve with a follow-up note or open a separate issue.
+If someone explicitly requests review of a later candidate, treat it as a new review event with a new
+candidate identity and scope. Do not silently extend the original review or treat a partial diff as
+proof of the complete candidate.
 
 ---
 
@@ -333,10 +339,13 @@ When the author pushes fixes:
 
 Before opening the PR:
 
-- [ ] You've read `QUICK_REF.md` recently (this month).
+- [ ] The applicable Core/Boardy review rules for this candidate are available; load only the
+      references needed for findings you actually evaluate.
 - [ ] You know which modules the PR touches and whether you can credibly review them.
-- [ ] You have 30+ minutes of uninterrupted time. Reviews done in 5-minute chunks miss cross-file issues.
-- [ ] CI on the PR is green (lint passes). If red, return to author before reviewing.
+- [ ] You have enough candidate context to inspect every semantic slice and join findings once.
+- [ ] Available project-owned signal results are captured as context. Missing or failing required
+      signals are findings; never skip architecture review because of them. Documentation-only
+      changes have no CI precondition.
 
 ---
 

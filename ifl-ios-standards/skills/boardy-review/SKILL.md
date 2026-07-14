@@ -20,3 +20,12 @@ description: >-
 - Buses: retrieved controller refs instead of buses; missing identity-filter on round-trips; double-`complete()`.
 
 For the delegated pipeline, the `ios-reviewer` + `ios-review-triage` agents own this.
+
+## Cadence inside Brain Flow
+
+Apply this checklist inside the one joined final review event. Review the complete candidate and
+collect every finding before editing. A large diff or a missing/failing project-owned executable
+signal is a risk/finding, not a reason to stop the architecture review or create another gate. After
+the joined disposition, use at most one corrective batch and no routine confirmation or re-review.
+A correction that materially changes scope, architecture, a public contract, or security reopens
+planning as a new plan rather than extending the review loop.
