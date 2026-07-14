@@ -38,3 +38,15 @@ After publication, consolidate the Standards, Canon, Enterprise Adoption, provid
 policy, Legal where applicable, and DevOps/Release role records into the organization-owned release
 register. This administrative follow-up may improve traceability but cannot rewrite the observed
 qualification results, accepted residuals, release commit, or immutable tag.
+
+## Observed publication result
+
+- GA promotion commit: `dc53856ca137c3119fdb7f60d617f009aabb65a9`.
+- Remote `main`: `dc53856ca137c3119fdb7f60d617f009aabb65a9` at publication.
+- Annotated tag: `v1.0.0`; tag object `20f0b634570c6e3484ec718f85cffa971fa756f2`;
+  peeled commit `dc53856ca137c3119fdb7f60d617f009aabb65a9`.
+- GitHub Release: `ifl-ios-standards 1.0.0`, public, non-draft, non-prerelease, published
+  2026-07-14 at <https://github.com/congncif/ifl-ios-standards/releases/tag/v1.0.0>.
+- Public tag content: plugin `VERSION` is `1.0.0`; the Codex marketplace ref and Claude/Codex install
+  guidance resolve to `v1.0.0`.
+- No local plugin installation/update or adopter rollout was performed as part of publication.
