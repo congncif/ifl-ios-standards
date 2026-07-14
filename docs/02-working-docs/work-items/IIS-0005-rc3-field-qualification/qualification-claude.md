@@ -20,6 +20,10 @@ provider-native observation and cannot qualify a row.
 ## Q2 — Boardy/VIP + UIKit / CocoaPods / 0.18.x brownfield
 
 - Official result: **NOT QUALIFIED — provider environment hold**.
+- Open row findings P0/P1/P2: `0/1/0`, inherited from the single candidate-wide Boardy finding
+  `F-RC3-QUAL-001`; this is not a new finding.
+- Recovery owners: Standards Owner for the candidate correction; Qualification Owner with the
+  tenant/provider policy owner for provider access.
 - Product baseline: `d00e842905a53de17be65c134d40c15d58dfde0b`.
 - Constructed pre-RC3 fixture baseline: `8af9959876c1a130d9e6071d131f13f3a10138fe`,
   containing exact Standards `0.18.4` content from
@@ -34,6 +38,8 @@ provider-native observation and cannot qualify a row.
 ## Q4 — UIKit + SwiftUI / Bazel / brownfield / no Boardy
 
 - Official result: **NOT QUALIFIED — provider environment hold and early candidate stop**.
+- Open row findings P0/P1/P2: `0/0/0`.
+- Recovery owner: Qualification Owner with the tenant/provider policy owner.
 - Representative enterprise-adopter baseline:
   `6296c186812011be89e25429f387064e9dedc4a4`.
 - Rehearsal observation before stop: the bounded Foundation policy seam and its two outward adapters
@@ -45,6 +51,10 @@ provider-native observation and cannot qualify a row.
 ## Q6 — Boardy/VIP + mixed UI + enterprise / organization graph
 
 - Official result: **NOT QUALIFIED — provider environment hold and early candidate stop**.
+- Open row findings P0/P1/P2: `0/1/0`, inherited from the single candidate-wide Boardy finding
+  `F-RC3-QUAL-001`; this is not a new finding.
+- Recovery owners: Standards Owner for the candidate correction; Qualification Owner with the
+  tenant/provider policy owner for provider access.
 - Representative enterprise-adopter baseline:
   `6296c186812011be89e25429f387064e9dedc4a4`.
 - Rehearsal execution: not started after `F-RC3-QUAL-001` stopped RC3.

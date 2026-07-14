@@ -156,7 +156,7 @@ no mutation; Q4 preparation made no mutation; Q6 did not start after candidate P
 **Outcome:** Q1-Q6 have one deduplicated, candidate-bound disposition suitable for accountable human
 sign-off or an automatic corrective-candidate handoff.
 
-**Status:** PENDING
+**Status:** COMPLETE — NOT QUALIFIED
 
 ### Frozen review input
 
@@ -180,6 +180,10 @@ sign-off or an automatic corrective-candidate handoff.
 The integration owner joins and deduplicates all lanes once. There is no routine second review and no
 rerun merely to duplicate a green signal. A candidate P0/P1 produces an incremented corrective work
 item; an environment/repository limitation remains `not qualified`; P2 receives owner/disposition.
+
+**Observed disposition:** One joined review confirmed all six rows as not qualified, deduplicated
+candidate P0/P1/P2 to `0/1/0`, and found one reporting P2. The P2 was corrected once in this closeout
+batch by adding per-row counts and owners; no row result changed and no second review ran.
 
 ### Artifacts
 
@@ -215,4 +219,4 @@ item; an environment/repository limitation remains `not qualified`; P2 receives 
 - Reviewer: independent agent `iis0005_plan_gate`
 - Open material questions: none
 
-STATUS: READY_FOR_EXECUTION
+STATUS: COMPLETE_NOT_QUALIFIED

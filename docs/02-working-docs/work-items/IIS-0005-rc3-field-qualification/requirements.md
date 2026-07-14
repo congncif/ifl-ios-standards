@@ -176,11 +176,11 @@ active task and is summarized into ordinary Markdown; it is not a release receip
   or truthfully recorded `not qualified` with findings.
 - [x] **D7 — Q6 is dispositioned.** Required Claude/full enterprise modular-app behavior is observed
   or truthfully recorded `not qualified` with findings.
-- [ ] **D8 — Findings are governed.** No open P0/P1 is hidden; candidate defects start a new revision,
+- [x] **D8 — Findings are governed.** No open P0/P1 is hidden; candidate defects start a new revision,
   environment/repository blockers remain explicit, and P2 has owner/disposition.
-- [ ] **D9 — Evidence remains lean and safe.** Records contain the required sanitized observations,
+- [x] **D9 — Evidence remains lean and safe.** Records contain the required sanitized observations,
   no secrets/protected source/raw transcripts, no verifier/CI/receipt system, and no duplicate signal.
-- [ ] **D10 — Review/history are conclusive.** Codex and Claude row groups each have one semantic
+- [x] **D10 — Review/history are conclusive.** Codex and Claude row groups each have one semantic
   result commit; one final joined qualification review covers all rows; main-repo commits use explicit
   paths; `.superpowers/` and external release state remain untouched.
 
@@ -199,4 +199,4 @@ active task and is summarized into ordinary Markdown; it is not a release receip
 - Open material questions: none after retaining Q2 constructed-baseline identity, Q4 executable
   adoption, and candidate-exclusive provider isolation
 
-STATUS: READY_FOR_PLAN
+STATUS: COMPLETE_NOT_QUALIFIED

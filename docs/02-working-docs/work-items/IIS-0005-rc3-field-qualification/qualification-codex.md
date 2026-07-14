@@ -20,6 +20,8 @@ provider-native sessions and are not qualification passes.
 ## Q1 — Core-only / SwiftPM / greenfield
 
 - Official result: **NOT QUALIFIED — provider environment hold**.
+- Open row findings P0/P1/P2: `0/0/0`.
+- Recovery owner: Qualification Owner with the tenant/provider policy owner.
 - Fixture baseline: `7871194d07eec6e18eae27b5c30c1f81919755ff`.
 - Rehearsal commit: `856e759c3a1124d63ed3ffc03d173010e0eea224`
   (`feat: add delivery eligibility policy`).
@@ -33,6 +35,9 @@ provider-native sessions and are not qualification passes.
 ## Q3 — Boardy/VIP + SwiftUI / SwiftPM / greenfield
 
 - Official result: **NOT QUALIFIED — provider environment hold and candidate P1**.
+- Open row findings P0/P1/P2: `0/1/0`.
+- Recovery owners: Standards Owner for `F-RC3-QUAL-001`; Qualification Owner with the
+  tenant/provider policy owner for provider access.
 - Fixture baseline: Boardy source commit `06f4c0de619b3e745f5727d0b2c29469db89b5cc`,
   represented by fixture commit `674b06bf862c3bcb1f439a27b4f8d2912b3acdd8`.
 - Rehearsal commits:
@@ -54,6 +59,8 @@ provider-native sessions and are not qualification passes.
 ## Q5 — enterprise transition / CocoaPods + SwiftPM hybrid
 
 - Official result: **NOT QUALIFIED — provider environment hold**.
+- Open row findings P0/P1/P2: `0/0/0`; the fixture-document P1 described below is closed.
+- Recovery owner: Qualification Owner with the tenant/provider policy owner.
 - Fixture baseline: `d00e842905a53de17be65c134d40c15d58dfde0b`.
 - Rehearsal commits:
   - `2498d90` — add the local SharedPreferences package boundary and focused tests;
