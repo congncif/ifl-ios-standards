@@ -7,7 +7,7 @@ ten focused enterprise chapters, and thin build-system-neutral module/board sour
 `.claude-plugin/marketplace.json` (Claude Code) and `.codex-plugin/marketplace.json` (Codex) at its
 root, like a dual-runtime plugin.
 
-> **Release status (2026-07-14):** this branch describes the unpublished `1.0.0-rc.3` working
+> **Release status (2026-07-14):** this branch describes the unpublished `1.0.0-rc.4` working
 > candidate. The latest published/tag-installable release is `v1.0.0-rc.1`; public install pins and
 > the Codex marketplace ref remain on RC1 until a separately authorized candidate publication.
 
@@ -142,7 +142,7 @@ docs-organization process standard) is optional.
 ## Versioning
 
 Plugin `version` in both provider manifests follows the upstream pack `VERSION`. Local candidate
-metadata is `1.0.0-rc.3`, but it is unpublished; the latest published tag and public install pin are
+metadata is `1.0.0-rc.4`, but it is unpublished; the latest published tag and public install pin are
 still `v1.0.0-rc.1`. A version string never grants push, tag, publication, or installation authority.
 
 ## License

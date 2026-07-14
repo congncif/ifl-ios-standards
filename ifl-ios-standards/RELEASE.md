@@ -1,10 +1,13 @@
 # Current Candidate Qualification and GA Promotion
 
-Target: `1.0.0-rc.3` working candidate
+Target: `1.0.0-rc.4` working candidate
 
 State: unpublished; not approved or represented as `1.0.0` GA
 
 Published marketplace baseline: `v1.0.0-rc.1` until a separate candidate release is authorized and exists
+
+Candidate qualification: Q1-Q6 are `not qualified` for RC4; no RC3 rehearsal observation transfers
+as an RC4 pass
 
 ## Boundary
 

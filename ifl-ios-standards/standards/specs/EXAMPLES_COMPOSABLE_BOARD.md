@@ -38,9 +38,11 @@ final class {Parent}Board: ModernContinuableBoard, GuaranteedBoard,
     func activate(withGuaranteedInput input: InputType) {
         // 1. Build the container VC (must conform to ComposableInterface).
         let component = builder.build(input: input)
-        attachObject(component.controller, context: input.context ?? rootViewController)
+        watch(content: component.controller)
+        // Connect any parent navigation buses to component.viewController here, before exposure.
+        motherboard.putIntoContext(component.viewController)
 
-        // 2. Mount a Composable motherboard onto the container VC.
+        // 2. Mount a Composable motherboard onto the prepared container VC.
         //    This returns a board whose serviceMap is the activation surface for children.
         let composableBoard = attachComposableMotherboard(to: component.viewController)
 
@@ -147,7 +149,9 @@ final class {ChildA}Board: ModernContinuableBoard, GuaranteedBoard,
 
     func activate(withGuaranteedInput input: InputType) {
         let component = builder.build(withDelegate: self, input: input)
-        attachObject(component.controller, context: rootViewController)
+        watch(content: component.controller)
+        // Connect any child navigation buses to component.viewController here, before exposure.
+        motherboard.putIntoContext(component.viewController)
 
         // Wrap the child's VC in a nav controller and decorate the tab item.
         let nav = UINavigationController(rootViewController: component.viewController)

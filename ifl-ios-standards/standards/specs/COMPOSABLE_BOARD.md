@@ -88,6 +88,7 @@ final class {Parent}Board: ModernContinuableBoard, GuaranteedBoard,
     func activate(withGuaranteedInput input: InputType) {
         let component = builder.build(withDelegate: self)
         let viewController = component.userInterface
+        watch(content: component.controller)
         motherboard.putIntoContext(viewController)
 
         let composableBoard = attachComposableMotherboard(to: viewController)
@@ -118,11 +119,16 @@ import UIComposable
 
 final class {Child}Board: ModernContinuableBoard, ... {
     private let builder: {Child}Buildable
+    // Plain Void assumes at most one live destination session.
     private let returnBus = Bus<Void>()
 
     func activate(withGuaranteedInput _: InputType) {
         let component = builder.build(withDelegate: self)
         let viewController = component.userInterface
+        watch(content: component.controller)
+        returnBus.connect(target: viewController) { destinationViewController in
+            destinationViewController.returnHere()
+        }
         motherboard.putIntoContext(viewController)
 
         // TabBar style — wrap in nav, set tab item
@@ -132,8 +138,6 @@ final class {Child}Board: ModernContinuableBoard, ... {
 
         let element = UIElement(identifier: identifier, contentViewController: nav)
         putToComposer(elementAction: .update(element: element))
-
-        returnBus.connect(target: viewController) { vc in vc.returnHere() }
     }
 }
 ```
@@ -191,6 +195,9 @@ BoardRegistration(.mod{ChildB}) { id in
 
 - Parent is typically a permanent entry point — no double-activation guard, no `complete()` on user nav.
 - Child boards live as long as the composer keeps their `UIElement` — removing the element releases the child.
+- Parent and child activation follow build → `watch(content:)` → connect any concrete-target buses →
+  `putIntoContext` → `show` or `putToComposer`. Never expose an element before its navigation buses
+  are ready.
 - Children must NOT call `rootViewController.show()`; they register via `putToComposer`. The composer owns presentation.
 - `complete()` on a child is rare — usually the parent completes the whole composition.
 

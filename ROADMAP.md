@@ -6,7 +6,7 @@ This roadmap is non-normative planning guidance. Active Canon Rules/Profiles and
 the standards authority. A roadmap item creates no requirement, release commitment, implementation
 authority, or permission to add tooling.
 
-Standards `1.0.0-rc.3` is an unpublished working candidate for field qualification toward 1.0 GA.
+Standards `1.0.0-rc.4` is an unpublished working candidate for field qualification toward 1.0 GA.
 The latest published release remains `v1.0.0-rc.1`.
 
 ## Evidence-triggered 1.1 lifecycle domains

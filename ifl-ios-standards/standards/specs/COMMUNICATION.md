@@ -32,7 +32,9 @@ Sources/Microboards/{Board}/{Board}Protocols.swift   ← delegate methods consum
 
 ## Naming
 
-- `private let {action}Bus = Bus<{Type}>()` — bus per action; standard names: `completeBus: Bus<Bool>`, `finishBus: Bus<Void>`, `closeBus: Bus<Void>`.
+- `private let {action}Bus = Bus<{Type}>()` — bus per action; navigation names reveal destination
+  semantics (`cancelBus`/`closeBus` for current-screen back, `returnBus` for targeted return), while
+  `finishBus` remains the input-completion callback channel.
 - `registerFlows()` — private extension method; the only legal place flow listeners are wired.
 - Delegate methods on the Board map 1:1 to bus transports or service-map activations; no business logic inside the delegate.
 
@@ -68,27 +70,42 @@ Pushing into an already-active child or sibling in the same motherboard? → Com
 ### Bus<T> — Board ↔ managed object
 
 ```swift
-private let completeBus = Bus<Bool>()
-private let finishBus   = Bus<Void>()
+private let cancelBus = Bus<UIViewController>()
+private let returnBus = Bus<Void>()
+private let finishBus = Bus<Void>()
 
-// Object subscription with weak target
-completeBus.connect(target: self) { target, isDone in
-    target.rootViewController.returnHere { [weak target] in
-        target?.complete(isDone)
+func activate(withGuaranteedInput input: InputType) {
+    let component = builder.build(withDelegate: self, input: input)
+    let viewController = component.userInterface
+
+    watch(content: component.controller)
+    cancelBus.connect(target: viewController) { currentViewController, source in
+        guard currentViewController === source else { return }
+        currentViewController.backToPrevious()
     }
+    returnBus.connect(target: viewController) { destinationViewController in
+        destinationViewController.returnHere()
+    }
+    // Closure-only subscription (no target lifecycle binding)
+    finishBus.deliver { input.completion?() }
+
+    motherboard.putIntoContext(viewController)
+    rootViewController.show(viewController, sender: self)
 }
 
-// Closure-only subscription (no target lifecycle binding)
-finishBus.deliver {
-    input.completion?()
-}
+// In the ViewController → Board delegate:
+cancelBus.transport(input: source)
 
-// Fire
-completeBus.transport(input: true)
+// In the destination coordinator's child-flow listener:
+returnBus.transport()
+
+// When the input-completion callback must fire:
 finishBus.transport()
 ```
 
-Connection order in `activate`: watch controller → put in context → show → connect buses → deliver input closures.
+Connection order in `activate`: build → watch controller → connect navigation buses to concrete
+targets and register input callbacks → put in context → show/expose. `rootViewController` is the
+outward presentation root, never the target of `backToPrevious()` or `returnHere()`.
 
 ### registerFlows pattern
 
@@ -104,14 +121,15 @@ private extension ParentBoard {
             .ioChildA.flow.addTarget(self) { target, output in
                 switch output {
                 case .next: target.motherboard.serviceMap.mod{Module}Plugins.ioChildB.activation.activate()
-                case .exit: target.closeBus.transport()
+                case .exit: target.returnBus.transport()
                 }
             }
 
         motherboard.serviceMap.mod{Module}Plugins
             .ioChildB.flow.addTarget(self) { target, output in
                 switch output {
-                case .done, .exit: target.closeBus.transport()
+                case .done: target.returnBus.transport()
+                case .exit: target.returnBus.transport()
                 }
             }
     }
@@ -123,11 +141,15 @@ private extension ParentBoard {
 ```swift
 extension {Board}: {Board}Delegate {
     // ActionDelegate (from VC)
-    func close(_ isDone: Bool)   { completeBus.transport(input: isDone) }
-    func exitFlow()              { closeBus.transport() }
+    func close(from source: UIViewController, isDone: Bool) {
+        cancelBus.transport(input: source)
+        sendOutput(isDone ? .done : .cancelled)
+    }
 
     // ControlDelegate (from Interactor)
-    func performCompletion(_ isDone: Bool) { completeBus.transport(input: isDone) }
+    func performCompletion(_ isDone: Bool) {
+        sendOutput(isDone ? .done : .cancelled)
+    }
     func presentChildBoard(with data: SomeData) {
         motherboard.serviceMap.mod{Module}Plugins
             .ioChildBoard.activation.activate(with: data)
@@ -135,6 +157,10 @@ extension {Board}: {Board}Delegate {
     func loadData() {}
 }
 ```
+
+Interactor-originated completion reports typed output only; it does not choose a navigation target.
+When that output belongs to a child flow, the destination coordinator decides whether to transport
+its own `returnBus`.
 
 ## Concurrency
 
@@ -172,6 +198,9 @@ Order: `sendOutput()` BEFORE `complete()`. After `complete()`, the board is gone
 motherboard.putIntoContext(viewController)
 rootViewController.show(viewController, sender: self) // UIKit dependency-free default
 ```
+
+Connect any navigation bus to the current/destination ViewController before this outward exposure.
+`rootViewController` selects where UIKit presents; it does not become the back/return destination.
 
 Use a project-bound navigation adapter only when UIKit `show(_:sender:)` cannot express a specialized
 transition, return-context behavior, or host-controlled container. Such an adapter—including

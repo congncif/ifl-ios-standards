@@ -97,7 +97,9 @@ final class CheckoutBoard: ModernContinuableBoard,
     typealias CommandType = CheckoutCommand
 
     private let builder: CheckoutBuildable
-    private let completeBus = Bus<Bool>()
+    private let cancelBus = Bus<UIViewController>()
+    // Plain Void assumes at most one live destination session.
+    private let returnBus = Bus<Void>()
 
     init(identifier: BoardID, builder: CheckoutBuildable, producer: ActivatableBoardProducer) {
         self.builder = builder
@@ -109,11 +111,13 @@ final class CheckoutBoard: ModernContinuableBoard,
         let component = builder.build(withDelegate: self, input: input)
         let vc = component.userInterface
         watch(content: component.controller)         // 1
-        motherboard.putIntoContext(vc)               // 2
-        rootViewController.show(vc, sender: self)    // 3 — UIKit default; use a bound adapter or Composable when required
-        completeBus.connect(target: self) { t, isDone in
-            t.rootViewController.returnHere { [weak t] in t?.complete(isDone) }
+        cancelBus.connect(target: vc) { target, source in     // 2 — current VC
+            guard target === source else { return }
+            target.backToPrevious()
         }
+        returnBus.connect(target: vc) { $0.returnHere() }     // 3 — destination VC
+        motherboard.putIntoContext(vc)               // 4
+        rootViewController.show(vc, sender: self)    // 5 — outward UIKit presentation
     }
 
     func activationBarrier(withGuaranteedInput input: InputType) -> ActivationBarrier? { nil }
@@ -142,8 +146,8 @@ sm.modCartPlugins.ioCheckout.activation.activate()
 // Listen to output (in registerFlows, called from init)
 sm.modCartPlugins.ioPayment.flow.addTarget(self) { t, output in
     switch output {
-    case .completed: t.completeBus.transport(input: true)
-    case .cancelled: t.completeBus.transport(input: false)
+    case .completed: t.returnBus.transport()
+    case .cancelled: break
     }
 }
 
@@ -151,7 +155,9 @@ sm.modCartPlugins.ioPayment.flow.addTarget(self) { t, output in
 sm.modCartPlugins.ioPayment.interaction.send(command: .refresh)
 ```
 
-Activation order inside `activate(...)`: `watch(content:)` → `putIntoContext(vc)` → `show(vc)` → `completeBus.connect(target:)` → `finishBus.deliver { ... }`.
+Activation order inside `activate(...)`: build → `watch(content:)` → connect purpose-named navigation
+buses and register `finishBus.deliver { ... }` when applicable → `putIntoContext(vc)` → `show(vc)` or
+composer exposure.
 
 ## Hard rules
 
@@ -167,6 +173,11 @@ Activation order inside `activate(...)`: `watch(content:)` → `putIntoContext(v
   another feature still never imports `{Module}Plugins` (`CORE-API-001`, `CORE-COMP-001`).
 - UIKit `rootViewController.show(_:sender:)` is the dependency-free default. Use a project-approved
   navigation adapter only for behavior UIKit cannot express; use `COMPOSABLE_BOARD.md` for embedding.
+- `rootViewController` is a presentation root, not a back/return target. Use current-VC `cancelBus`
+  for `backToPrevious()` and destination-VC `returnBus` for `returnHere()`.
+- View-originated cancel/back is a round trip: carry the source ViewController in the bus payload and
+  gate `target === source`. Plain `returnBus` is Board-originated and assumes one live destination;
+  concurrent destinations require typed identity.
 - Omit custom `context:` on `show()` unless you need explicit control (target a specific VC instead of inferring from root, or pin lifecycle to a known UIViewController).
 - `registerFlows()` last in `init`; never in `activate`.
 - `context` in Input is `weak`; activation backedges are `weak`.
@@ -179,9 +190,9 @@ Activation order inside `activate(...)`: `watch(content:)` → `putIntoContext(v
 - [ ] Board extends `ModernContinuableBoard`
 - [ ] All 4 `Guaranteed*` conformances declared
 - [ ] All 4 `typealias` declared
-- [ ] `watch(content:)` + `putIntoContext` + `show` order
+- [ ] Build + `watch(content:)` + concrete-target bus connections + `putIntoContext` + exposure order
 - [ ] `registerFlows()` in `init`, not `activate`
-- [ ] `completeBus.connect` after `show`
+- [ ] Purpose-named navigation buses connect before `show` / composer exposure
 - [ ] Board conforms to `{Board}Delegate`
 - [ ] BoardID matches the public/internal naming rule
 - [ ] `public init` on Input

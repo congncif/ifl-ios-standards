@@ -95,7 +95,9 @@ final class {FeatureName}Board: ModernContinuableBoard, GuaranteedBoard,
     typealias CommandType = {FeatureName}Command
 
     private let builder: {FeatureName}Buildable
-    private let completeBus = Bus<Bool>()
+    private let closeBus = Bus<UIViewController>()
+    // Plain Void assumes at most one live destination session.
+    private let returnBus = Bus<Void>()
 
     init(identifier: BoardID, builder: {FeatureName}Buildable, producer: ActivatableBoardProducer) {
         self.builder = builder
@@ -108,14 +110,15 @@ final class {FeatureName}Board: ModernContinuableBoard, GuaranteedBoard,
         let viewController = component.userInterface
 
         watch(content: component.controller)
+        closeBus.connect(target: viewController) { currentViewController, source in
+            guard currentViewController === source else { return }
+            currentViewController.backToPrevious()
+        }
+        returnBus.connect(target: viewController) { destinationViewController in
+            destinationViewController.returnHere()
+        }
         motherboard.putIntoContext(viewController)
         rootViewController.show(viewController, sender: self)
-
-        completeBus.connect(target: self) { target, isDone in
-            target.rootViewController.returnHere { [weak target] in
-                target?.complete(isDone)
-            }
-        }
     }
 
     func activationBarrier(withGuaranteedInput input: InputType) -> ActivationBarrier? { nil }
@@ -124,8 +127,13 @@ final class {FeatureName}Board: ModernContinuableBoard, GuaranteedBoard,
 
 extension {FeatureName}Board: {FeatureName}Delegate {
     func loadData() {}
-    func close(_ isDone: Bool) { completeBus.transport(input: isDone) }
-    func performCompletion(_ isDone: Bool) { completeBus.transport(input: isDone) }
+    func close(from source: UIViewController, isDone: Bool) {
+        closeBus.transport(input: source)
+        sendResult(isDone)
+    }
+    func performCompletion(_ isDone: Bool) {
+        sendResult(isDone)
+    }
 }
 
 private extension {FeatureName}Board {
@@ -137,12 +145,12 @@ private extension {FeatureName}Board {
                     target.motherboard.serviceMap.mod{ModuleName}Plugins
                         .ioChildBoardB.activation.activate()
                 case .done:
-                    target.completeBus.transport(input: true)
+                    target.returnBus.transport()
                 }
             }
     }
 
-    func complete(_ isDone: Bool) {
+    func sendResult(_ isDone: Bool) {
         sendOutput(isDone ? .done : .cancelled)
     }
 }
@@ -194,8 +202,17 @@ Board lifecycle stay unchanged.
 
 - `registerFlows()` always called from `init`, never `activate()` (`BRD-FLOW-001`) — flows must be ready before the first activation.
 - Double-activation guard **only** when the board is explicitly single-session.
-- `complete()` called at most once. For UI boards with a typed outcome it maps to `sendOutput`.
-- `rootViewController.returnHere { ... }` is the only correct way to schedule `complete` after the user pops the screen (`UIKIT-LIFE-001`).
+- Build → `watch(content:)` → connect purpose-named buses to the concrete current/destination
+  ViewController → `putIntoContext` → `show` (`BRD-CTX-001`, `UIKIT-LIFE-001`).
+- Simple close/back transports `closeBus` before typed output; child completion transports the
+  destination Board's `returnBus`. Never call `backToPrevious()` or `returnHere()` on
+  `rootViewController`.
+- Because close is a ViewController → Board → ViewController round trip, its payload carries the
+  source ViewController and the subscriber identity-filters it. A destination `returnBus` without a
+  source is valid only for a coordinator with one live destination session; concurrent destinations
+  require typed destination identity in the child output.
+- `complete()` is reserved for Board lifecycle release and is called at most once when that Board
+  variant requires it; a typed UI outcome uses `sendOutput(_:)`.
 
 ## Testing
 
@@ -238,11 +255,16 @@ Board lifecycle stay unchanged.
 - [ ] `typealias` for all 4 type parameters (InputType, OutputType, FlowActionType, CommandType)
 - [ ] Duplicate-activation guard omitted unless single-session
 - [ ] `watch(content: component.controller)` called in `activate()`
+- [ ] Purpose-named navigation buses connect to the current/destination ViewController after
+      `watch(content:)` and before `putIntoContext` / UI exposure
 - [ ] `motherboard.putIntoContext(viewController)` called before `show()`
 - [ ] UIKit `rootViewController.show(viewController, sender: self)` is the dependency-free default;
       deviations use the project's bound navigation adapter or a `Composable` surface
 - [ ] No custom `context:` on `show()` unless explicitly required (e.g. presenting on a specific VC instead of inferring from root, or pinning lifecycle to a known UIViewController) — keep the default path otherwise
-- [ ] `completeBus` connected in `activate()` after `show()`
+- [ ] Simple close uses current-VC `backToPrevious`; targeted child return uses destination-VC
+      `returnHere`; neither method targets `rootViewController`
+- [ ] View-originated navigation buses carry source identity and gate `target === source`; a plain
+      Board-originated return bus is used only when one live destination is guaranteed
 - [ ] `registerFlows()` called in `init`, not `activate()`
 - [ ] Board conforms to `{Board}Delegate`
 - [ ] Registered in `ModulePlugin`'s `internalContinuousRegistrations`

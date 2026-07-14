@@ -20,7 +20,7 @@ protocol {Name}Controllable: AnyObject {}
 
 // Outward: ViewController sends UI events to Board
 protocol {Name}ActionDelegate: AnyObject {
-    func close(_ isDone: Bool)
+    func close(from source: UIViewController, isDone: Bool)
 }
 
 // Outward: Interactor sends domain events to Board
@@ -58,7 +58,9 @@ final class {Name}Board: ModernContinuableBoard, GuaranteedBoard,
     typealias CommandType = {Name}Command
 
     private let builder: {Name}Buildable
-    private let completeBus = Bus<Bool>()
+    private let closeBus = Bus<UIViewController>()
+    // Plain Void assumes at most one live destination session.
+    private let returnBus = Bus<Void>()
 
     init(identifier: BoardID, builder: {Name}Buildable, producer: ActivatableBoardProducer) {
         self.builder = builder
@@ -68,14 +70,17 @@ final class {Name}Board: ModernContinuableBoard, GuaranteedBoard,
 
     func activate(withGuaranteedInput input: InputType) {
         let component = builder.build(withDelegate: self, input: input)
+        let viewController = component.userInterface
         watch(content: component.controller)
-        motherboard.putIntoContext(component.userInterface)
-        rootViewController.show(component.userInterface, sender: self)
-        completeBus.connect(target: self) { target, isDone in
-            target.rootViewController.returnHere { [weak target] in
-                target?.complete(isDone)
-            }
+        closeBus.connect(target: viewController) { currentViewController, source in
+            guard currentViewController === source else { return }
+            currentViewController.backToPrevious()
         }
+        returnBus.connect(target: viewController) { destinationViewController in
+            destinationViewController.returnHere()
+        }
+        motherboard.putIntoContext(viewController)
+        rootViewController.show(viewController, sender: self)
     }
 
     func activationBarrier(withGuaranteedInput input: InputType) -> ActivationBarrier? { nil }
@@ -83,8 +88,13 @@ final class {Name}Board: ModernContinuableBoard, GuaranteedBoard,
 }
 
 extension {Name}Board: {Name}Delegate {
-    func close(_ isDone: Bool) { completeBus.transport(input: isDone) }
-    func performCompletion() { completeBus.transport(input: true) }
+    func close(from source: UIViewController, isDone: Bool) {
+        closeBus.transport(input: source)
+        sendResult(isDone)
+    }
+    func performCompletion() {
+        sendResult(true)
+    }
     func presentChildBoard(with data: SomeData) {
         motherboard.serviceMap.mod{Module}
             .io{Child}.activation.activate(with: data)
@@ -96,11 +106,11 @@ private extension {Name}Board {
         motherboard.serviceMap.mod{Module}
             .io{Child}.flow.addTarget(self) { target, output in
                 switch output {
-                case .done: target.completeBus.transport(input: true)
+                case .done: target.returnBus.transport()
                 }
             }
     }
-    func complete(_ isDone: Bool) {
+    func sendResult(_ isDone: Bool) {
         sendOutput(isDone ? .completed : .cancelled)
     }
 }
@@ -253,7 +263,7 @@ final class {Name}ViewController: UIViewController {
     }
 
     @IBAction func didTapClose(_ sender: UIButton) {
-        actionDelegate.close(false)
+        actionDelegate.close(from: self, isDone: false)
     }
 }
 

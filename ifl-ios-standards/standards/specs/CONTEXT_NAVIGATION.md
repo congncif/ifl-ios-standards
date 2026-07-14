@@ -39,8 +39,10 @@ Sources/Microboards/{Board}/{Board}ViewController.swift ← local alert presenta
 
 ## Naming
 
-- `cancelBus: Bus<Void>` — simple back from current screen.
-- `returnBus: Bus<Void>` — return to a specific destination after a flow.
+- `cancelBus: Bus<UIViewController>` — simple back from current screen; payload carries the source
+  ViewController for round-trip identity filtering.
+- `returnBus: Bus<Void>` — return to a specific destination after a flow when at most one destination
+  session is live; concurrent destinations require typed destination identity.
 - `confirmBus: Bus<Void>` — confirmation alert action.
 - Each bus connects once in `activate()`, transports from a delegate method or `registerFlows()`.
 
@@ -52,28 +54,32 @@ Bus connected to the **current** ViewController; transported when the delegate f
 
 ```swift
 final class {Board}Board: ModernContinuableBoard, ... {
-    private let cancelBus = Bus<Void>()
+    private let cancelBus = Bus<UIViewController>()
 
     func activate(withGuaranteedInput input: InputType) {
         let component = builder.build(withDelegate: self, input: input)
 
-        cancelBus.connect(target: component.userInterface) { vc in
-            vc.backToPrevious()                  // ✅ current VC
+        watch(content: component.controller)
+        cancelBus.connect(target: component.userInterface) { vc, source in
+            guard vc === source else { return }
+            vc.backToPrevious()                  // ✅ source/current VC
         }
 
-        watch(content: component.controller)
         motherboard.putIntoContext(component.userInterface)
         rootViewController.show(component.userInterface, sender: self)
     }
 }
 
 extension {Board}Board: {Board}Delegate {
-    func cancel() {
-        cancelBus.transport()
+    func cancel(from source: UIViewController) {
+        cancelBus.transport(input: source)
         sendOutput(.cancelled)
     }
 }
 ```
+
+The current ViewController calls `delegate.cancel(from: self)`; it supplies identity but does not
+perform navigation itself.
 
 ### Pattern 2 — Targeted return (`returnHere`)
 
@@ -81,16 +87,17 @@ The **destination** (coordinator) declares `returnBus`, connects it to its own V
 
 ```swift
 final class {Coordinator}Board: ModernContinuableBoard, ... {
+    // Plain Void is valid because this coordinator guarantees one live destination session.
     private let returnBus = Bus<Void>()
 
     func activate(withGuaranteedInput input: InputType) {
         let component = builder.build(withDelegate: self, input: input)
 
+        watch(content: component.controller)
         returnBus.connect(target: component.userInterface) { vc in
             vc.returnHere()                      // ✅ destination VC
         }
 
-        watch(content: component.controller)
         motherboard.putIntoContext(component.userInterface)
         rootViewController.show(component.userInterface, sender: self)
     }
@@ -209,10 +216,18 @@ Do NOT pass context for simple stack pushes. Do NOT store input context on the B
 
 ## Lifecycle
 
-- Bus connection order in `activate()`: build component → connect buses → `watch(content:)` → `putIntoContext` → `show`.
+- Bus connection order in `activate()`: build component → `watch(content:)` → connect buses to the
+  concrete current/destination ViewController → `putIntoContext` → `show` / composer exposure.
 - Buses connected with `target: component.userInterface` capture the VC weakly — when the VC dies, the consumer no-ops.
-- `cancelBus.transport()` MUST run before `sendOutput(.cancelled)` so the pop animation starts before the parent reacts.
+- `rootViewController` remains the outward presentation root for `show` and top-presented modal
+  selection; it is never the target of `backToPrevious()` or `returnHere()`.
+- `cancelBus.transport(input: source)` MUST run before `sendOutput(.cancelled)` so the pop animation
+  starts before the parent reacts.
+- View-originated cancel/back is a round trip: its payload carries the source ViewController and the
+  subscriber gates `target === source`.
 - `returnBus` lives on the destination coordinator; transported when a *child* completes — never from the child itself.
+- A plain `returnBus` requires one live destination session. If a coordinator supports concurrent
+  destinations, its typed child output must carry destination identity and the consumer must filter it.
 - After `complete()` on the destination, `returnBus` is gone; do not transport.
 
 ## Testing

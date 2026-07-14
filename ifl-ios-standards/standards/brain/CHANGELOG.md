@@ -10,7 +10,7 @@ contract remains at a stable major version.
 - **Minor (x.Y.0)** — new rulebook chapter, new pattern doc, new example. Bindings must confirm at next review but auto-inherit.
 - **Major (X.0.0)** — renamed/removed rulebook chapter, changed a hard rule, removed a pattern doc. Bindings must re-audit before bumping.
 
-## [Unreleased] — Standards 1.0.0-rc.3 working candidate
+## [Unreleased] — Standards 1.0.0-rc.4 working candidate
 
 - Made active Canon Rules/Profiles and accepted ADRs explicit over derived rulebook, pattern, and
   review guidance.
@@ -20,6 +20,8 @@ contract remains at a stable major version.
   and resume, scoped Git/release authority, one complete plan, and one joined final review.
 - Preserved the humble-View boundary across UIKit and SwiftUI: presentation adapters render
   display-ready meaning and own only ephemeral framework-local UX state.
+- Aligned derived Boardy navigation guidance with explicit current/destination ViewController
+  semantics and one pre-exposure activation sequence; Canon and accepted ADR meaning are unchanged.
 
 ## [1.0.0] — 2026-07-13
 

@@ -4,6 +4,22 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.0-rc.4] — 2026-07-14 (unpublished working candidate)
+
+### Fixed
+- Aligned every active Boardy UI/navigation example with `BRD-CTX-001`: simple back targets the
+  current ViewController, targeted return targets the explicit destination ViewController, and
+  `rootViewController` remains only the outward presentation root.
+- Unified UI and Composable activation guidance around build → watch → connect concrete-target buses
+  → put into context → expose, removing the derived guidance contradiction found during RC3 Q3
+  rehearsal.
+- Reset Q1-Q6 field qualification for the exact RC4 candidate; RC3 rehearsal observations remain
+  diagnostic history and cannot be reused as RC4 passes.
+
+### Release boundary
+- Kept the latest published release and public Codex marketplace source pinned to
+  `v1.0.0-rc.1`; RC4 preparation grants no push, tag, publication, installation, or rollout authority.
+
 ## [1.0.0-rc.3] — 2026-07-14 (unpublished working candidate)
 
 ### Fixed

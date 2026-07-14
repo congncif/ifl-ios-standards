@@ -121,11 +121,14 @@
 - [ ] `private let builder: {Name}Buildable` (dependencies via builder, not stored directly)
 - [ ] `watch(content: component.controller)` called in `activate()` for lifecycle tracking when applicable
 - [ ] `watch(content:)` / watched-content retrieval is not used for Board→Controller communication
+- [ ] Purpose-named navigation buses connect to the concrete current/destination ViewController after
+      `watch(content:)` and before `putIntoContext` / `show` / composer exposure
 - [ ] `motherboard.putIntoContext(viewController)` called BEFORE `show()`
 - [ ] UIKit `rootViewController.show(viewController, sender: self)` is the dependency-free default;
       a different helper is project-approved and adapter-scoped, or the surface follows `COMPOSABLE_BOARD.md`
 - [ ] No custom `context:` on `show()` unless explicitly required (target a specific VC instead of inferring from root, or pin lifecycle to a known UIViewController)
-- [ ] `completeBus` connected in `activate()` AFTER `show()`
+- [ ] Simple close/back uses current-VC `cancelBus`/`closeBus`; targeted return uses the destination
+      Board's `returnBus`; neither `backToPrevious()` nor `returnHere()` targets `rootViewController`
 - [ ] Board conforms to `{Name}Delegate` (ActionDelegate + ControlDelegate)
 - [ ] Registered in `ModulePlugin.internalContinuousRegistrations`
 
@@ -242,9 +245,10 @@
 
 ### Simple Back Navigation
 - [ ] `backToPrevious()` called on **current ViewController** via bus (not rootViewController)
-- [ ] Cancel/back bus declared in Board (e.g., `private let cancelBus = Bus<Void>()`)
-- [ ] Bus connected to current ViewController in `activate()`: `cancelBus.connect(target: component.userInterface) { $0.backToPrevious() }`
-- [ ] Bus transported from delegate method
+- [ ] Cancel/back bus carries source identity (e.g., `private let cancelBus = Bus<UIViewController>()`)
+- [ ] Bus connects to current ViewController and gates `target === source` before calling
+      `backToPrevious()`
+- [ ] Delegate transports the source ViewController in the bus payload
 - [ ] `sendOutput()` called after bus transport
 
 ### Targeted Return Navigation
@@ -253,6 +257,8 @@
 - [ ] Bus connected to destination's ViewController in `activate()`: `returnBus.connect(target: component.userInterface) { $0.returnHere() }`
 - [ ] Coordinator's `registerFlows()` transports bus on child completion output
 - [ ] Child boards send output only (no direct navigation)
+- [ ] Plain Board-originated `returnBus` has one live destination; concurrent destinations carry and
+      filter typed destination identity
 - [ ] Never `rootViewController.returnHere()` or `rootViewController.backToPrevious()` — always via bus to specific ViewController
 
 ### Alert/Modal Presentation

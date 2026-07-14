@@ -1,6 +1,6 @@
 # Compatibility, Adoption, and Migration
 
-Status: unpublished Standards `1.0.0-rc.3` working candidate
+Status: unpublished Standards `1.0.0-rc.4` working candidate
 
 Published install baseline: `v1.0.0-rc.1`; this document is not a direct GA or candidate-publication claim
 
@@ -103,5 +103,5 @@ owned disposition of real gaps.
 Classify compatibility changes, deprecations, removals, and exceptions under `GOVERNANCE.md`. A
 derived document cannot silently add/drop support, introduce a minimum, or claim field qualification.
 Material changes require governed Canon/ADR decisions, migration guidance, a new candidate, and the
-qualification/sign-offs in `RELEASE.md`. Until those complete, `1.0.0-rc.3` remains an unpublished
+qualification/sign-offs in `RELEASE.md`. Until those complete, `1.0.0-rc.4` remains an unpublished
 working candidate and the marketplace remains on published RC1.

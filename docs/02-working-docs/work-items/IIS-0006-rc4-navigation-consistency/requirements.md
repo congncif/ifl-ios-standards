@@ -109,17 +109,17 @@ joined review.
 
 ## Definition of Done
 
-- [ ] **D1 — Return targets are unambiguous.** Every active Boardy example routes simple back to the
+- [x] **D1 — Return targets are unambiguous.** Every active Boardy example routes simple back to the
   current ViewController and targeted return to the explicit destination ViewController; no compliant
   example calls `rootViewController.returnHere()` or `rootViewController.backToPrevious()`.
-- [ ] **D2 — Lifecycle is coherent.** UI, context-navigation, bus, composable, compact, example, and
+- [x] **D2 — Lifecycle is coherent.** UI, context-navigation, bus, composable, compact, example, and
   reviewer guidance agree on build → watch → connect → put into context → expose, with purpose-named
   buses connected before any transport or UI exposure.
-- [ ] **D3 — Canon and contracts are preserved.** `BRD-CTX-001`, ADR-0006, other Canon records,
+- [x] **D3 — Canon and contracts are preserved.** `BRD-CTX-001`, ADR-0006, other Canon records,
   Boardy source/distribution, public IO, and framework-neutral Core remain unchanged.
-- [ ] **D4 — RC4 metadata is truthful.** Active version/manifests/status/changelogs identify
+- [x] **D4 — RC4 metadata is truthful.** Active version/manifests/status/changelogs identify
   unpublished `1.0.0-rc.4`; public RC1 pins remain unchanged; Q1-Q6 are not qualified for RC4.
-- [ ] **D5 — Content boundary is safe.** New/current Standards output contains no adopter brand
+- [x] **D5 — Content boundary is safe.** New/current Standards output contains no adopter brand
   identity or protected source; historical/remote refs and `.superpowers/` remain untouched.
 - [ ] **D6 — Review is conclusive and lean.** One frozen-range joined AI review has no open P0/P1
   after at most one corrective batch; no routine re-review, build/test, verifier, script, CI, or
@@ -142,4 +142,4 @@ joined review.
   same pre-exposure-sequence correction; P0/P1/P2 after retention = `0/0/0`.
 - Open material questions: none
 
-STATUS: READY_FOR_PLAN
+STATUS: READY_FOR_JOINED_REVIEW

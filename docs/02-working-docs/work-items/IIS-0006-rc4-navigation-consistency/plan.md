@@ -44,7 +44,7 @@ and `plan.md` and commit once with intent `docs: plan RC4 navigation consistency
 **Outcome:** every active derived surface teaches one explicit destination-safe model and all active
 candidate metadata identifies the same unpublished RC4 revision.
 
-**Status:** PENDING
+**Status:** COMPLETE
 
 ### Semantic implementation slices
 
@@ -101,6 +101,18 @@ allowlist is a plan amendment, not an implicit expansion.
 
 - Stage only changed paths from the allowlist plus Task-1 state in requirements/plan.
 - Commit intent: `fix: align Boardy navigation guidance for RC4`.
+
+### Observed completion
+
+- The complete coupled guidance surface now uses concrete current/destination ViewController targets,
+  source identity for View-originated back, typed-output-only child completion, and pre-exposure bus
+  wiring. The only root-targeted back/return strings are explicit prohibited examples.
+- Active candidate identity is `1.0.0-rc.4` in `VERSION` and both provider manifests; public
+  marketplace source remains `v1.0.0-rc.1`; Q1-Q6 are explicitly not qualified for RC4.
+- Current payload paths and filenames contain no OneMount/VinOne brand string or local adopter
+  identity. Canon/ADR, public marketplace metadata, historical refs, and `.superpowers/` are unchanged.
+- Author inspection found no whitespace error or mutable-path escape. No build, test, verifier,
+  provider call, CI, or duplicate green signal was run for this documentation/metadata task.
 
 ## Task 2 — Run one joined review and freeze the RC4 candidate
 
@@ -168,4 +180,4 @@ a new plan.
   allowlist; P0/P1/P2 after retention = `0/0/0`.
 - Open material questions: none
 
-STATUS: READY_FOR_EXECUTION
+STATUS: EXECUTING_TASK_2

@@ -8,7 +8,8 @@
 Use `Bus<T>` whenever a Board needs to push side-effects into an object it does not own a stored reference to:
 
 - Board → Controller (Viewless) — the canonical case.
-- Board → ViewController (UI) — `completeBus` after `show()`, control commands triggered by delegate methods.
+- Board → ViewController (UI) — purpose-named navigation buses connected to the concrete
+  current/destination ViewController before `show()` or composer exposure.
 - Board → sibling object attached via `attachObject(_:)` — same shape.
 
 Two distinct shapes exist; pick by **where the trigger comes from**:
@@ -44,7 +45,7 @@ Two distinct shapes exist; pick by **where the trigger comes from**:
 
 | Element | Convention |
 |---------|------------|
-| Bus property | `private let {action}Bus = Bus<{Payload}>()` — `{action}` is a verb describing what fires the bus: `completeBus`, `childOutputBus`, `refreshBus`. Default name for the input-completion bus is `finishBus`. |
+| Bus property | `private let {action}Bus = Bus<{Payload}>()` — `{action}` names the concrete action: `cancelBus`, `returnBus`, `childOutputBus`, `refreshBus`. Default name for the input-completion bus is `finishBus`. |
 | Shape A payload type | `{Board}Controllable` (the marker protocol the source object conforms to) or a tuple `({Board}Controllable, OutputPayload)` if richer data is needed. |
 | Shape A delegate method | Always accept the source as the first parameter: `func didTapClose(from controller: {Board}Controllable)`. |
 
@@ -129,6 +130,9 @@ private func registerFlows() {
 
 - Declare buses as stored `private let` properties on the Board — they live as long as the Board does.
 - Connect in `activate(...)` AFTER the target object exists. Never connect in `init` (target doesn't exist yet) or `registerFlows()` (would re-register per activation → stacked closures).
+- For UI targets, build → `watch(content:)` → connect buses to the concrete ViewController → put it
+  into context → expose it through `show()` or the composer. The presentation root is not a valid
+  back/return target.
 - A Bus may have multiple subscribers across re-activations. The target is held weakly; transport fires every still-live closure. Shape A's identity filter is what makes this safe; Shape B trusts the weak binding alone.
 - Buses are not explicitly disconnected. Subscriber lifetime = target lifetime (weak). On `complete()` the Board's bus property is released too.
 
@@ -151,7 +155,7 @@ private func registerFlows() {
 ## References
 
 - `MICROBOARD_NONUI.md` §Communication — Viewless Board where Shape A is the default.
-- `MICROBOARD_UI.md` §Communication — UI Board's `completeBus` pattern (Shape B for Board-originated complete).
+- `MICROBOARD_UI.md` §Communication — UI Board's purpose-named current/destination navigation buses.
 - `COMMUNICATION.md` — full channel direction matrix (Bus is one of several channels).
 - `EXAMPLES_VIEWLESS_BOARD.md` — complete worked skeleton with both shapes.
 - `REVIEWER_CHECKLIST.md` §Non-UI Board — checklist items derived from this spec.
