@@ -90,16 +90,17 @@ skeleton (§5): `${CLAUDE_PLUGIN_ROOT}/standards/rules/QUICK_REF.md`.
 
 ## 3. Specialist agents (delegated pipeline)
 
-For multi-step feature delivery, delegate to the 9 bundled agents. Claude Code exposes them in
-`/agents`; Codex exposes them after `ifl-init` installs the project-scoped `.codex/agents/` templates:
+For multi-step feature delivery, Claude Code exposes the 9 bundled agents in `/agents`:
 `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`,
 `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe`. Start with `ios-orchestrator`
 for large/critical delivery or when multiple semantic checkpoints require coordinated specialist
 ownership. File count alone does not select a workflow or checkpoint. Model-tier rationale per agent:
 `${CLAUDE_PLUGIN_ROOT}/standards/AGENT_MODEL_TIERING.md`.
 
-Those are Claude IDs. In Codex, replace every hyphen with an underscore when spawning the same
-roles: start with `ios_orchestrator`; the review lanes are `ios_reviewer` and `ios_review_triage`.
+In Codex, start with `brain-flow` and map the same responsibilities onto provider-native generic
+subagents through exact bounded assignments. Use read-only agents for gates/review, disjoint writers
+for execution, and inline fallback when delegation is unavailable; named project profiles are not a
+1.0 prerequisite.
 
 ## 4. Scaffolders (on PATH when this plugin is enabled)
 

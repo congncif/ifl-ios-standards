@@ -1,7 +1,7 @@
 {
   "name": "ifl-ios-standards",
   "version": "1.0.0-rc.6",
-  "description": "Reusable iOS standards with 9 specialist agents, 21 skills including enterprise-ios, provider-native Brain Flow, ten enterprise chapters, and thin build-system-neutral source scaffolders.",
+  "description": "Reusable iOS standards with 21 skills including enterprise-ios, provider-native Brain Flow, ten enterprise chapters, and thin build-system-neutral source scaffolders.",
   "author": {
     "name": "IFL iOS"
   },
@@ -21,8 +21,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "IFL iOS Standards",
-    "shortDescription": "9 agents, 21 iOS skills, standards, and source scaffolders",
-    "longDescription": "Brings reusable iOS engineering standards into Codex through provider-native Brain Flow. The plugin ships 9 specialist agents, 21 skills including enterprise-ios and Boardy/VIP task routing, ten focused enterprise chapters, and thin build-system-neutral module/board source scaffolders. Reference paths shown as ${CLAUDE_PLUGIN_ROOT}/standards/\u2026 resolve relative to this plugin root under Codex.",
+    "shortDescription": "21 iOS skills, standards, and source scaffolders",
+    "longDescription": "Brings reusable iOS engineering standards into Codex through provider-native Brain Flow. The plugin ships 21 skills including enterprise-ios and Boardy/VIP task routing, ten focused enterprise chapters, and thin build-system-neutral module/board source scaffolders. Brain Flow delegates through Codex's native generic subagents with bounded assignments and continues inline when delegation is unavailable; no project custom-agent profile is required. Reference paths shown as ${CLAUDE_PLUGIN_ROOT}/standards/\u2026 resolve relative to this plugin root under Codex.",
     "developerName": "IFL iOS",
     "category": "Engineering",
     "capabilities": [

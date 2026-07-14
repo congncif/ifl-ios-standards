@@ -19,8 +19,9 @@ description: >-
 - BoardID strings not matching the `pub.mod.…` naming table.
 - Buses: retrieved controller refs instead of buses; missing identity-filter on round-trips; double-`complete()`.
 
-For the delegated pipeline, Claude uses `ios-reviewer` + `ios-review-triage`; Codex uses the
-spawn-safe equivalents `ios_reviewer` + `ios_review_triage`.
+For the delegated pipeline, Claude uses `ios-reviewer` + `ios-review-triage`. Codex assigns the same
+principal and mechanical lanes to provider-native read-only subagents, or executes them inline when
+delegation is unavailable; custom profile IDs are not required.
 
 ## Cadence inside Brain Flow
 

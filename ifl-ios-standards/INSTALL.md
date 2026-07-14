@@ -54,8 +54,8 @@ Or pre-seed settings (`~/.claude/settings.json` for global, repo `.claude/settin
 - Restart Claude Code, or run `/reload-plugins`, if discovery doesn't refresh.
 - Confirm discovery: `claude plugin list` shows `ifl-ios-standards@ifl-ios-standards` enabled;
   `/agents` lists the 9 `ios-*` agents; `/ifl-ios-standards:boardy-vip` resolves.
-- Wire the consuming repo with `ifl-init --root=.`; it seeds the twin bindings and the project-scoped
-  Codex agents. Fill in unresolved scheme / module roots / build commands / base branch / remote.
+- Wire the consuming repo with `ifl-init --root=.`; it seeds the twin bindings. Fill in unresolved
+  scheme / module roots / build commands / base branch / remote.
 
 ## Removable-drive note
 
@@ -80,9 +80,15 @@ records the install in `~/.codex/config.toml`; the installer also creates `~/.lo
 `ifl-init`, `ifl-new-module`, and `ifl-new-board` because Codex does not currently guarantee plugin
 `bin/` directories are exported to shell `PATH`. The shims resolve the most recently installed
 available cache entry at invocation time. Add `~/.local/bin` to `PATH` if the shell does not already
-include it. Run `ifl-init --root=.` (or `--codex-agents-only` for an already-bound repository), then
-start a new Codex thread to pick up the plugin skills and `.codex/agents/*.toml` roles. Codex resolves
-`${CLAUDE_PLUGIN_ROOT}/standards/…` paths relative to the installed plugin root (no var expansion).
+include it. Run `ifl-init --root=.` when the repository needs bindings, then start a new Codex thread
+to pick up the plugin skills. Brain Flow maps specialist responsibilities onto Codex's native generic
+subagents with bounded assignments and inline fallback; no project custom-agent profile is required.
+Codex resolves `${CLAUDE_PLUGIN_ROOT}/standards/…` paths relative to the installed plugin root (no var
+expansion).
+
+If an unpublished RC5/RC6 checkout previously generated `.codex/agents/ios_*.toml`, upgrading does
+not delete or overwrite them. They are outside the 1.0 contract and may be removed manually when the
+project owner no longer wants them; their presence is not required for Brain Flow.
 
 ## Prerequisites
 

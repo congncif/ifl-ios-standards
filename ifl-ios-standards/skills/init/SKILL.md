@@ -2,30 +2,29 @@
 name: init
 description: >-
   Use when setting up a new (or not-yet-wired) iOS project to adopt Standards 1.0 Core and record
-  its applicable architecture/UI Profiles — generate CLAUDE.md + AGENTS.md bindings and the nine
-  project-scoped Codex specialist-agent configurations.
+  its applicable architecture/UI Profiles — generate CLAUDE.md + AGENTS.md bindings.
   Triggers: "init the project", "set up CLAUDE.md / AGENTS.md", "wire this repo into the
   ifl-ios-standards plugin", "bootstrap bindings", "onboard this iOS project", or "adopt Boardy"
   when Boardy/VIP is actually selected.
 ---
 
-# Initialize project bindings and Codex agents
+# Initialize project bindings
 
-Generate the consuming repo's `CLAUDE.md` + twin `AGENTS.md` and install the nine Codex specialist
-templates under `.codex/agents/`. Claude Code discovers the packaged `agents/*.md` directly; Codex
-requires project-scoped TOML agent files. The standard itself stays in the plugin.
+Generate the consuming repo's `CLAUDE.md` + twin `AGENTS.md`. Claude Code discovers the packaged
+`agents/*.md` specialists directly. Codex uses provider-native generic subagents with bounded
+assignments and inline fallback, so project custom-agent profiles are not required. The standard
+itself stays in the plugin.
 
 ## 1. Seed via the bundled helper
 
-Run the scaffolder. It copies the binding starter and Codex agent templates, and pre-fills only values
-backed by unambiguous repository evidence. Governed or ambiguous bindings remain `{Placeholders}`.
+Run the scaffolder. It copies the binding starter and pre-fills only values backed by unambiguous
+repository evidence. Governed or ambiguous bindings remain `{Placeholders}`.
 The plugin ships the command in `bin/`; invoke it by name only when the host exports that directory or
 an installed shim directory is on shell `PATH`:
 
 ```bash
 ifl-init --root=.            # add --force to overwrite existing CLAUDE.md/AGENTS.md
 # preview first: ifl-init --root=. --dry-run
-# existing bindings: ifl-init --root=. --codex-agents-only
 ```
 
 If `ifl-init` isn't on `PATH`, run it from the known plugin root:
@@ -33,9 +32,9 @@ If `ifl-init` isn't on `PATH`, run it from the known plugin root:
 `scripts/install-codex.sh` can create dynamic shims in `~/.local/bin`; that directory must also be on
 the invoking shell's `PATH`.
 
-It refuses to overwrite matching bindings or agent files without `--force`. Use
-`--codex-agents-only` to add the named Codex roles to an already-bound repository without touching
-`CLAUDE.md`/`AGENTS.md`.
+It refuses to overwrite matching bindings without `--force`. The retired `--codex-agents-only` flag
+returns exit 64. `ifl-init` never deletes pre-existing `.codex/agents`; an adopter may remove old
+RC5/RC6-generated `ios_*.toml` files manually when they are no longer wanted.
 
 ## 2. Fill the remaining {Placeholders} by introspection
 
@@ -75,7 +74,6 @@ change. Mirror the completed `CLAUDE.md` to `AGENTS.md` after adding the row.
 ## 3. Confirm
 
 - Both files exist at repo root, identical.
-- `.codex/agents/` contains the nine `ios_*.toml` specialist configurations when Codex is used.
 - `Selected Standards Profiles` exists in both twins and contains `core` plus only observed optional
   Profiles.
 - The `Module root` row parses as a single token (the scaffolders read it — no extra backticks/prose in the value cell).

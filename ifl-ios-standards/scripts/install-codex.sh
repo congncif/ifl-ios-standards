@@ -82,5 +82,5 @@ esac
 
 echo
 echo "Done. In the consuming repo, run: ifl-init --root=."
-echo "For existing bindings, run: ifl-init --root=. --codex-agents-only"
-echo "Then start a new Codex thread so skills and project-scoped agents are loaded."
+echo "Then start a new Codex thread so plugin skills are loaded."
+echo "Brain Flow uses provider-native generic subagents; no project agent-profile install is required."
