@@ -1,6 +1,6 @@
 # Governance and Evolution
 
-Status: unpublished Standards `1.0.0-rc.4` working-candidate policy; published marketplace remains
+Status: unpublished Standards `1.0.0-rc.5` working-candidate policy; published marketplace remains
 `v1.0.0-rc.1`
 
 ## Purpose and authority
@@ -114,7 +114,7 @@ breaking unless a governing security/legal policy requires a separately approved
 
 ## Candidate and backlog boundaries
 
-`1.0.0-rc.4` is an unpublished working candidate. Engineering completion, Canon coherence, or AI
+`1.0.0-rc.5` is an unpublished working candidate. Engineering completion, Canon coherence, or AI
 review does not make it GA. `RELEASE.md` owns RC feedback, field qualification, sign-offs,
 de-promotion, and exact external release authority. The public marketplace stays at published RC1
 until an authorized candidate release operation occurs.

@@ -4,6 +4,28 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.0-rc.5] — 2026-07-14 (unpublished working candidate)
+
+### Added
+- Added nine officially supported project-scoped Codex agent templates and made `ifl-init` install
+  them for new or already-bound repositories without replacing unrelated `.codex` configuration.
+
+### Changed
+- Made every direct Brain skill resolve bundled paths without requiring Claude's plugin-root
+  environment variable under Codex.
+- Converged Boardy review into Brain Flow's one joined final review and one corrective batch; large
+  diffs and missing/failing project signals are findings rather than automatic extra gates.
+
+### Fixed
+- Preserved full-auto specialist delegation by giving the Codex orchestrator one bounded nested-agent
+  level, corrected provider-specific agent discovery guidance, and rejected symlinked init targets
+  that could redirect writes outside the consuming repository.
+
+### Qualification and release boundary
+- Closed one joined engineering review with no open P0/P1 after its single corrective batch. RC5
+  field qualification remains an exact-candidate promotion step; RC4 observations do not transfer
+  silently. Published `v1.0.0-rc.1` and all public install/marketplace refs remain unchanged.
+
 ## [1.0.0-rc.4] — 2026-07-14 (unpublished working candidate)
 
 ### Fixed

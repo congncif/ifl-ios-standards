@@ -10,7 +10,7 @@ contract remains at a stable major version.
 - **Minor (x.Y.0)** — new rulebook chapter, new pattern doc, new example. Bindings must confirm at next review but auto-inherit.
 - **Major (X.0.0)** — renamed/removed rulebook chapter, changed a hard rule, removed a pattern doc. Bindings must re-audit before bumping.
 
-## [Unreleased] — Standards 1.0.0-rc.4 working candidate
+## [Unreleased] — Standards 1.0.0-rc.5 working candidate
 
 - Made active Canon Rules/Profiles and accepted ADRs explicit over derived rulebook, pattern, and
   review guidance.

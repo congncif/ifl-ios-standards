@@ -1,6 +1,6 @@
 # Deploy ifl-ios-standards to GitHub
 
-> **Current status (2026-07-14):** this branch contains the unpublished `1.0.0-rc.4` working
+> **Current status (2026-07-14):** this branch contains the unpublished `1.0.0-rc.5` working
 > candidate. The latest published release is `v1.0.0-rc.1`, and the public Codex marketplace source
 > remains pinned to that tag. No candidate push, tag, marketplace publication, install, or rollout is
 > authorized by candidate preparation.
@@ -137,7 +137,7 @@ Use this path when the remote already exists. Do not re-run `git init` or reposi
 
 ## Tag and marketplace publication
 
-The current working candidate must not use these commands because no `v1.0.0-rc.4` tag or release
+The current working candidate must not use these commands because no `v1.0.0-rc.5` tag or release
 authority exists. Once a specific version and candidate commit are approved:
 
 1. Confirm `ifl-ios-standards/VERSION` and both provider manifest versions equal the authorized tag.
