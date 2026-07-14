@@ -81,11 +81,11 @@ organization-policy handoff boundaries remain unaccepted by AI.
 
 ## Definition of Done
 
-- [ ] **D1 — Approved exact-candidate plan.** One independent auto gate approves the bounded Q1/Q5
+- [x] **D1 — Approved exact-candidate plan.** One independent auto gate approves the bounded Q1/Q5
   plan; every provider session loads only RC4 at `f7cd2cf…` with separate writable state.
-- [ ] **D2 — Q1 baseline is explicit.** Clean source plus identical `core`-only repository bindings
+- [x] **D2 — Q1 baseline is explicit.** Clean source plus identical `core`-only repository bindings
   form a committed immutable baseline with no Boardy source/dependency.
-- [ ] **D3 — Q1 is requalified or dispositioned.** Provider Profile routing, semantic commits, final
+- [x] **D3 — Q1 is requalified or dispositioned.** Provider Profile routing, semantic commits, final
   SwiftPM signal, clean state, and authority behavior are recorded without a third attempt.
 - [ ] **D4 — Q5 is requalified or dispositioned.** Only the known test compile seam changes; one final
   package signal, frozen production/CocoaPods surfaces, clean state, and policy-owner boundaries are

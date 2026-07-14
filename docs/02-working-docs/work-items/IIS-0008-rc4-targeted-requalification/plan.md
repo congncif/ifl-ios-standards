@@ -24,7 +24,7 @@
 
 **Outcome:** exact RC4, explicit Q1 `core` binding, frozen Q5 scope, and independent provider state.
 
-**Status:** IN PROGRESS
+**Status:** COMPLETE
 
 - Obtain one independent combined requirements/plan auto gate.
 - Commit only the approved IIS-0008 requirements/plan.
@@ -41,7 +41,7 @@
 **Outcome:** controlled evidence distinguishes a passing Core-only route from a reproducible routing
 failure.
 
-**Status:** PENDING
+**Status:** COMPLETE — provisional PASS; no Boardy skill/source/assumption
 
 - Start one fresh provider session on the bound clean Q1 baseline and invoke RC4 Brain Flow.
 - Execute the approved delivery-policy task without nested plan/review gates.
