@@ -5,8 +5,11 @@
 - Candidate: `1.0.0-rc.4` at `f7cd2cf87711f1a757d2fbdec5be9be02ee69173`.
 - Register owner pending designation: Standards Owner.
 - Triage owner for this consolidation: Qualification Owner.
-- Sources: RC4 qualification/review working records IIS-0006 through IIS-0009 and one read-only origin
-  visibility audit on 2026-07-14.
+- Sources reviewed: IIS-0004 through IIS-0009 and one read-only origin visibility audit on 2026-07-14.
+  IIS-0004 was pre-RC4 qualification readiness; IIS-0005 exercised RC3 and found the navigation defect
+  later corrected when RC4 was created. Neither produced an additional material RC4 item, so their
+  history is not relabeled as RC4 feedback. IIS-0006 through IIS-0009 produced the deduplicated items
+  below.
 - This register records observed internal qualification feedback. It does not assert that unobservable
   external feedback is absent.
 
@@ -89,7 +92,7 @@
 | Expected / actual | Expected a handoff-only status; actual draft could be read as completed qualification. |
 | Affected authority artifact | IIS-0009 working documents only; candidate payload N/A. |
 | Impact / relevance | Editorial/operating clarity. Security/privacy/legal: operator profile remains uninspected and unchanged. |
-| Severity / disposition | P2 / `approved candidate change` N/A; reporting correction accepted in IIS-0009. |
+| Severity / disposition | P2 / `not applicable` to the candidate; IIS-0009 reporting correction accepted and retained. |
 | Rationale / owner / state | One reporting batch aligned the exception/status and strengthened preflight/prompts. Qualification Owner. **CLOSED**. |
 
 ## External visibility audit

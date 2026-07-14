@@ -51,24 +51,24 @@ owner/action explicit without mutating RC4, fabricating approval, or creating a 
 
 ## Definition of Done
 
-- [ ] **D1 — Exact state.** Handoff identifies immutable RC4, public RC1, 3/6 matrix, and no payload
+- [x] **D1 — Exact state.** Handoff identifies immutable RC4, public RC1, 3/6 matrix, and no payload
   change.
-- [ ] **D2 — Feedback is dispositioned.** Every observed RC4 item has one deduplicated disposition and
+- [x] **D2 — Feedback is dispositioned.** Every observed RC4 item has one deduplicated disposition and
   owner; no candidate P0/P1/P2 is hidden.
-- [ ] **D2a — Intake fields are complete.** Every row records provider, Profiles/chapters, build system,
+- [x] **D2a — Intake fields are complete.** Every row records provider, Profiles/chapters, build system,
   adoption mode, expected/actual behavior, affected authority artifact, and security/privacy/legal
   relevance, using explicit neutral `N/A` where a field does not apply.
-- [ ] **D3 — External visibility is honest.** Missing RC4 review surface is `UNOBSERVABLE`, not a pass.
-- [ ] **D4 — Promotion owners are explicit.** Qualification, feedback surface, sign-offs, metadata, and
+- [x] **D3 — External visibility is honest.** Missing RC4 review surface is `UNOBSERVABLE`, not a pass.
+- [x] **D4 — Promotion owners are explicit.** Qualification, feedback surface, sign-offs, metadata, and
   release authority each have their next owner and prerequisite.
-- [ ] **D5 — No approval is fabricated.** Human/policy/release decisions remain pending until recorded by
+- [x] **D5 — No approval is fabricated.** Human/policy/release decisions remain pending until recorded by
   their accountable owners.
-- [ ] **D6 — Review converges once.** One joined AI review covers the complete bundle; at most one
+- [x] **D6 — Review converges once.** One joined AI review covers the complete bundle; at most one
   reporting-only correction batch follows and no routine re-review occurs.
-- [ ] **D7 — Scope/history are clean.** Work uses semantic explicit-path commits, preserves
+- [x] **D7 — Scope/history are clean.** Work uses semantic explicit-path commits, preserves
   `.superpowers/`, and performs no executable or external release operation.
 
-Work-item status: **IN PROGRESS**
+Work-item status: **COMPLETE — PROMOTION HANDOFF READY; RC4 NOT QUALIFIED (3/6)**
 
 ## Requirement Gate
 

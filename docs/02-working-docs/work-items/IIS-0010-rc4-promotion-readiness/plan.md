@@ -35,7 +35,7 @@
 
 ## Task 3 — One joined review and closeout
 
-**Status:** PENDING
+**Status:** COMPLETE — accepted after one reporting-only correction batch
 
 - Review the entire IIS-0010 bundle and branch diff once for candidate identity, feedback
   completeness/deduplication, qualification truth, sign-off ownership, authority, privacy, YAGNI, and
