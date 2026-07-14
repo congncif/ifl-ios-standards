@@ -98,6 +98,9 @@ for large/critical delivery or when multiple semantic checkpoints require coordi
 ownership. File count alone does not select a workflow or checkpoint. Model-tier rationale per agent:
 `${CLAUDE_PLUGIN_ROOT}/standards/AGENT_MODEL_TIERING.md`.
 
+Those are Claude IDs. In Codex, replace every hyphen with an underscore when spawning the same
+roles: start with `ios_orchestrator`; the review lanes are `ios_reviewer` and `ios_review_triage`.
+
 ## 4. Scaffolders (on PATH when this plugin is enabled)
 
 - `ifl-init` — seed a project's `CLAUDE.md` + `AGENTS.md` bindings (detects git/manager/module-root). See `/ifl-ios-standards:init`.

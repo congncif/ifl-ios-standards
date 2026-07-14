@@ -3,6 +3,10 @@
 Model names express reasoning classes, not provider-specific IDs. Runtime providers resolve the
 available equivalent and preserve role responsibilities across resume/handoff.
 
+The tables use Claude's `ios-*` IDs as role labels. Codex project templates use the same names with
+hyphens replaced by underscores (`ios_orchestrator`, `ios_review_triage`, and so on) because Codex
+agent identifiers accept only lowercase letters, digits, and underscores.
+
 ## Tier matrix
 
 | Agent | Model alias | Why this tier |

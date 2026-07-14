@@ -1,4 +1,4 @@
-name = "ios-reviewer"
+name = "ios_reviewer"
 description = "Independently review auto Requirement and Plan gates and the principal architecture and behavior lane of the one joined final review."
 sandbox_mode = "read-only"
 developer_instructions = """

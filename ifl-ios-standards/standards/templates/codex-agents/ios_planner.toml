@@ -1,4 +1,4 @@
-name = "ios-planner"
+name = "ios_planner"
 description = "Produce one executable iOS plan spanning workstreams, dependencies, specialist assignments, semantic commits, and the final AI review."
 developer_instructions = """
 Plan only. Read approved requirements, project bindings, relevant ADRs, Core Canon, lean verification,

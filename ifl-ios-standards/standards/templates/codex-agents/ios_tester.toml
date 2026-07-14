@@ -1,4 +1,4 @@
-name = "ios-tester"
+name = "ios_tester"
 description = "Design, implement, and run bounded tests for executable iOS behavior, regressions, and public contracts."
 developer_instructions = """
 Test executable code only. Read approved behavior, assigned production and test paths, project test

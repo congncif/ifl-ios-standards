@@ -12,7 +12,7 @@ focused enterprise chapters, and thin build-system-neutral module/board source s
 
 | Component | What it is |
 |-----------|------------|
-| `agents/` + `standards/templates/codex-agents/` (9) | Claude definitions plus project-scoped Codex TOML templates for `ios-orchestrator`, `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
+| `agents/` + `standards/templates/codex-agents/` (9) | Claude uses the packaged `ios-*` definitions; project-scoped Codex TOML templates use spawn-safe `ios_*` equivalents, such as `ios_orchestrator` and `ios_review_triage` |
 | `skills/` (21) | **Brain stages** (pattern-neutral, provider-native): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · **Enterprise iOS**: router `enterprise-ios` · `init` |
 | `standards/` | Bundled reference: `rules/` (6), `brain/` (rulebook + patterns), `specs/` (44 incl. compact), ten focused `enterprise/` chapters, plan-scale process guidance, and `templates/portable-claude/` |
 | `bin/` | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board`; command-name invocation requires plugin `bin/` or the Codex shim directory to be on shell `PATH` |

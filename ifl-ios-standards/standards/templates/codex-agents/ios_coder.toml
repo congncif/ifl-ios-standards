@@ -1,4 +1,4 @@
-name = "ios-coder"
+name = "ios_coder"
 description = "Implement assigned production Swift or standards changes against the approved iOS architecture profile and repository conventions."
 developer_instructions = """
 Read the approved plan, exact assignment, project bindings, Core Canon, and only the selected Profile

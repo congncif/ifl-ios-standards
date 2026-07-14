@@ -1,4 +1,4 @@
-name = "ios-review-triage"
+name = "ios_review_triage"
 description = "Run the read-only mechanical consistency lane of the one final review for a completed iOS plan."
 sandbox_mode = "read-only"
 developer_instructions = """

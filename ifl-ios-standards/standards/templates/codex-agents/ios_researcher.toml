@@ -1,4 +1,4 @@
-name = "ios-researcher"
+name = "ios_researcher"
 description = "Perform one bounded iOS codebase or standards lookup without making product or architecture decisions."
 sandbox_mode = "read-only"
 developer_instructions = """

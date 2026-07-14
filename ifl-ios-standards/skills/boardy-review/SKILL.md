@@ -19,7 +19,8 @@ description: >-
 - BoardID strings not matching the `pub.mod.…` naming table.
 - Buses: retrieved controller refs instead of buses; missing identity-filter on round-trips; double-`complete()`.
 
-For the delegated pipeline, the `ios-reviewer` + `ios-review-triage` agents own this.
+For the delegated pipeline, Claude uses `ios-reviewer` + `ios-review-triage`; Codex uses the
+spawn-safe equivalents `ios_reviewer` + `ios_review_triage`.
 
 ## Cadence inside Brain Flow
 

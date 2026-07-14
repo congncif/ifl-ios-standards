@@ -75,7 +75,7 @@ change. Mirror the completed `CLAUDE.md` to `AGENTS.md` after adding the row.
 ## 3. Confirm
 
 - Both files exist at repo root, identical.
-- `.codex/agents/` contains the nine `ios-*.toml` specialist configurations when Codex is used.
+- `.codex/agents/` contains the nine `ios_*.toml` specialist configurations when Codex is used.
 - `Selected Standards Profiles` exists in both twins and contains `core` plus only observed optional
   Profiles.
 - The `Module root` row parses as a single token (the scaffolders read it — no extra backticks/prose in the value cell).

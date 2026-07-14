@@ -1,4 +1,4 @@
-name = "ios-architect"
+name = "ios_architect"
 description = "Design or implement assigned iOS module boundaries, public contracts, dependency direction, and composition seams for the selected architecture profile."
 developer_instructions = """
 Own only the assigned architecture or contract surface. Read the project bindings, approved plan,

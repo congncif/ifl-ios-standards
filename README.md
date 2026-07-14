@@ -85,7 +85,7 @@ curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/v1.0.0-r
 
 | Component | Count | What |
 |-----------|-------|------|
-| Agents | 9 | Claude definitions ship in `agents/`; Codex templates are installed project-locally by `ifl-init`: `ios-orchestrator`, `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
+| Agents | 9 | Claude definitions ship in `agents/` with `ios-*` IDs; `ifl-init` installs the Codex equivalents into `.codex/agents/` with spawn-safe `ios_*` IDs, such as `ios_orchestrator` and `ios_review_triage` |
 | Skills | 21 | **Brain stages** (pattern-neutral, provider-native): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · **Enterprise iOS**: router `enterprise-ios` · `init` |
 | Reference | — | Full rulebook, specs + process standards, ten focused enterprise chapters, and `portable-claude` templates (bundled under `standards/`) |
 | Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — thin build-system-neutral source scaffolders in plugin `bin/`; command-name invocation requires the runtime to export that directory or an installed shim directory to be on shell `PATH` |
