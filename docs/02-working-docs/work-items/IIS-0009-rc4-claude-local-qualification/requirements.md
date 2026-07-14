@@ -84,10 +84,12 @@ already passing Q1, Q3, and Q5 results without rerunning them.
 
 - Use Claude Code `2.1.207` through the environment's configured local-model transport. Do not inspect,
   gate on, copy, print, or persist authentication material.
-- Give every row an empty row-owned ephemeral `CLAUDE_CONFIG_DIR`. Load the exact candidate only through
-  session-local `--plugin-dir`; use non-persistent print mode, Full Access/bypass permission mode, no
+- Automated probes give every row an empty row-owned ephemeral `CLAUDE_CONFIG_DIR`. Direct operator
+  sessions may inherit the operator's existing Claude profile only to reach its configured local-model
+  transport; they must not inspect, copy, print, or change that profile. Both paths load the exact
+  candidate only through session-local `--plugin-dir`, use Full Access/bypass permission mode, no
   user/project/local settings sources, neutral inline settings with no enabled plugin, and a strict
-  empty MCP configuration. Environment-provided local transport values may be inherited unchanged.
+  empty MCP configuration.
 - Q2's tracked `.claude/**` files are migration input only. They must not become runtime settings, hooks,
   MCPs, or plugin registrations. No non-RC4 plugin may load in any row.
 - Q2, Q4, and Q6 have independent writable fixtures and row-owned provider state and may execute
@@ -119,7 +121,7 @@ already passing Q1, Q3, and Q5 results without rerunning them.
   handoff/resume, contract correction, one final Bazel signal, semantic commits, and policy boundaries
   are recorded.
 - [x] **D6 — Existing passes are retained.** Q1/Q3/Q5 remain bound to unchanged exact RC4 with no rerun.
-- [ ] **D7 — Review converges once.** One joined final AI review deduplicates candidate, provider,
+- [x] **D7 — Review converges once.** One joined final AI review deduplicates candidate, provider,
   fixture, signal, authority, privacy, and release findings; at most one reporting correction follows.
 - [x] **D8 — Release result is truthful.** The final Q1-Q6 matrix uses only observed row outcomes and
   does not claim qualification, GA, or compatibility while any required row remains unpassed.
@@ -127,7 +129,7 @@ already passing Q1, Q3, and Q5 results without rerunning them.
   candidate/public RC1/remotes/tags/releases/marketplace/install/rollout and unrelated files are
   unchanged.
 
-Work-item status: **IN PROGRESS — DIRECT CLI HANDOFF READY; JOINED REVIEW PENDING**
+Work-item status: **AUTOMATED PHASE CLOSED — DIRECT CLI EXECUTION HANDED OFF; NOT QUALIFIED (3/6)**
 
 ## Requirement Gate
 

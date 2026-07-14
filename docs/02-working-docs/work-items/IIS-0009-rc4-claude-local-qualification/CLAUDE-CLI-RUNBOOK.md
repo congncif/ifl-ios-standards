@@ -29,6 +29,32 @@ Prepared fixtures:
 Before a row, confirm its worktree is clean. Do not reset or clean a fixture that is not clean; inspect
 and disposition it first.
 
+Run this exact preflight before the first row:
+
+```bash
+CANDIDATE=/private/tmp/iis0009-rc4-candidate
+PLUGIN="$CANDIDATE/ifl-ios-standards"
+test "$(git -C "$CANDIDATE" rev-parse HEAD)" = "f7cd2cf87711f1a757d2fbdec5be9be02ee69173"
+test "$(sed -n '1p' "$PLUGIN/VERSION")" = "1.0.0-rc.4"
+test -z "$(git -C "$CANDIDATE" status --porcelain)"
+test -z "$(git -C "$CANDIDATE" remote)"
+test ! -w "$PLUGIN/VERSION"
+
+test "$(git -C /private/tmp/iis0009-q2-migration rev-parse HEAD)" = "8af9959876c1a130d9e6071d131f13f3a10138fe"
+test "$(git -C /private/tmp/iis0009-q4-enterprise rev-parse HEAD)" = "6296c186812011be89e25429f387064e9dedc4a4"
+test "$(git -C /private/tmp/iis0009-q6-enterprise rev-parse HEAD)" = "6296c186812011be89e25429f387064e9dedc4a4"
+for ROW in \
+  /private/tmp/iis0009-q2-migration \
+  /private/tmp/iis0009-q4-enterprise \
+  /private/tmp/iis0009-q6-enterprise; do
+  test -z "$(git -C "$ROW" status --porcelain)"
+  test -z "$(git -C "$ROW" remote)"
+done
+```
+
+No output and exit code `0` means the fixed inputs match. Any non-zero result stops qualification until
+the differing input is inspected; do not repair it with reset/clean.
+
 ## Recommended direct interactive command
 
 Run rows **sequentially**. Do not set an empty `CLAUDE_CONFIG_DIR`; the local-model transport may depend

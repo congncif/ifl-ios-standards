@@ -15,9 +15,11 @@
   `--plugin-dir`; make that candidate clone read-only before provider execution.
 - Create fresh isolated clones from the existing exact Q2, Q4, and Q6 prepared baselines. Remove remote
   push surfaces from the new fixtures and use neutral local branch names.
-- Run one non-persistent Claude CLI session per fixture with an empty row-owned `CLAUDE_CONFIG_DIR`, no
-  settings sources, neutral inline settings, and a strict empty MCP configuration. Each row invokes
-  exact RC4 Brain Flow, owns only its fixture, commits semantically, and reports observed result.
+- Automated probes use an empty row-owned `CLAUDE_CONFIG_DIR`. If that prevents the configured local
+  transport from starting, close automated probing and hand off direct operator sessions sequentially.
+  Direct sessions may inherit the unchanged operator profile only for transport while retaining no
+  settings sources, neutral inline settings, a strict empty MCP configuration, and exact RC4
+  `--plugin-dir` isolation.
 - Q2 is documentation/binding-only and receives no artificial executable signal. Q4/Q6 each receive at
   most one final focused Bazel signal after the full code change.
 - Retain Q1/Q3/Q5 without rerun. Join all six dispositions once after provider writers stop, allow at
@@ -45,7 +47,7 @@
 
 **Outcome:** each remaining Claude row has one provider-native exact-candidate result.
 
-**Status:** COMPLETE — automated transport stopped pre-inference; direct CLI handoff ready
+**Status:** AUTOMATED ATTEMPT CLOSED — MANUAL ROW EXECUTION PENDING
 
 - Launch one Claude CLI process per fixture with exact RC4 `--plugin-dir`, an empty row-owned
   `CLAUDE_CONFIG_DIR`, non-persistent print mode, `--setting-sources ""`, neutral inline settings with
@@ -71,7 +73,7 @@
 
 **Outcome:** one deduplicated Q1-Q6 matrix and the next accountable promotion boundary.
 
-**Status:** PENDING
+**Status:** COMPLETE — one joined handoff review; RC4 remains not qualified
 
 - Freeze the planning and Claude-result commits plus exact fixture heads.
 - Run one independent joined AI review across candidate identity, provider fidelity, architecture,
