@@ -1,8 +1,11 @@
 # Direct Claude CLI runbook — RC4 Q2/Q4/Q6
 
-Use this runbook to execute the three remaining qualification rows directly in the already prepared
-isolated fixtures. The CLI's configured local-model transport is operator-owned. Authentication state
-is not a Standards finding; a row begins only when the CLI reaches inference and loads exact RC4.
+Status: **COMPLETED — retained for audit; do not rerun Q2/Q4/Q6.**
+
+This runbook records the procedure used to execute Q2/Q4/Q6 in isolated fixtures. The rows are complete;
+the commands and original baseline preflight below are historical audit material and must not be rerun.
+The CLI's configured local-model transport is operator-owned. Authentication state is not a Standards
+finding; a row begins only when the CLI reaches inference and loads exact RC4.
 
 ## Fixed inputs
 
@@ -26,10 +29,12 @@ Prepared fixtures:
 | Q4 | `/private/tmp/iis0009-q4-enterprise` | `6296c186812011be89e25429f387064e9dedc4a4` |
 | Q6 | `/private/tmp/iis0009-q6-enterprise` | `6296c186812011be89e25429f387064e9dedc4a4` |
 
-Before a row, confirm its worktree is clean. Do not reset or clean a fixture that is not clean; inspect
-and disposition it first.
+The table records the original row baselines, not their final committed heads.
 
-Run this exact preflight before the first row:
+Before a historical row execution, its worktree was confirmed clean. Do not use this section to reset,
+clean, or rerun the completed fixtures.
+
+The exact preflight used before the first row was:
 
 ```bash
 CANDIDATE=/private/tmp/iis0009-rc4-candidate
@@ -57,9 +62,10 @@ the differing input is inspected; do not repair it with reset/clean.
 
 ## Recommended direct interactive command
 
-Run rows **sequentially**. Do not set an empty `CLAUDE_CONFIG_DIR`; the local-model transport may depend
-on the operator's normal Claude CLI profile. Runtime settings/plugins/MCPs remain isolated by the
-command flags, and exact RC4 is supplied explicitly.
+Historical execution ran rows **sequentially**. Do not set an empty `CLAUDE_CONFIG_DIR` or suppress normal setting sources;
+the local-model transport depends on the operator's normal Claude CLI profile. Those settings may
+provide transport, but they are never Standards authority. Exact RC4 is supplied explicitly through
+`--plugin-dir`; the inline `enabledPlugins` boundary and strict empty MCP configuration remain explicit.
 
 For Q2, replace `<ROW_DIR>` with `/private/tmp/iis0009-q2-migration`; for Q4/Q6 use the matching table
 entry.
@@ -71,13 +77,12 @@ claude \
   --plugin-dir "$PLUGIN" \
   --permission-mode bypassPermissions \
   --dangerously-skip-permissions \
-  --setting-sources "" \
   --settings '{"enabledPlugins":{}}' \
   --strict-mcp-config \
   --mcp-config '{"mcpServers":{}}'
 ```
 
-At the prompt, paste the complete matching file:
+During the completed execution, the matching prompt file was supplied:
 
 - Q2: `prompts/q2.md`
 - Q4: `prompts/q4.md`
@@ -89,7 +94,7 @@ RC1 plugin or another provider.
 
 ## Optional one-shot command
 
-Use this only after the same direct CLI profile is known to reach inference:
+Historical one-shot alternative; retained for audit only and not to be executed again:
 
 ```bash
 STANDARDS=/private/tmp/ifl-ios-pack-standards-v1
@@ -101,7 +106,6 @@ claude -p \
   --plugin-dir "$PLUGIN" \
   --permission-mode bypassPermissions \
   --dangerously-skip-permissions \
-  --setting-sources "" \
   --settings '{"enabledPlugins":{}}' \
   --strict-mcp-config \
   --mcp-config '{"mcpServers":{}}' \
@@ -113,7 +117,10 @@ Replace `<ROW>` with `q2`, `q4`, or `q6`. Do not redirect raw output into the St
 ## Cadence
 
 - Q2 is binding/review-only: no build or test.
-- Q4 and Q6 each run exactly one final focused Bazel signal after the complete code change.
+- Q4 and Q6 select the smallest representative repository-owned signal for the changed surface. An
+  explicit owner waiver may omit a nonstandard target when an accepted platform signal exists; the
+  omitted boundary, accepted signal, rationale, unproven target coverage, residual risk, and owner are
+  recorded.
 - A failed final signal is evidence. Do not rerun it unchanged merely to obtain green output.
 - Each row stages explicit paths and creates its own semantic local commit(s).
 - Do not push, tag, publish, install a plugin, change remotes, or perform rollout from a fixture.
@@ -131,7 +138,7 @@ Invoked Standards skills:
 Baseline HEAD:
 Changed paths:
 Commit SHA(s) and message(s):
-Final executable command/result: N/A for Q2; exactly one for Q4/Q6
+Final executable command/result: N/A, one representative signal, or explicit owner waiver
 Worktree clean: yes/no
 P0/P1/P2 findings:
 Organization-policy handoffs: none, or named decision domains only
@@ -146,10 +153,12 @@ Do not include credentials, source URLs, adopter brand names, protected source, 
 - **Q2:** exact RC4/Brain Flow observed; incremental `0.18.x` binding migration; Boardy remains in the
   selected UIKit shell; CocoaPods and product behavior preserved; semantic commit; clean worktree.
 - **Q4:** exact RC4/Brain Flow observed with Core/UIKit/SwiftUI only; framework-neutral shared policy;
-  humble adapters; no Boardy/package rewrite; semantic commit; one green final Bazel signal; clean tree.
+  humble adapters; no Boardy/package rewrite; semantic commit; representative signal or explicit
+  waiver with unproven target coverage retained; clean tree.
 - **Q6:** exact RC4/Brain Flow observed; Boardy/mixed UI/enterprise routing; `2.2.0 → 2.5.0` binding
   migration; handoff/resume and one-writer behavior; bounded public-contract correction; semantic
-  commits; one green final Bazel signal; clean tree; organization decisions remain human-owned.
+  commits; representative signal or explicit waiver with unproven target coverage retained; clean
+  tree; organization decisions remain human-owned.
 
 A startup message such as `Not logged in` or an HTTP error before inference is neither a pass nor an
 RC4 defect. Correct the operator-owned local CLI route, then start a fresh row session.

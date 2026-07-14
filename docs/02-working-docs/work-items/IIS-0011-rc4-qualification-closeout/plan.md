@@ -21,6 +21,8 @@ paths receive independent Requirement and Plan gate decisions.
 
 **Commit:** `docs: plan RC4 qualification closeout`
 
+**Status:** COMPLETE — committed at `8619da52a8bed7ff299e1561a6f74a88fd0db6fe`.
+
 ## Task 2 — Ingest direct qualification and transport results
 
 **Outcome:** IIS-0009 records the corrected Claude CLI transport and final Q2/Q4/Q6 evidence; IIS-0010
@@ -47,6 +49,8 @@ records the deduplicated feedback state and promotion-readiness matrix.
 - Retain Q1/Q3/Q5; do not rerun or manufacture another green signal.
 
 **Commit:** `docs: close RC4 qualification matrix`
+
+**Status:** COMPLETE — pending this semantic commit.
 
 ## Task 3 — Optimize Brain Flow verification scope
 

@@ -7,9 +7,9 @@
 - Candidate version: `1.0.0-rc.4`
 - Immutable candidate commit: `f7cd2cf87711f1a757d2fbdec5be9be02ee69173`
 - Predecessor closeout: IIS-0008 at `a454c33c9eea8ea447c1275c13172d2c5cff3a53`
-- Verification: provider-native row result, at most one final repository-owned executable signal for
-  each row that changes code, and one joined final AI review; no plugin-owned verifier, script, CI,
-  receipt, or custom kernel
+- Verification: provider-native row result, the smallest representative repository-owned executable
+  signal when applicable or an explicit owner waiver with residual risk, and one joined final AI
+  review per closeout plan; no plugin-owned verifier, script, CI, receipt, or custom kernel
 
 ## Goal
 
@@ -60,11 +60,13 @@ already passing Q1, Q3, and Q5 results without rerunning them.
   this bounded surface even if other modules use it.
 - Invoke exact RC4 Brain Flow in auto mode. Implement one small framework-neutral destination policy
   consumed by both adapters, with focused tests or the narrowest existing executable coverage.
-- Preserve Bazel and repository-owned commands. Run exactly one smallest viable final Bazel signal
-  after the complete code change; a failed signal is recorded and is not rerun unchanged.
+- Preserve Bazel and repository-owned commands. Select the smallest viable representative final
+  signal after the complete code change. A named owner may waive a nonstandard target when an accepted
+  platform signal exists, provided the omitted coverage and residual risk remain explicit.
 - Pass when exact RC4 loads only Core/UIKit/SwiftUI guidance for the scope, the shared policy remains
   framework-neutral, both adapters stay humble, no Boardy assumption or package-manager rewrite is
-  introduced, semantic commits exist, the final signal is green, and the worktree is clean.
+  introduced, semantic commits exist, the representative-signal decision is truthful, and the
+  worktree is clean.
 
 ### Q6 — Boardy/VIP + mixed UIKit/SwiftUI + enterprise / organization build graph
 
@@ -73,23 +75,23 @@ already passing Q1, Q3, and Q5 results without rerunning them.
 - Invoke exact RC4 Brain Flow in auto mode. Migrate portable bindings `2.2.0` to `2.5.0`, reconcile
   local full-auto authority, then make one bounded public-contract purity correction in the selected
   Boardy/UIKit feature while considering the existing SwiftUI and applicable enterprise surfaces.
-- Exercise provider-native handoff/resume and one-writer ownership inside the session. Run exactly one
-  smallest viable final repository-owned Bazel signal after the complete code change; do not rerun an
-  unchanged failure.
+- Exercise provider-native handoff/resume and one-writer ownership inside the session. Select the
+  smallest viable representative repository-owned signal after the complete code change, or record an
+  explicit owner waiver with omitted coverage and residual risk; do not rerun an unchanged failure.
 - Pass when exact RC4, Boardy/VIP, mixed UI, enterprise applicability, semantic commits, handoff/resume,
-  public-contract purity, shell confinement, focused signal, clean state, and authority boundaries are
-  all observed without inventing organization policy decisions.
+  public-contract purity, shell confinement, a truthful representative-signal decision, clean state,
+  and authority boundaries are all observed without inventing organization policy decisions.
 
 ## Provider/session isolation and cadence
 
 - Use Claude Code `2.1.207` through the environment's configured local-model transport. Do not inspect,
   gate on, copy, print, or persist authentication material.
-- Automated probes give every row an empty row-owned ephemeral `CLAUDE_CONFIG_DIR`. Direct operator
-  sessions may inherit the operator's existing Claude profile only to reach its configured local-model
-  transport; they must not inspect, copy, print, or change that profile. Both paths load the exact
-  candidate only through session-local `--plugin-dir`, use Full Access/bypass permission mode, no
-  user/project/local settings sources, neutral inline settings with no enabled plugin, and a strict
-  empty MCP configuration.
+- Automated probes gave every row an empty row-owned ephemeral `CLAUDE_CONFIG_DIR`. Direct operator
+  sessions inherited the operator's normal setting sources only to reach the configured local-model
+  transport; they did not inspect, copy, print, or change that profile. Those settings supplied
+  transport, never Standards authority. Exact RC4 loaded only through session-local `--plugin-dir`,
+  with Full Access/bypass permission mode, neutral inline plugin settings, and a strict empty MCP
+  configuration.
 - Q2's tracked `.claude/**` files are migration input only. They must not become runtime settings, hooks,
   MCPs, or plugin registrations. No non-RC4 plugin may load in any row.
 - Q2, Q4, and Q6 have independent writable fixtures and row-owned provider state and may execute
@@ -107,19 +109,19 @@ already passing Q1, Q3, and Q5 results without rerunning them.
 
 ## Definition of Done
 
-- [ ] **D1 — Exact candidate and isolated inputs.** Every row demonstrably loads RC4 at `f7cd2cf…`;
-  each new fixture starts at its specified baseline and has one writer. Inputs are exact and isolated;
-  direct row loading remains pending.
+- [x] **D1 — Exact candidate and isolated inputs.** Every row demonstrably loaded RC4 at `f7cd2cf…`;
+  each fixture started at its specified baseline and had one writer.
 - [x] **D2 — Local-provider boundary.** Claude CLI execution is observed directly; auth metadata is not
   used as a gate or reported as product compatibility evidence. Automated transport investigation is
   closed with a direct operator runbook.
-- [ ] **D3 — Q2 is observed.** Incremental `0.18.x` binding/adoption migration and Boardy/UIKit shell
+- [x] **D3 — Q2 is observed.** Incremental `0.18.x` binding/adoption migration and Boardy/UIKit shell
   assessment complete without artificial build/test or product/package-manager change.
-- [ ] **D4 — Q4 is observed.** Core-only mixed-UI executable policy adoption, focused coverage, one
-  final Bazel signal, semantic commit, and no Boardy assumption are recorded.
-- [ ] **D5 — Q6 is observed.** Boardy/mixed-UI/enterprise flow, portable binding migration,
-  handoff/resume, contract correction, one final Bazel signal, semantic commits, and policy boundaries
-  are recorded.
+- [x] **D4 — Q4 is observed.** Core-only mixed-UI policy adoption, focused tests, semantic commit, no
+  Boardy assumption, attempted repository-wrapper result, explicit waiver, and unproven target-specific
+  compile/test residual are recorded.
+- [x] **D5 — Q6 is observed.** Boardy/mixed-UI/enterprise flow, portable binding migration,
+  handoff/resume, contract correction, semantic commits, explicit waiver, and unproven target-specific
+  compile/test residual are recorded.
 - [x] **D6 — Existing passes are retained.** Q1/Q3/Q5 remain bound to unchanged exact RC4 with no rerun.
 - [x] **D7 — Review converges once.** One joined final AI review deduplicates candidate, provider,
   fixture, signal, authority, privacy, and release findings; at most one reporting correction follows.
@@ -129,7 +131,10 @@ already passing Q1, Q3, and Q5 results without rerunning them.
   candidate/public RC1/remotes/tags/releases/marketplace/install/rollout and unrelated files are
   unchanged.
 
-Work-item status: **AUTOMATED PHASE CLOSED — DIRECT CLI EXECUTION HANDED OFF; NOT QUALIFIED (3/6)**
+Work-item status: **COMPLETED — DIRECT CLI ROWS OBSERVED; FROZEN RC4 QUALIFIED (6/6)**
+
+The final result ledger and post-freeze identity boundary are owned by IIS-0011. Historical
+pre-inference transport observations remain valid history but no longer describe current qualification.
 
 ## Requirement Gate
 

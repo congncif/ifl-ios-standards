@@ -17,11 +17,11 @@
   push surfaces from the new fixtures and use neutral local branch names.
 - Automated probes use an empty row-owned `CLAUDE_CONFIG_DIR`. If that prevents the configured local
   transport from starting, close automated probing and hand off direct operator sessions sequentially.
-  Direct sessions may inherit the unchanged operator profile only for transport while retaining no
-  settings sources, neutral inline settings, a strict empty MCP configuration, and exact RC4
-  `--plugin-dir` isolation.
-- Q2 is documentation/binding-only and receives no artificial executable signal. Q4/Q6 each receive at
-  most one final focused Bazel signal after the full code change.
+  Direct sessions may inherit the unchanged operator profile and normal setting sources only for
+  transport. Those sources are not Standards authority; neutral inline plugin settings, a strict empty
+  MCP configuration, and exact RC4 `--plugin-dir` authority remain explicit.
+- Q2 is documentation/binding-only and receives no artificial executable signal. Q4/Q6 select the
+  smallest representative signal or record an explicit owner waiver and residual risk.
 - Retain Q1/Q3/Q5 without rerun. Join all six dispositions once after provider writers stop, allow at
   most one reporting-only correction batch, and do not repeat review or unchanged signals.
 - Stage Standards paths explicitly and commit by semantic task. Never stage `.superpowers/`.
@@ -47,11 +47,17 @@
 
 **Outcome:** each remaining Claude row has one provider-native exact-candidate result.
 
-**Status:** AUTOMATED ATTEMPT CLOSED — MANUAL ROW EXECUTION PENDING
+**Status:** COMPLETE — DIRECT Q2/Q4/Q6 RESULTS RECORDED BY IIS-0011
 
-- Launch one Claude CLI process per fixture with exact RC4 `--plugin-dir`, an empty row-owned
-  `CLAUDE_CONFIG_DIR`, non-persistent print mode, `--setting-sources ""`, neutral inline settings with
-  no enabled plugin, a strict empty MCP configuration, bypass-permission mode, and no auth gate.
+- Q2 result: `0ada3e13d33529c92e41579a0aacafff9f36065d`.
+- Q4 result: `04d50855af14b4de89055446881166dcfe45730e`.
+- Q6 results: `3476c3c0a6ef421fbe52aca79c1d31c5aa19f54c` and
+  `4793004bb025b47dba77d43709912fe5b1065835`.
+- These identities are evidence for frozen RC4 only. IIS-0011 owns their joined closeout review.
+
+- Successful direct sessions loaded exact RC4 through `--plugin-dir`, inherited normal setting sources
+  for the configured local transport, used neutral inline plugin settings, a strict empty MCP
+  configuration, bypass-permission mode, and no authentication gate.
 - Treat tracked `.claude/**` in Q2 only as migration input. Do not load it as runtime settings, and do
   not load any user/project/local plugin, hook, workflow, or MCP outside exact RC4.
 - Require the first task action to invoke `/ifl-ios-standards:brain-flow` and confirm RC4 from the
@@ -69,11 +75,14 @@
 
 **Commit:** `docs: record RC4 Claude local qualification`
 
+Final direct result identities are recorded by IIS-0011. The earlier automated handoff commit remains
+historical and is not rewritten.
+
 ## Task 3 — Run one joined review and close release readiness
 
 **Outcome:** one deduplicated Q1-Q6 matrix and the next accountable promotion boundary.
 
-**Status:** COMPLETE — one joined handoff review; RC4 remains not qualified
+**Status:** COMPLETE — historical handoff review; final 6/6 closeout belongs to IIS-0011
 
 - Freeze the planning and Claude-result commits plus exact fixture heads.
 - Run one independent joined AI review across candidate identity, provider fidelity, architecture,

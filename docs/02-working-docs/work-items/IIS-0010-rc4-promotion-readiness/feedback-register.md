@@ -47,7 +47,7 @@
 | Severity / disposition | Historical qualification P1; `not applicable` to candidate defect after focused recovery. |
 | Rationale / owner / state | One test-only `XCTUnwrap` correction produced an 8/0 final package result. Qualification Owner plus applicable Policy Owners for retained handoffs. **CLOSED — fixture test resolved**. |
 
-### RC4-FB-003 — Claude rows stopped before inference
+### RC4-FB-003 — historical Claude rows stopped before inference
 
 | Intake field | Record |
 |---|---|
@@ -56,14 +56,14 @@
 | Provider | Claude Code `2.1.207` through operator-owned local transport |
 | Profiles / chapters | Q2: Boardy/UIKit; Q4: Core/UIKit/SwiftUI; Q6: Boardy/mixed UI/applicable enterprise |
 | Build system / adoption mode | Q2 CocoaPods/brownfield; Q4 Bazel/brownfield; Q6 organization Bazel graph/existing app |
-| Reproducible scenario | Automated CLI invocations stopped before inference with zero tokens; no row loaded RC4 skills or received fixture source. |
-| Expected / actual | Expected provider-native row execution; actual startup ended before task execution. |
-| Affected authority artifact | Provider execution availability only; no Standards authority artifact was exercised. |
-| Impact / relevance | Q2/Q4/Q6 remain unqualified. Security/privacy/legal: protected source was not sent; no organization decision occurred. |
-| Severity / disposition | Severity N/A as a candidate finding; `defer` provider observation to direct operator CLI execution. |
-| Rationale / owner / state | Startup behavior cannot prove or disprove RC4 semantics. Claude Qualification Owner/operator. **OPEN — direct CLI results pending**. |
+| Reproducible scenario | Earlier automated CLI invocations stopped before inference. Direct runs later succeeded when normal setting sources supplied the configured transport. |
+| Expected / actual | Expected provider-native row execution; direct Q2/Q4/Q6 all reached inference, loaded exact RC4 through `--plugin-dir`, and completed. |
+| Affected authority artifact | Provider transport only. Normal settings provided transport, never Standards authority. |
+| Impact / relevance | Historical execution delay only; no candidate, security, privacy, legal, or organization-policy defect. |
+| Severity / disposition | Severity N/A as a candidate finding; direct execution superseded the startup observation. |
+| Rationale / owner / state | Q2 `0ada3e1…`, Q4 `04d5085…`, and Q6 `3476c3c…` plus `4793004…` completed. Claude Qualification Owner/operator. **CLOSED**. |
 
-### RC4-FB-004 — frozen release-status snapshot is stale after partial qualification
+### RC4-FB-004 — frozen release-status snapshot is stale after qualification closeout
 
 | Intake field | Record |
 |---|---|
@@ -72,11 +72,11 @@
 | Provider | N/A |
 | Profiles / chapters | All advertised qualification combinations |
 | Build system / adoption mode | All matrix rows / N/A |
-| Reproducible scenario | Candidate `RELEASE.md` records all Q1-Q6 as unqualified at freeze; the external working ledger now truthfully records Q1/Q3/Q5 passed. |
-| Expected / actual | Expected immutable candidate status snapshot; actual snapshot is conservative but no longer the live 3/6 ledger. |
+| Reproducible scenario | Candidate `RELEASE.md` records all Q1-Q6 as unqualified at freeze; the external working ledger now truthfully records all six rows passed. |
+| Expected / actual | Expected immutable candidate status snapshot; actual snapshot is conservative but no longer the live 6/6 ledger. |
 | Affected authority artifact | Derived release-status text in frozen payload; working qualification register is current authority for observations. |
 | Impact / relevance | Low-risk reader confusion; no compatibility, security, privacy, legal, or executable behavior change. |
-| Severity / disposition | P2 / `defer` to qualification-complete or GA metadata plan. |
+| Severity / disposition | P2 / `defer` to promotion metadata plan. |
 | Rationale / owner / state | Editing now would change immutable RC4 and invalidate exact-candidate identity. Standards Owner. **OPEN — owned metadata follow-up; non-blocking until promotion metadata is prepared**. |
 
 ### RC4-FB-005 — automated versus direct local-transport wording
@@ -88,12 +88,28 @@
 | Provider | Claude Code local operator path |
 | Profiles / chapters | Q2/Q4/Q6 as above |
 | Build system / adoption mode | Q2 CocoaPods; Q4/Q6 Bazel / respective brownfield and existing-app modes |
-| Reproducible scenario | Automated plan required empty row config while the direct runbook retained the existing operator profile for local transport; Task 2 wording implied completion before row execution. |
-| Expected / actual | Expected a handoff-only status; actual draft could be read as completed qualification. |
+| Reproducible scenario | Empty setting sources prevented the configured local-model route. Direct execution succeeded after that option was removed and normal sources supplied transport. |
+| Expected / actual | Expected transport isolation without losing the configured route; actual corrected command separates transport settings from exact-RC4 Standards authority. |
 | Affected authority artifact | IIS-0009 working documents only; candidate payload N/A. |
 | Impact / relevance | Editorial/operating clarity. Security/privacy/legal: operator profile remains uninspected and unchanged. |
 | Severity / disposition | P2 / `not applicable` to the candidate; IIS-0009 reporting correction accepted and retained. |
-| Rationale / owner / state | One reporting batch aligned the exception/status and strengthened preflight/prompts. Qualification Owner. **CLOSED**. |
+| Rationale / owner / state | The corrected runbook omits empty setting sources and retains explicit exact-RC4 loading. Qualification Owner. **CLOSED**. |
+
+### RC4-FB-006 — nonstandard build graph and waived target-specific coverage
+
+| Intake field | Record |
+|---|---|
+| Candidate | `1.0.0-rc.4` / `f7cd2cf…` |
+| Reporter / triage owner | Qualification closeout / Qualification Owner |
+| Provider | Claude Code through operator-owned local transport |
+| Profiles / chapters | Q4 Core/UIKit/SwiftUI; Q6 Boardy/mixed UI/applicable enterprise |
+| Build system / adoption mode | Nonstandard organization build graph / brownfield and existing app |
+| Reproducible scenario | Q4's repository wrapper reached Bazel analysis, then a pre-existing missing simulator runner stopped analysis with 0 tests. Q6's target signal was omitted under the same approved scope decision. |
+| Expected / actual | Expected the smallest representative platform signal; retained Q3 native `xcodebuild test` passed 5/0, while Q4/Q6 target-specific compilation/tests remained unobserved. |
+| Affected authority artifact | Fixture build graph and qualification coverage only; candidate payload N/A. |
+| Impact / relevance | Q4/Q6 behavior was reviewed and committed, but their exact targets were not compiled/tested. The Q3 signal cannot be transferred as target-specific proof. |
+| Severity / disposition | Candidate severity N/A / explicit user-owned representative-signal waiver. |
+| Rationale / owner / state | Exhaustive/nonstandard configuration validation was out of scope once a native iOS platform signal existed. Residual target coverage is recorded and owned by the qualification/release decision boundary. **ACCEPTED RESIDUAL — not a candidate defect**. |
 
 ## External visibility audit
 
@@ -111,5 +127,6 @@ feedback received there. No push/publication is authorized by this register.
 
 - Open proven candidate P0/P1: `0/0`.
 - Open candidate/reporting P2: `1` (`RC4-FB-004`, owned metadata follow-up).
-- Open qualification rows: Q2/Q4/Q6 direct CLI pending.
+- Open qualification rows: none; frozen RC4 is 6/6.
+- Q4/Q6 target-specific compilation/test coverage: unobserved under explicit waiver; residual retained.
 - External RC feedback: unobservable, not counted as zero.

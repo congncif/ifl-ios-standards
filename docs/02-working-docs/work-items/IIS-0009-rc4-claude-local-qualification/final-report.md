@@ -1,5 +1,8 @@
 # Final report — IIS-0009 RC4 Claude direct-CLI handoff
 
+> Historical report: this document closed the earlier pre-direct 3/6 handoff. Direct Q2/Q4/Q6 later
+> completed, and IIS-0011 now owns the current 6/6 matrix, waiver residuals, and joined closeout review.
+
 ## Outcome
 
 The automated portion of IIS-0009 is closed. Exact RC4 and three clean isolated fixtures are ready, and
@@ -22,15 +25,12 @@ One joined review found no candidate P0/P1/P2 and one reporting P2. The single r
 batch reconciled automated versus direct operator state, corrected Task 2 status, strengthened preflight,
 and made prompts self-contained. No re-review, provider retry, build/test, or duplicate signal followed.
 
-## Remaining qualification boundary
+## Superseding boundary
 
-The operator runs Q2, Q4, and Q6 sequentially using `CLAUDE-CLI-RUNBOOK.md` and returns only the bounded
-result blocks. Until all three pass with no open P0/P1, do not collect promotion sign-offs or claim
-provider compatibility/GA. Startup/auth/local-router details remain operator-local and are not Standards
-findings.
-
-After qualifying results arrive, ingest them in one bounded result-closeout change, perform its one
-joined review, then move to RC feedback and named sign-offs. Do not rerun Q1/Q3/Q5.
+Q2/Q4/Q6 are complete and must not be rerun. The remaining sequence is IIS-0011 joined closeout,
+Standards Owner feedback-scope disposition, exact promotion-target selection, named sign-offs, metadata
+preparation, and separately granted external release authority. Qualification of frozen RC4 does not
+constitute GA or transfer to a later post-freeze standards delta.
 
 No candidate/public RC1 mutation, remote change, push, tag, release, marketplace update, install,
 rollout, GA declaration, organization-policy decision, CI, verifier, receipt, or custom kernel occurred.

@@ -1,5 +1,9 @@
 # Joined review — IIS-0009 RC4 Claude local qualification handoff
 
+> Historical record: this review truthfully covered the pre-direct 3/6 handoff only. It did not review
+> later Q2/Q4/Q6 results. IIS-0011 supersedes its current-status language and owns the final joined
+> closeout review; the original verdict and inputs below are preserved rather than rewritten.
+
 ## Review input
 
 - Planning baseline: `70a3e99fbe415642acba9e65a736dd19e8338420`.

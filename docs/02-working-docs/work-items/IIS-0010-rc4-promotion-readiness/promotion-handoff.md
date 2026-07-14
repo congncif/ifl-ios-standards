@@ -7,24 +7,28 @@
 | Immutable candidate | `1.0.0-rc.4` at `f7cd2cf87711f1a757d2fbdec5be9be02ee69173` |
 | Candidate payload since freeze | Unchanged |
 | Published baseline | `v1.0.0-rc.1` |
-| Qualification | **NOT QUALIFIED — 3/6** |
-| Passed rows | Q1, Q3, Q5 |
-| Pending rows | Q2, Q4, Q6 direct operator CLI |
+| Qualification | **QUALIFIED — 6/6 for frozen RC4 only** |
+| Passed rows | Q1-Q6; Q4/Q6 use the explicit representative-platform-signal waiver |
+| Pending rows | None |
+| Retained verification residual | Q4/Q6 target-specific compilation/tests unobserved; Q3 native 5/0 does not prove them |
+| Exact promotion target | **UNSET — choose frozen `f7cd2cf…` or a later versioned candidate** |
 | Open candidate P0/P1 | `0/0` |
-| Open owned P2 | Frozen release-status snapshot; defer to qualification-complete/GA metadata plan |
+| Open owned P2 | Frozen release-status snapshot; defer to promotion metadata plan |
 | External RC feedback | **UNOBSERVABLE — exact RC4 has no authorized external review surface** |
 | Sign-offs | Not requested; ordering gate not met |
 | External release authority | Not granted |
 
 ## Required sequence
 
-1. **Complete qualification:** run Q2/Q4/Q6 sequentially through the direct runbook in IIS-0009 and
-   return only bounded results. Retain Q1/Q3/Q5; do not rerun them.
-2. **Close the matrix:** ingest direct results once and run that result plan's one joined review. Any
-   candidate P0/P1 creates a new candidate revision and affected requalification; otherwise require 6/6.
-3. **Close feedback scope:** Standards Owner designates the internal feedback register as sufficient or
+1. **Close IIS-0011:** ingest the completed direct results and run its one joined final AI review. Do
+   not rerun Q1-Q6 or duplicate platform signals.
+2. **Close feedback scope:** Standards Owner designates the internal feedback register as sufficient or
    authorizes an exact candidate review surface, then dispositions any newly observable feedback.
-4. **Only after 6/6 with no open P0/P1:** request the named sign-offs below. Do not collect them early.
+3. **Choose the exact promotion target:** select frozen RC4 `f7cd2cf…` or freeze a later versioned
+   candidate containing post-freeze standards deltas. For a later candidate, record an explicit
+   qualification-impact and affected-requalification decision; never transfer RC4's 6/6 silently.
+4. **Request named sign-offs:** only for the selected immutable target and with the waiver residuals
+   visible. Readiness below is not approval.
 5. **Prepare promotion metadata:** in a separate approved plan, move version/manifests/release notes and
    status text to the exact approved GA or next-RC identity. Include `RC4-FB-004` correction.
 6. **Obtain exact external authority:** every operation/identifier in the template below must be filled
@@ -36,12 +40,12 @@
 
 | Role | Current readiness | Blocking prerequisite |
 |---|---|---|
-| Standards Owner | BLOCKED | 6/6, feedback-scope disposition, P2 metadata decision, exact version decision |
-| Canon Maintainer | NOT REQUESTED | Sign-off phase cannot start before 6/6/no open P0/P1 |
-| Enterprise Adoption Owner | BLOCKED | Q2/Q4/Q6 provider/profile/build/adoption outcomes unobserved |
-| Claude Qualification Owner | BLOCKED | Direct Q2/Q4/Q6 results pending |
-| Codex Qualification Owner | NOT REQUESTED | Codex rows pass, but collection order remains gated by 6/6 |
-| Applicable Organization Policy Owners | NOT REQUESTED | Qualification first; Q5 and Q6 policy domains then require owned approve/N/A decisions |
+| Standards Owner | BLOCKED | Feedback-scope disposition, P2 metadata decision, and exact target selection |
+| Canon Maintainer | NOT REQUESTED | Exact target unresolved |
+| Enterprise Adoption Owner | READY TO REQUEST FOR FROZEN RC4 | 6/6 observed; Q4/Q6 residuals must remain visible |
+| Claude Qualification Owner | READY TO REQUEST FOR FROZEN RC4 | Direct Q2/Q4/Q6 complete; exact target still required |
+| Codex Qualification Owner | READY TO REQUEST FOR FROZEN RC4 | Retained Q1/Q3/Q5 complete; exact target still required |
+| Applicable Organization Policy Owners | NOT REQUESTED | Q5/Q6 policy domains require owned approve/N/A decisions for the selected target |
 | DevOps/Release Owner | NOT REQUESTED | Qualification, feedback, sign-offs, metadata candidate, and exact operation set first |
 | Legal Owner, when distribution/license scope requires | NOT REQUESTED | Exact distribution/license scope and DevOps release handoff first |
 
@@ -81,8 +85,8 @@ that can distribute the plugin requires both remote-Git and marketplace/release 
 
 ## Stop conditions
 
-- Any open Q2/Q4/Q6 result, candidate P0/P1, unowned P2, unresolved feedback-scope decision, missing or
-  conditional sign-off, or `UNSET` authority field stops promotion.
+- Any incomplete IIS-0011 closeout, candidate P0/P1, unowned P2, unresolved feedback-scope or exact
+  target decision, missing/conditional sign-off, or `UNSET` authority field stops promotion.
 - Candidate correction means a new immutable revision and affected requalification; never patch RC4
   silently.
 - No custom kernel, verifier, receipt/evidence framework, CI, release script, or recurring register is

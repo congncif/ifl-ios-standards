@@ -11,7 +11,10 @@ Brain Flow without introducing tooling, build matrices, or another execution/rev
 - Standards worktree baseline: `727ae0d` on `codex/standards-1.0`.
 - Frozen RC4 payload: `1.0.0-rc.4` at
   `f7cd2cf87711f1a757d2fbdec5be9be02ee69173`; IIS-0011 does not rewrite that commit.
-- Retained rows: Q1, Q3, and Q5 passed against exact RC4; Q3 includes one native
+- Retained rows passed against exact RC4: Q1 at
+  `3cd7fa84c2d00e1bf7ee9942df02eda63d78ecef`; Q3 at
+  `e3921c0545ce5de3684d9d9d17f2ba47aefab0f1`; and Q5 at
+  `69556d8815e5c05f79cc4a0aa6d11130be9ae0fa`. Q3 includes one native
   `xcodebuild test` result with 5 tests and 0 failures.
 - Direct rows:
   - Q2: `0ada3e13d33529c92e41579a0aacafff9f36065d`;
@@ -59,13 +62,13 @@ Brain Flow without introducing tooling, build matrices, or another execution/rev
 
 ## Definition of Done
 
-- [ ] Q1-Q6 have one truthful final matrix with exact frozen-candidate identity and `0/0` open
+- [x] Q1-Q6 have one truthful final matrix with exact frozen-candidate identity and `0/0` open
   candidate P0/P1.
-- [ ] Q2 is recorded as passed without an executable signal because it changed bindings/adoption text
+- [x] Q2 is recorded as passed without an executable signal because it changed bindings/adoption text
   only.
-- [ ] Q4 and Q6 are recorded with the user-approved executable waiver and explicit residual risk;
+- [x] Q4 and Q6 are recorded with the user-approved executable waiver and explicit residual risk;
   neither claims an unrun target-specific test.
-- [ ] IIS-0009 commands omit empty setting sources and separate operator transport from Standards
+- [x] IIS-0009 commands omit empty setting sources and separate operator transport from Standards
   authority.
 - [ ] Brain Flow selects representative/impacted configurations rather than exhaustive matrices,
   with risk-based expansion and iOS/Android examples.
