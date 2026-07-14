@@ -103,17 +103,17 @@ run a Codex substitute.
 
 ## Definition of Done
 
-- [ ] **D1 — Exact candidate isolation.** Every executed provider session demonstrably loads only
+- [x] **D1 — Exact candidate isolation.** Every executed provider session demonstrably loads only
   RC4 at `f7cd2cf…` as its standards payload and owns separate writable provider state.
-- [ ] **D2 — Q1 is dispositioned.** The required Codex Core-only behavior is observed or truthfully
+- [x] **D2 — Q1 is dispositioned.** The required Codex Core-only behavior is observed or truthfully
   remains not qualified.
 - [ ] **D3 — Q2 is dispositioned.** Claude authentication skip and residual qualification status are
   explicit, with no provider substitution.
-- [ ] **D4 — Q3 is dispositioned.** The required Codex Boardy/SwiftUI behavior is observed or
+- [x] **D4 — Q3 is dispositioned.** The required Codex Boardy/SwiftUI behavior is observed or
   truthfully remains not qualified.
 - [ ] **D5 — Q4 is dispositioned.** Claude authentication skip and residual qualification status are
   explicit, with no protected fixture exposure.
-- [ ] **D6 — Q5 is dispositioned safely.** The required Codex hybrid-transition behavior is observed
+- [x] **D6 — Q5 is dispositioned safely.** The required Codex hybrid-transition behavior is observed
   only on a historyless sanitized baseline, or truthfully remains not qualified.
 - [ ] **D7 — Q6 is dispositioned.** Claude authentication skip and residual qualification status are
   explicit, with no protected fixture exposure.

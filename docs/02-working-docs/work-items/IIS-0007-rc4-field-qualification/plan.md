@@ -28,7 +28,7 @@
 
 **Outcome:** approved executable scope, exact candidate boundary, and clean provider inputs.
 
-**Status:** IN PROGRESS
+**Status:** COMPLETE
 
 - Obtain one independent combined requirement/plan gate.
 - Commit only this work item's `requirements.md` and `plan.md`.
@@ -51,7 +51,7 @@
 
 **Outcome:** every Codex row has a provider-native, exact-candidate result.
 
-**Status:** PENDING
+**Status:** COMPLETE — Q1/Q5 NOT QUALIFIED; Q3 PASSED
 
 - Launch one ephemeral Codex session per fixture using a row-owned temporary `HOME`, `CODEX_HOME`,
   auth linkage, and candidate-only marketplace. Rows share only the read-only RC4 extraction.
