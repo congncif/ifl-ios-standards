@@ -11,7 +11,7 @@
 
 ## Task 1 — Approve the bounded promotion-readiness plan
 
-**Status:** PENDING
+**Status:** COMPLETE
 
 - Obtain one independent combined requirements/plan gate.
 - Commit only `requirements.md` and `plan.md` with explicit paths.
@@ -20,7 +20,7 @@
 
 ## Task 2 — Consolidate feedback and promotion handoff
 
-**Status:** PENDING
+**Status:** COMPLETE
 
 - Build one deduplicated register from IIS-0004 through IIS-0009 and the read-only remote audit.
 - Populate every `RELEASE.md` intake field with neutral values or explicit `N/A`; do not infer absent
