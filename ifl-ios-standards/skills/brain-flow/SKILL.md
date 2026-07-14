@@ -7,6 +7,10 @@ description: >-
 
 # Brain — Flow
 
+Under Codex, `${CLAUDE_PLUGIN_ROOT}` is a path marker, not a required shell variable. Resolve it
+against the installed plugin root that contains this skill's `skills/` directory. Claude Code expands
+it normally.
+
 Run one end-to-end flow using the provider's native task/thread, subagent, tool, and approval
 capabilities. A provider-independent workflow kernel or state/evidence system may be considered only
 through a separate approved work item backed by reproducible adopter evidence and an accepted ADR, as

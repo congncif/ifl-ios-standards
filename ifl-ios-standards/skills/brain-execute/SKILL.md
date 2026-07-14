@@ -7,6 +7,10 @@ description: >-
 
 # Brain — Execute
 
+Under Codex, `${CLAUDE_PLUGIN_ROOT}` is a path marker, not a required shell variable. Resolve it
+against the installed plugin root that contains this skill's `skills/` directory. Claude Code expands
+it normally.
+
 Execute the approved plan continuously until its Definition of Done is complete or a real blocker
 requires escalation. Read:
 

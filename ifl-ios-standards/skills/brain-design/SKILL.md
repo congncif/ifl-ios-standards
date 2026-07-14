@@ -9,6 +9,10 @@ description: >-
 
 # Brain — Design (domain, modules, use cases)
 
+Under Codex, `${CLAUDE_PLUGIN_ROOT}` is a path marker, not a required shell variable. Resolve it
+against the installed plugin root that contains this skill's `skills/` directory. Claude Code expands
+it normally.
+
 Pattern-neutral design stage of the brain rulebook. Loads only the chapters this stage needs.
 
 ## Read

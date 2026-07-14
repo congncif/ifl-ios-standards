@@ -90,7 +90,8 @@ skeleton (§5): `${CLAUDE_PLUGIN_ROOT}/standards/rules/QUICK_REF.md`.
 
 ## 3. Specialist agents (delegated pipeline)
 
-For multi-step feature delivery, delegate to the 9 bundled agents (appear in `/agents`):
+For multi-step feature delivery, delegate to the 9 bundled agents. Claude Code exposes them in
+`/agents`; Codex exposes them after `ifl-init` installs the project-scoped `.codex/agents/` templates:
 `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`,
 `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe`. Start with `ios-orchestrator`
 for large/critical delivery or when multiple semantic checkpoints require coordinated specialist

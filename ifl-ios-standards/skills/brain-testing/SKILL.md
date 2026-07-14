@@ -7,6 +7,10 @@ description: >-
 
 # Brain — Testing
 
+Under Codex, `${CLAUDE_PLUGIN_ROOT}` is a path marker, not a required shell variable. Resolve it
+against the installed plugin root that contains this skill's `skills/` directory. Claude Code expands
+it normally.
+
 Testing applies to executable code behavior. Read the project's test bindings and the relevant testing
 standard; in Boardy+VIP projects also use `boardy-testing`. Use
 `${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md` for failure and corrective-batch cadence.
