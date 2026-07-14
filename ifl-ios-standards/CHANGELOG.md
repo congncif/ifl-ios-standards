@@ -4,6 +4,23 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.0-rc.7] — 2026-07-14 (unpublished working candidate)
+
+### Changed
+- Removed the unpublished project-scoped Codex agent templates and their init surface after an exact
+  runtime probe showed that the supported Codex client did not register those custom profiles.
+- Standardized Codex delegation on provider-native generic subagents with bounded assignments and
+  inline fallback, while retaining all nine packaged Claude Code specialist agents.
+- Retired `ifl-init --codex-agents-only` with exit 64. Upgrades never delete or overwrite an adopter's
+  existing `.codex/agents`; owners may remove RC5/RC6-generated files manually when no longer wanted.
+
+### Qualification and release boundary
+- Recorded the submitted RC6 Claude CLI smoke as baseline context: Brain Flow loaded, all 9 Claude
+  agents were visible, Boardy review retained one final pass, no P0/P1 was reported, and no release
+  boundary was crossed. Q2, Q4, and Q6 were not run.
+- Reset exact-candidate qualification for RC7. No RC6 observation transfers as an RC7 qualification
+  result; Q1-Q6 remain not qualified. Published `v1.0.0-rc.1` and public install refs remain unchanged.
+
 ## [1.0.0-rc.6] — 2026-07-14 (unpublished working candidate)
 
 ### Fixed

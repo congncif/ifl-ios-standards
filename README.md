@@ -7,7 +7,7 @@ ten focused enterprise chapters, and thin build-system-neutral module/board sour
 `.claude-plugin/marketplace.json` (Claude Code) and `.codex-plugin/marketplace.json` (Codex) at its
 root, like a dual-runtime plugin.
 
-> **Release status (2026-07-14):** this branch describes the unpublished `1.0.0-rc.6` working
+> **Release status (2026-07-14):** this branch describes the unpublished `1.0.0-rc.7` working
 > candidate. The latest published/tag-installable release is `v1.0.0-rc.1`; public install pins and
 > the Codex marketplace ref remain on RC1 until a separately authorized candidate publication.
 
@@ -121,9 +121,9 @@ enterprise concerns to the relevant chapter:
 # … per-stage: :brain-design :brain-architect :brain-plan :brain-execute :brain-testing :brain-review
 ```
 
-For multi-step delivery, delegate to the bundled agents. Claude exposes the packaged roles through
-`/agents`; Codex exposes the project-scoped roles after `ifl-init` and otherwise uses native generic
-subagents as Brain Flow's safe fallback.
+For multi-step delivery, delegate through the provider runtime. Claude exposes the nine packaged
+roles through `/agents`; Codex maps the same responsibilities onto native generic subagents with
+bounded assignments and inline fallback.
 
 ## Per-project setup
 
@@ -145,7 +145,7 @@ docs-organization process standard) is optional.
 ## Versioning
 
 Plugin `version` in both provider manifests follows the upstream pack `VERSION`. Local candidate
-metadata is `1.0.0-rc.6`, but it is unpublished; the latest published tag and public install pin are
+metadata is `1.0.0-rc.7`, but it is unpublished; the latest published tag and public install pin are
 still `v1.0.0-rc.1`. A version string never grants push, tag, publication, or installation authority.
 
 ## License

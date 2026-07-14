@@ -6,7 +6,7 @@ This roadmap is non-normative planning guidance. Active Canon Rules/Profiles and
 the standards authority. A roadmap item creates no requirement, release commitment, implementation
 authority, or permission to add tooling.
 
-Standards `1.0.0-rc.6` is an unpublished working candidate for field qualification toward 1.0 GA.
+Standards `1.0.0-rc.7` is an unpublished working candidate for field qualification toward 1.0 GA.
 The latest published release remains `v1.0.0-rc.1`.
 
 ## Evidence-triggered 1.1 lifecycle domains
@@ -45,6 +45,17 @@ For any domain above, the 1.1 intake must include concrete evidence, affected ad
 existing-rule analysis, organization policy owners, migration and compatibility impact, and an
 accepted ADR when the proposal changes normative architecture or public contracts. Without that
 record, keep the topic in discovery rather than adding a speculative chapter.
+
+## Post-1.0 Codex custom-agent profile decision boundary
+
+Project-scoped Codex custom-agent profiles are not a Standards 1.0 prerequisite. Brain Flow uses
+provider-native generic subagents with exact bounded assignments and inline fallback.
+
+Reconsider packaged Codex profiles only after a supported Codex client stably registers them and
+exact-candidate qualification demonstrates material value beyond generic bounded assignments. Any
+proposal must identify the supported discovery contract, compatibility and migration behavior,
+adopters, owner, maintenance cost, and exit criteria. It must not introduce a custom kernel,
+verifier, provider-independent state, or other workflow tooling.
 
 ## Post-1.0 custom-kernel decision boundary
 

@@ -1,13 +1,15 @@
 # Current Candidate Qualification and GA Promotion
 
-Target: `1.0.0-rc.6` working candidate
+Target: `1.0.0-rc.7` working candidate
 
 State: unpublished; not approved or represented as `1.0.0` GA
 
 Published marketplace baseline: `v1.0.0-rc.1` until a separate candidate release is authorized and exists
 
-Candidate qualification: Q1-Q6 are `not qualified` for RC6 until one exact-candidate qualification
-event closes them; RC5 observations remain baseline context and do not transfer silently
+Candidate qualification: Q1-Q6 are `not qualified` for RC7 until one exact-candidate qualification
+event closes them. The submitted RC6 Claude CLI smoke observed plugin load, 9/9 Claude agents,
+single-pass Boardy review, no P0/P1, and no release crossing, but it explicitly did not run Q2, Q4,
+or Q6. That smoke is baseline context only; no RC6 outcome transfers silently to RC7 or closes a row.
 
 ## Boundary
 
