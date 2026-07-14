@@ -136,6 +136,7 @@ docs-organization process standard) is optional.
 
 ## Docs
 
+- [`CLAUDE-CLI-RUNBOOK.md`](CLAUDE-CLI-RUNBOOK.md) — one-shot exact-candidate smoke/readiness checks through Claude CLI.
 - [`DEPLOY.md`](DEPLOY.md) — publishing + updating this marketplace on GitHub.
 - [`ROADMAP.md`](ROADMAP.md) — evidence-triggered 1.1 lifecycle topics and the post-1.0 kernel boundary.
 - [`ifl-ios-standards/README.md`](ifl-ios-standards/README.md) — plugin internals + reference layout.
