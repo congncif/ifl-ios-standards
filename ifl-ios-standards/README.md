@@ -12,7 +12,7 @@ focused enterprise chapters, and thin build-system-neutral module/board source s
 
 | Component | What it is |
 |-----------|------------|
-| `agents/` (9) | Delegated pipeline: `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
+| `agents/` + `standards/templates/codex-agents/` (9) | Claude definitions plus project-scoped Codex TOML templates for `ios-orchestrator`, `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
 | `skills/` (21) | **Brain stages** (pattern-neutral, provider-native): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · **Enterprise iOS**: router `enterprise-ios` · `init` |
 | `standards/` | Bundled reference: `rules/` (6), `brain/` (rulebook + patterns), `specs/` (44 incl. compact), ten focused `enterprise/` chapters, plan-scale process guidance, and `templates/portable-claude/` |
 | `bin/` | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board`; command-name invocation requires plugin `bin/` or the Codex shim directory to be on shell `PATH` |
@@ -44,13 +44,15 @@ tag, publication, installation, or rollout.
 
 ## How references resolve
 
-Every reference inside agents/skills points at bundled content via `${CLAUDE_PLUGIN_ROOT}` (the
-plugin's installed dir — substituted inline by Claude Code in skill + agent content). So the pack
-is **self-contained and portable**: it works in any project once enabled, no file copying.
+Every reference inside agents/skills points at bundled content via `${CLAUDE_PLUGIN_ROOT}`. Claude
+Code expands it; Codex resolves it relative to the installed skill/plugin root. The standards remain
+self-contained. Codex's named-agent format is project-scoped, so `ifl-init` copies the nine TOML
+templates into the consuming repository's `.codex/agents/`.
 
 **Per-project values are NOT bundled** — scheme, simulator, module roots, build/test commands,
 base branch, git remote, naming prefix, and ADR/decisions location live in the **consuming repo's
-`CLAUDE.md`**. Copy a starter from `standards/templates/portable-claude/`. The multi-agent pipeline's
+`CLAUDE.md`**. Run `ifl-init` to seed the twin bindings and Codex roles, or copy a starter from
+`standards/templates/portable-claude/`. The multi-agent pipeline's
 work-item workspace (in-repo under `docs/02-working-docs/work-items/` per the docs-organization process
 standard) is **optional**, used only by the orchestrator pipeline.
 

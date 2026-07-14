@@ -54,8 +54,8 @@ Or pre-seed settings (`~/.claude/settings.json` for global, repo `.claude/settin
 - Restart Claude Code, or run `/reload-plugins`, if discovery doesn't refresh.
 - Confirm discovery: `claude plugin list` shows `ifl-ios-standards@ifl-ios-standards` enabled;
   `/agents` lists the 9 `ios-*` agents; `/ifl-ios-standards:boardy-vip` resolves.
-- Wire the consuming repo: copy a starter from `standards/templates/portable-claude/` into the
-  repo's `CLAUDE.md` and fill in scheme / module roots / build commands / base branch / remote.
+- Wire the consuming repo with `ifl-init --root=.`; it seeds the twin bindings and the project-scoped
+  Codex agents. Fill in unresolved scheme / module roots / build commands / base branch / remote.
 
 ## Removable-drive note
 
@@ -80,8 +80,9 @@ records the install in `~/.codex/config.toml`; the installer also creates `~/.lo
 `ifl-init`, `ifl-new-module`, and `ifl-new-board` because Codex does not currently guarantee plugin
 `bin/` directories are exported to shell `PATH`. The shims resolve the most recently installed
 available cache entry at invocation time. Add `~/.local/bin` to `PATH` if the shell does not already
-include it. Start a new Codex thread to pick up the skills/agents.
-Codex resolves `${CLAUDE_PLUGIN_ROOT}/standards/…` paths relative to the plugin root (no var expansion).
+include it. Run `ifl-init --root=.` (or `--codex-agents-only` for an already-bound repository), then
+start a new Codex thread to pick up the plugin skills and `.codex/agents/*.toml` roles. Codex resolves
+`${CLAUDE_PLUGIN_ROOT}/standards/…` paths relative to the installed plugin root (no var expansion).
 
 ## Prerequisites
 

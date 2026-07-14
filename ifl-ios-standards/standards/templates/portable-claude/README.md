@@ -3,8 +3,9 @@
 # Portable CLAUDE/AGENTS bindings starter
 
 Drop-in **bindings starter** for an iOS project adopting the reusable iOS standards from the
-`ifl-ios-standards` plugin. The standards (rulebook, specs, agents, skills, and source-only
-scaffolders) ship **in the plugin** — this template only seeds your repo's project-specific bindings.
+`ifl-ios-standards` plugin. The standards, skills, Claude agent definitions, and source-only
+scaffolders ship **in the plugin**. Codex agent templates ship alongside this starter under
+`../codex-agents/` because Codex loads named agents from the consuming project's `.codex/agents/`.
 
 ## Contents
 
@@ -31,7 +32,8 @@ There is **no `.ai/brain/` to copy** — the rulebook + specs live in the plugin
 1. **Install and enable the plugin** using the current provider instructions in the plugin's
    `INSTALL.md`. Plugin installation is a machine/provider concern, not a consuming-project binding.
 
-2. **Seed the bindings** — copy the starter to your repo root and fill in the `{Placeholders}`:
+2. **Seed the bindings** — prefer `ifl-init --root=/path/to/your-project`, which also installs the
+   nine Codex agent templates. For manual binding-only setup, copy the starter and fill placeholders:
    ```bash
    TARGET=/path/to/your-project
    cp CLAUDE.md "$TARGET/CLAUDE.md"

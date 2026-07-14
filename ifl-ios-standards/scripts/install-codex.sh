@@ -81,5 +81,6 @@ case ":$PATH:" in
 esac
 
 echo
-echo "Done. Start a new Codex thread, then describe a Boardy+VIP iOS task"
-echo "(e.g. \"add a new Boardy VIP module\") — the router skill fires by context."
+echo "Done. In the consuming repo, run: ifl-init --root=."
+echo "For existing bindings, run: ifl-init --root=. --codex-agents-only"
+echo "Then start a new Codex thread so skills and project-scoped agents are loaded."

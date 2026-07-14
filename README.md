@@ -77,15 +77,15 @@ curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/v1.0.0-r
   bash -s -- --ref=v1.0.0-rc.1
 ```
 
-> Codex doesn't expand `${CLAUDE_PLUGIN_ROOT}` — reference paths shown that way in skills/agents
-> resolve **relative to the plugin's root directory** under Codex. Skills + agents are
-> auto-discovered the same way as in Claude Code.
+> Codex doesn't expand `${CLAUDE_PLUGIN_ROOT}` — bundled references resolve relative to the installed
+> plugin root. Skills are discovered from the plugin. Named Codex agents are project-scoped, so
+> `ifl-init` installs the nine supported TOML configurations into `.codex/agents/`.
 
 ## What you get
 
 | Component | Count | What |
 |-----------|-------|------|
-| Agents | 9 | `ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
+| Agents | 9 | Claude definitions ship in `agents/`; Codex templates are installed project-locally by `ifl-init`: `ios-orchestrator`, `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe` |
 | Skills | 21 | **Brain stages** (pattern-neutral, provider-native): `brain-design`, `brain-architect`, `brain-plan`, `brain-execute`, `brain-testing`, `brain-review`, `brain-flow` (end-to-end automation) · **Boardy/VIP tasks**: router `boardy-vip` + `boardy-new-module`, `boardy-new-board`, `boardy-io-interface`, `boardy-communication`, `boardy-service-layer`, `boardy-plugin-composition`, `boardy-testing`, `boardy-review`, `boardy-refactor`, `boardy-troubleshoot`, `boardy-adopt` · **Enterprise iOS**: router `enterprise-ios` · `init` |
 | Reference | — | Full rulebook, specs + process standards, ten focused enterprise chapters, and `portable-claude` templates (bundled under `standards/`) |
 | Scaffolders | 3 | `ifl-init` (seed CLAUDE.md/AGENTS.md), `ifl-new-module`, `ifl-new-board` — thin build-system-neutral source scaffolders in plugin `bin/`; command-name invocation requires the runtime to export that directory or an installed shim directory to be on shell `PATH` |
@@ -95,7 +95,8 @@ curl -fsSL https://raw.githubusercontent.com/congncif/ifl-ios-standards/v1.0.0-r
 A project adopts the standard by carrying a `CLAUDE.md` + `AGENTS.md` with its own bindings. Seed them:
 
 ```bash
-ifl-init --root=.            # fills only unambiguous observed values; leaves governed values unresolved
+ifl-init --root=.            # bindings + .codex/agents; fills only unambiguous observed values
+# existing bindings, Codex agents only: ifl-init --root=. --codex-agents-only
 # or, agent-driven (resolves remaining bindings from repository evidence or asks):
 /ifl-ios-standards:init
 ```
@@ -120,8 +121,9 @@ enterprise concerns to the relevant chapter:
 # … per-stage: :brain-design :brain-architect :brain-plan :brain-execute :brain-testing :brain-review
 ```
 
-For multi-step delivery, delegate to the bundled agents (start with `ios-orchestrator`); they
-appear in `/agents`.
+For multi-step delivery, delegate to the bundled agents. Claude exposes the packaged roles through
+`/agents`; Codex exposes the project-scoped roles after `ifl-init` and otherwise uses native generic
+subagents as Brain Flow's safe fallback.
 
 ## Per-project setup
 
