@@ -104,7 +104,7 @@ P1 `F-RC3-QUAL-001`, so RC3 promotion and further RC3 rehearsal execution stoppe
 **Outcome:** the exact RC3 candidate is exercised through the complete Claude Code matrix and all
 three rows receive defensible observed results.
 
-**Status:** PENDING
+**Status:** COMPLETE — NOT QUALIFIED
 
 ### Candidate/session boundary
 
@@ -138,6 +138,11 @@ three rows receive defensible observed results.
   the Q2 constructed-baseline identity and exact pre-RC3 commit.
 - Update Task 2 and its owned DoD state truthfully; unavailable provider/build behavior remains
   `not qualified` with owner and residual risk.
+
+**Observed disposition:** After the tenant policy denied the equivalent external-provider processing
+boundary, no Claude row was dispatched and no installed plugin was substituted. Q2 preparation made
+no mutation; Q4 preparation made no mutation; Q6 did not start after candidate P1
+`F-RC3-QUAL-001` stopped RC3. No artificial build or duplicate signal ran.
 
 ### Commit boundary
 
