@@ -87,10 +87,10 @@ organization-policy handoff boundaries remain unaccepted by AI.
   form a committed immutable baseline with no Boardy source/dependency.
 - [x] **D3 — Q1 is requalified or dispositioned.** Provider Profile routing, semantic commits, final
   SwiftPM signal, clean state, and authority behavior are recorded without a third attempt.
-- [ ] **D4 — Q5 is requalified or dispositioned.** Only the known test compile seam changes; one final
+- [x] **D4 — Q5 is requalified or dispositioned.** Only the known test compile seam changes; one final
   package signal, frozen production/CocoaPods surfaces, clean state, and policy-owner boundaries are
   recorded.
-- [ ] **D5 — Valid results are retained.** Q3 remains passed against unchanged RC4; Q2/Q4/Q6 remain
+- [x] **D5 — Valid results are retained.** Q3 remains passed against unchanged RC4; Q2/Q4/Q6 remain
   external-authentication holds with no retry or substitution.
 - [ ] **D6 — Review converges once.** One joined final AI review deduplicates candidate, provider,
   fixture, and external findings; at most one reporting-only closeout batch follows.

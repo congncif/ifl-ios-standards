@@ -57,7 +57,7 @@ failure.
 **Outcome:** the known optional-date test seam is corrected once and the package test result is
 observed.
 
-**Status:** PENDING
+**Status:** COMPLETE — provisional PASS; 8 XCTest tests, 0 failures
 
 - Start one fresh provider session at Q5 HEAD `3cbf36c…` and invoke RC4 Brain Flow.
 - Change only the failing test assertion seam; commit it semantically.
