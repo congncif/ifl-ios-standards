@@ -55,7 +55,7 @@ After the Plan Gate is approved, stage and commit only this work item's `require
 **Outcome:** the exact RC3 candidate is exercised through the complete Codex matrix and all three
 rows receive defensible observed results.
 
-**Status:** PENDING
+**Status:** COMPLETE — NOT QUALIFIED
 
 ### Candidate/session boundary
 
@@ -86,6 +86,11 @@ rows receive defensible observed results.
   focused signal, residual risk, and sanitized blockers.
 - Update Task 1 and its owned DoD state truthfully; a `not qualified` row still completes its
   disposition but does not become a pass.
+
+**Observed disposition:** Tenant policy prevented the external Codex sessions before unpublished
+candidate or fixture data was sent. Candidate-exclusive loader preparation succeeded, but no row
+silently fell back to installed RC1. Trusted in-runtime rehearsals remain diagnostic only; Q3 exposed
+P1 `F-RC3-QUAL-001`, so RC3 promotion and further RC3 rehearsal execution stopped.
 
 ### Commit boundary
 

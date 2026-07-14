@@ -164,15 +164,15 @@ active task and is summarized into ordinary Markdown; it is not a release receip
 
 - [ ] **D1 — Exact candidate isolation.** Every provider session demonstrably loads extracted
   `521c7a4…`; installed/public RC1 and reporting HEAD are not used as the qualification payload.
-- [ ] **D2 — Q1 is dispositioned.** Required Core-only Codex/SwiftPM greenfield behavior is observed
+- [x] **D2 — Q1 is dispositioned.** Required Core-only Codex/SwiftPM greenfield behavior is observed
   or truthfully recorded `not qualified` with findings.
 - [ ] **D3 — Q2 is dispositioned.** Required Claude/Boardy/UIKit/CocoaPods 0.18.x migration behavior is
   observed or truthfully recorded `not qualified` with findings.
-- [ ] **D4 — Q3 is dispositioned.** Required Codex/Boardy/SwiftUI/SwiftPM greenfield behavior is
+- [x] **D4 — Q3 is dispositioned.** Required Codex/Boardy/SwiftUI/SwiftPM greenfield behavior is
   observed or truthfully recorded `not qualified` with findings.
 - [ ] **D5 — Q4 is dispositioned.** Required Claude/mixed-UI/no-Boardy/Bazel brownfield behavior is
   observed or truthfully recorded `not qualified` with findings.
-- [ ] **D6 — Q5 is dispositioned.** Required Codex/hybrid/transitional enterprise behavior is observed
+- [x] **D6 — Q5 is dispositioned.** Required Codex/hybrid/transitional enterprise behavior is observed
   or truthfully recorded `not qualified` with findings.
 - [ ] **D7 — Q6 is dispositioned.** Required Claude/full enterprise modular-app behavior is observed
   or truthfully recorded `not qualified` with findings.
