@@ -2,7 +2,7 @@
 
 ## Result
 
-- Provisional row result: **PASSED**, subject to the one IIS-0008 joined review.
+- Final row result: **PASSED**.
 - Candidate: `1.0.0-rc.4` at `f7cd2cf87711f1a757d2fbdec5be9be02ee69173`.
 - Runtime: ChatGPT-bundled `codex-cli 0.144.2`, Full Access from session start.
 - Provider state: row-owned `/private/tmp/iis0008-provider-q1`; no writable state shared with Q5.
@@ -53,5 +53,5 @@ delivered README.
   mutation, push, tag, publication, install, release, or history rewrite occurred.
 
 The IIS-0007 Q1 provider/Profile failure did not reproduce when the consuming repository supplied the
-Profile binding required by Brain Flow. This supports a fixture-binding attribution rather than a
-candidate defect; the joined review owns the final disposition.
+Profile binding required by Brain Flow. The joined review closed it as a resolved fixture-binding
+failure, not a candidate defect.

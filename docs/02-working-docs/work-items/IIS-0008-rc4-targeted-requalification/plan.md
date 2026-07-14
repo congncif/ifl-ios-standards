@@ -72,7 +72,7 @@ observed.
 
 **Outcome:** one deduplicated retained/new matrix and the next accountable boundary.
 
-**Status:** PENDING
+**Status:** COMPLETE — joined verdict 3/6; RC4 NOT QUALIFIED
 
 - Freeze Task-1/2/3 commits and exact fixture identities after both provider writers stop.
 - Run one joined independent AI review over Q1/Q5 new evidence, retained Q3, Claude external holds,

@@ -2,7 +2,7 @@
 
 ## Result
 
-- Provisional row result: **PASSED**, subject to the one IIS-0008 joined review.
+- Final row result: **PASSED**.
 - Candidate: `1.0.0-rc.4` at `f7cd2cf87711f1a757d2fbdec5be9be02ee69173`.
 - Runtime: ChatGPT-bundled `codex-cli 0.144.2`, Full Access from session start.
 - Provider state: row-owned `/private/tmp/iis0008-provider-q5`; no writable state shared with Q1.
@@ -33,6 +33,6 @@ other test remain unchanged.
 - No intermediate/duplicate build or test, nested review, permission retry, external configuration
   mutation, push, tag, publication, install, release, or history rewrite occurred.
 
-The IIS-0007 fixture compile blocker is resolved without a candidate change. The observed green
-package behavior plus preserved partial/transition and owner-handoff records provisionally satisfy Q5;
-the joined review owns the final disposition.
+The IIS-0007 fixture compile blocker is resolved without a candidate change. The joined review
+accepted the green package behavior plus preserved partial/transition and owner-handoff records and
+closed Q5 as passed.

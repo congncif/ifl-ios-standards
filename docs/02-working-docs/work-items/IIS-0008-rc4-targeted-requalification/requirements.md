@@ -92,14 +92,16 @@ organization-policy handoff boundaries remain unaccepted by AI.
   recorded.
 - [x] **D5 — Valid results are retained.** Q3 remains passed against unchanged RC4; Q2/Q4/Q6 remain
   external-authentication holds with no retry or substitution.
-- [ ] **D6 — Review converges once.** One joined final AI review deduplicates candidate, provider,
+- [x] **D6 — Review converges once.** One joined final AI review deduplicates candidate, provider,
   fixture, and external findings; at most one reporting-only closeout batch follows.
-- [ ] **D7 — History is semantic.** Planning, Q1 result, Q5 result, and closeout are separate local
+- [x] **D7 — History is semantic.** Planning, Q1 result, Q5 result, and closeout are separate local
   semantic commits; unrelated paths remain untouched.
-- [ ] **D8 — Release claims remain truthful.** The final matrix reports actual pass count and keeps
+- [x] **D8 — Release claims remain truthful.** The final matrix reports actual pass count and keeps
   RC4 unpublished/not qualification-complete while any mandatory row remains unpassed.
-- [ ] **D9 — External boundary is preserved.** Public RC1, remotes, refs, tags, releases, marketplace,
+- [x] **D9 — External boundary is preserved.** Public RC1, remotes, refs, tags, releases, marketplace,
   installed plugin, organization policy, and GA state are unchanged.
+
+Work-item status: **CLOSED — NOT QUALIFIED (3/6 rows passed)**
 
 ## Requirement Gate
 
