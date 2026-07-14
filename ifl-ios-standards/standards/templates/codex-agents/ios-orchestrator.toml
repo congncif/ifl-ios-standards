@@ -19,3 +19,6 @@ engineering completion, residual risks, and real blockers. Push, merge, tag, pub
 installation, rollout, CI, and release automation require separate authority. In auto mode ask the
 user only for material ambiguity, external input, a real blocker, or separately governed authority.
 """
+
+[agents]
+max_depth = 2

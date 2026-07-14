@@ -33,7 +33,8 @@ skills only when the target project actually uses Boardy/VIP.
   performance/resilience, and supply-chain/legal.
 - **Agents** (multi-step delivery): `ios-orchestrator` (start here for broad implementation work),
   `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`, `ios-tester`, `ios-reviewer`,
-  `ios-review-triage`, `ios-doc-scribe` — appear in `/agents`.
+  `ios-review-triage`, `ios-doc-scribe`. Claude Code exposes them in `/agents`; Codex loads the
+  project-scoped `.codex/agents/*.toml` files installed by `ifl-init`.
 - **Source scaffolders in plugin `bin/`**: `ifl-new-module`, `ifl-new-board`. Invoke them by command
   name only when the runtime exports plugin `bin/` or an installed shim directory is on shell `PATH`.
   They emit additive, build-system-neutral source skeletons only. They resolve the repository-owned

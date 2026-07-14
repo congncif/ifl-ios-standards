@@ -36,7 +36,7 @@ for a in "$@"; do
 done
 
 [ -d "$ROOT" ] || { echo "ifl-init: root '$ROOT' not a directory" >&2; exit 65; }
-ROOT="$(cd "$ROOT" && pwd)"
+ROOT="$(cd "$ROOT" && pwd -P)"
 
 # Resolve templates relative to this script (works on PATH + standalone + in plugin cache).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -60,6 +60,41 @@ DST_CLAUDE="$ROOT/CLAUDE.md"
 DST_AGENTS="$ROOT/AGENTS.md"
 DST_CODEX_AGENT_DIR="$ROOT/.codex/agents"
 
+validate_codex_agent_destination() {
+  local path src dst resolved
+
+  for path in "$ROOT/.codex" "$DST_CODEX_AGENT_DIR"; do
+    [ -L "$path" ] && {
+      echo "ifl-init: refusing symlinked Codex agent path ${path#$ROOT/}" >&2
+      exit 65
+    }
+  done
+
+  for src in "${CODEX_AGENT_SOURCES[@]}"; do
+    dst="$DST_CODEX_AGENT_DIR/$(basename "$src")"
+    [ -L "$dst" ] && {
+      echo "ifl-init: refusing symlinked Codex agent file ${dst#$ROOT/}" >&2
+      exit 65
+    }
+  done
+
+  if [ -d "$DST_CODEX_AGENT_DIR" ]; then
+    resolved="$(cd "$DST_CODEX_AGENT_DIR" && pwd -P)"
+  elif [ -d "$ROOT/.codex" ]; then
+    resolved="$(cd "$ROOT/.codex" && pwd -P)"
+  else
+    resolved="$ROOT"
+  fi
+
+  case "$resolved" in
+    "$ROOT"|"$ROOT"/*) ;;
+    *)
+      echo "ifl-init: Codex agent destination resolves outside root: $resolved" >&2
+      exit 65
+      ;;
+  esac
+}
+
 check_codex_agent_conflicts() {
   local src dst
   [ "$FORCE" = 1 ] && return 0
@@ -75,13 +110,16 @@ check_codex_agent_conflicts() {
 
 write_codex_agents() {
   local src
+  validate_codex_agent_destination
   mkdir -p "$DST_CODEX_AGENT_DIR"
+  validate_codex_agent_destination
   for src in "${CODEX_AGENT_SOURCES[@]}"; do
     cp "$src" "$DST_CODEX_AGENT_DIR/$(basename "$src")"
   done
   echo "  WROTE  ${#CODEX_AGENT_SOURCES[@]} project-scoped Codex agents under .codex/agents/"
 }
 
+validate_codex_agent_destination
 check_codex_agent_conflicts
 
 if [ "$CODEX_AGENTS_ONLY" = 1 ]; then
