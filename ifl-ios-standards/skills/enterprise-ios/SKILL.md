@@ -27,6 +27,18 @@ them.
 | Startup, frame, memory, energy, network, budgets, offline behavior, retry | `${CLAUDE_PLUGIN_ROOT}/standards/enterprise/performance-resilience.md` | observability + modern testing; data lifecycle for offline/retry |
 | Pinning, provenance, checksums, inventory, vulnerabilities, integrity, licenses | `${CLAUDE_PLUGIN_ROOT}/standards/enterprise/supply-chain-legal.md` | mobile security when dependency risk changes the threat model |
 
+## Subagent dispatch
+
+Keep one bounded enterprise concern inline. When separate ownership helps, route facts to
+`ifl-ios-standards:ios-researcher`, architecture or governance decisions to
+`ifl-ios-standards:ios-architect`, approved implementation to `ifl-ios-standards:ios-coder`, executable
+evidence to `ifl-ios-standards:ios-tester`, independent audit to read-only
+`ifl-ios-standards:ios-reviewer`, broad mechanical final-diff coverage to read-only
+`ifl-ios-standards:ios-review-triage`, and approved policy/document output to
+`ifl-ios-standards:ios-doc-scribe`. Use `ifl-ios-standards:ios-orchestrator` only when concerns cross
+multiple coordinated workstreams. Codex maps the same responsibilities to provider-native generic
+subagents; continue inline when delegation is unavailable.
+
 ## Operating rules
 
 - Apply all chapters whose dependencies intersect the task; security consumes data classification,

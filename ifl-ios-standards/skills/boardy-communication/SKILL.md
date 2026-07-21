@@ -21,3 +21,12 @@ description: >-
   payload carries the source Controller; subscriber `guard target === source`. Board-originated
   buses use plain `Bus<Void>` + weak `bus.connect(target:)` — never fabricate a source via `attachedObject(_:)`.
 - `complete()` at most once, after streams released (rule 12).
+
+## Subagent dispatch
+
+Keep a bounded communication change inline. When separate ownership helps, route existing bus/lifecycle
+facts to `ifl-ios-standards:ios-researcher`, public communication contracts to
+`ifl-ios-standards:ios-architect`, approved wiring to `ifl-ios-standards:ios-coder`, and observable
+event/lifecycle behavior to `ifl-ios-standards:ios-tester`. Use read-only
+`ifl-ios-standards:ios-reviewer` only for an independent audit. Codex maps the same bounded
+responsibilities to provider-native generic subagents; continue inline when delegation is unavailable.

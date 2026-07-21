@@ -23,3 +23,12 @@ description: >-
 ## Shape
 `IO/{Board}/`: `{Board}IOInterface.swift` (BoardID + `{Board}MainDestination` + `io{Board}` factory),
 `{Board}InOut.swift` (Input/Output/Command/Action), `ServiceMap+{Board}.swift` (accessor on `{Module}ServiceMap`).
+
+## Subagent dispatch
+
+Keep a bounded IO change inline. When separate ownership helps, route public IO, BoardID, InOut, and
+ServiceMap contracts to `ifl-ios-standards:ios-architect`, approved implementation to
+`ifl-ios-standards:ios-coder`, observable contract behavior to `ifl-ios-standards:ios-tester`, and an
+independent visibility/dependency audit to read-only `ifl-ios-standards:ios-reviewer`. Use
+`ifl-ios-standards:ios-researcher` only for a bounded repository or standards lookup. Codex maps the
+same responsibilities to provider-native generic subagents; continue inline when delegation is unavailable.

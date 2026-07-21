@@ -43,3 +43,13 @@ Option A (coordinated cutover) vs Option B (bridge alias for public boards).
   review; the review does not replace code tests.
 - A contract-changing refactor normally needs spec-sync in the same plan; see
   `${CLAUDE_PLUGIN_ROOT}/standards/rules/SPEC_SYNC.md`.
+
+## Subagent dispatch
+
+Keep a bounded refactor inline. For a broad structural change, use
+`ifl-ios-standards:ios-orchestrator` and `ifl-ios-standards:ios-planner`; then route impact mapping to
+`ifl-ios-standards:ios-researcher`, contract decisions to `ifl-ios-standards:ios-architect`, approved
+slices to `ifl-ios-standards:ios-coder`, executable signals to `ifl-ios-standards:ios-tester`, durable
+docs to `ifl-ios-standards:ios-doc-scribe`, and the frozen final candidate to read-only
+`ifl-ios-standards:ios-reviewer` plus `ifl-ios-standards:ios-review-triage` lanes. Codex maps the same
+responsibilities to provider-native generic subagents; continue inline when delegation is unavailable.

@@ -67,3 +67,12 @@ needed by app-level launcher composition; other `Sources/**` declarations remain
 - Scaffolders are thin: product behavior, dependencies, app wiring, and meaningful tests remain
   post-generation work.
 - See `/ifl-ios-standards:boardy-vip` §2 for the full rule set.
+
+## Subagent dispatch
+
+Keep a bounded module scaffold inline. When separate ownership helps, route public module and composition
+boundaries to `ifl-ios-standards:ios-architect`, approved scaffold completion to
+`ifl-ios-standards:ios-coder`, executable behavior to `ifl-ios-standards:ios-tester`, and material
+IO/Plugins separation audits to read-only `ifl-ios-standards:ios-reviewer`. Use
+`ifl-ios-standards:ios-orchestrator` only when multiple workstreams need coordination. Codex maps the
+same responsibilities to provider-native generic subagents; continue inline when delegation is unavailable.

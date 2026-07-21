@@ -4,6 +4,12 @@ SemVer. The `version` in `.claude-plugin/plugin.json` + `.codex-plugin/plugin.js
 auto-update for installed plugins — bump it on every content change so installs pick it up
 (a content change without a version bump won't reach existing installs via `marketplace update`).
 
+## [1.0.1] — Unreleased
+
+### Fixed
+- Routed all 21 skills through exact namespaced Claude specialist IDs, with role-aware inline fallback,
+  independent review lanes, and Codex generic-subagent compatibility preserved.
+
 ## [1.0.0] — 2026-07-14
 
 ### Released

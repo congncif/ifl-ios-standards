@@ -11,7 +11,17 @@ Under Codex, `${CLAUDE_PLUGIN_ROOT}` is a path marker, not a required shell vari
 against the installed plugin root that contains this skill's `skills/` directory. Claude Code expands
 it normally.
 
-Create one complete plan for the requested outcome. Read:
+Create one complete plan for the requested outcome.
+
+## Subagent dispatch
+
+Keep bounded planning inline. When separate plan ownership helps, route the complete plan to
+`ifl-ios-standards:ios-planner` and missing repository facts to
+`ifl-ios-standards:ios-researcher`. In eligible auto mode, independent read-only
+`ifl-ios-standards:ios-reviewer` decides the Plan gate; the planner never self-approves. Codex maps the
+same responsibilities to provider-native generic subagents; continue inline when delegation is unavailable.
+
+Read:
 
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/13-agentic-coding-rules.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/18-decision-heuristics.md`

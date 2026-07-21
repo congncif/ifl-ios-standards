@@ -12,7 +12,17 @@ against the installed plugin root that contains this skill's `skills/` directory
 it normally.
 
 Execute the approved plan continuously until its Definition of Done is complete or a real blocker
-requires escalation. Read:
+requires escalation.
+
+## Subagent dispatch
+
+Keep bounded execution inline. When separate ownership helps, route production or standards mutation to
+`ifl-ios-standards:ios-coder`, executable tests to `ifl-ios-standards:ios-tester`, and approved
+documentation-only paths to `ifl-ios-standards:ios-doc-scribe`. Use
+`ifl-ios-standards:ios-orchestrator` only for coordinated disjoint workstreams. Codex maps the same
+responsibilities to provider-native generic subagents; continue inline when delegation is unavailable.
+
+Read:
 
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/QUICK_REF.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/13-agentic-coding-rules.md`

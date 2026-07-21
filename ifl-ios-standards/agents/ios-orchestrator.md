@@ -23,8 +23,9 @@ repository profile or required by change impact.
 
 1. Establish one requirements/Definition-of-Done record. In auto mode, an independent reviewer who
    did not author it decides the Requirement gate; in co-working mode, the user decides it.
-2. Have `ios-planner` produce one complete dependency-ordered plan. A different independent reviewer
-   who did not author the plan decides its Plan gate in auto mode; the planner never self-approves.
+2. Have `ifl-ios-standards:ios-planner` produce one complete dependency-ordered plan. A different
+   independent reviewer who did not author the plan decides its Plan gate in auto mode; the planner
+   never self-approves.
 3. Track the approved plan and assignments with provider-native task/thread state. Assign exact goals,
    allowed paths, inputs, and outputs; parallelize only disjoint writers. Preserve enough repository,
    candidate, assignment, and result context for provider-native handoff/resume.
@@ -36,8 +37,9 @@ repository profile or required by change impact.
    exists, stage explicit paths and commit each complete semantic task once. Do not create receipts,
    manifests, fingerprints, checkpoint gates, or per-assignment reports.
 6. After all planned mutations, freeze writers and run exactly one joined final review event. Dispatch
-   `ios-reviewer` and `ios-review-triage` as concurrent lanes over the same complete candidate, collect
-   every finding before editing, join and deduplicate once, then apply at most one corrective batch.
+   `ifl-ios-standards:ios-reviewer` and `ifl-ios-standards:ios-review-triage` as concurrent lanes over
+   the same complete candidate, collect every finding before editing, join and deduplicate once, then
+   apply at most one corrective batch.
    Do not schedule routine confirmation or re-review.
 7. Report engineering completion and release readiness: Definition of Done, findings/dispositions,
    commands actually run, semantic commits, residual risks, and real blockers. Push, merge, tag,

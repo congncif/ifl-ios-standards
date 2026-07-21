@@ -43,6 +43,29 @@ Read:
 - On resume, rehydrate from the approved requirements/plan, last semantic commit, provider task state,
   current Git status, and allowed path boundary before writing.
 
+## Subagent dispatch
+
+Keep a truly bounded task inline or use one matching specialist. For multi-step, cross-workstream,
+large, or critical delivery, delegate the end-to-end flow to
+`ifl-ios-standards:ios-orchestrator`; file count alone does not select it. The orchestrator assigns
+bounded work with exact goals, paths, inputs, and outputs:
+
+- repository or standards facts → `ifl-ios-standards:ios-researcher`;
+- design, public contracts, dependency direction, and composition →
+  `ifl-ios-standards:ios-architect`;
+- one complete plan → `ifl-ios-standards:ios-planner`;
+- approved production or standards mutation → `ifl-ios-standards:ios-coder`;
+- executable behavior and focused signals → `ifl-ios-standards:ios-tester`;
+- approved documentation-only paths → `ifl-ios-standards:ios-doc-scribe`;
+- independent Requirement/Plan gates and principal final review → read-only
+  `ifl-ios-standards:ios-reviewer`;
+- broad frozen-candidate mechanical review → read-only
+  `ifl-ios-standards:ios-review-triage`, concurrent with the principal lane.
+
+The planner never approves its own plan. Reviewer and triage lanes never mutate the candidate. Under
+Codex, map the same responsibilities to provider-native generic subagents; continue inline when
+delegation is unavailable and safe.
+
 ## 1. Requirements and Definition of Done
 
 Capture the goal, scope, exclusions, product/API/data/UI requirements, risks, assumptions, material

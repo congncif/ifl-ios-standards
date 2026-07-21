@@ -20,3 +20,12 @@ description: >-
 - `Sources/Plugins/**` may be `public` for LauncherPlugin construction wiring (rule 3).
 - Register boards in `{Module}ModulePlugin.swift` (`ServiceType` case → BoardID + `build(motherboard:)`).
 - `sharedRepository` stored on the ModulePlugin (rule 10).
+
+## Subagent dispatch
+
+Keep a bounded composition change inline. When separate ownership helps, route composition roots,
+providers, containers, and barriers to `ifl-ios-standards:ios-architect`, approved wiring to
+`ifl-ios-standards:ios-coder`, activation/composition behavior to `ifl-ios-standards:ios-tester`, and
+an independent architecture audit to read-only `ifl-ios-standards:ios-reviewer`. Use
+`ifl-ios-standards:ios-researcher` only for a bounded lookup. Codex maps the same responsibilities to
+provider-native generic subagents; continue inline when delegation is unavailable.

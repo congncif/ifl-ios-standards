@@ -69,3 +69,11 @@ boundary. The `blocktask` selector emits `BlockTaskParameter` IO and a fail-fast
 - UIKit and SwiftUI are adapters over the same Boardy+VIP and humble-View semantics.
 - Scaffolders are thin and additive; generated output is not completed product behavior.
 - Protocol placement follows `/ifl-ios-standards:boardy-vip` §2 / QUICK_REF §3.
+
+## Subagent dispatch
+
+Keep a bounded board addition inline. When separate ownership helps, route board-type and contract shape
+to `ifl-ios-standards:ios-architect`, approved implementation and registration to
+`ifl-ios-standards:ios-coder`, executable behavior to `ifl-ios-standards:ios-tester`, and assigned
+durable documentation to `ifl-ios-standards:ios-doc-scribe`. Codex maps the same responsibilities to
+provider-native generic subagents; continue inline when delegation is unavailable.

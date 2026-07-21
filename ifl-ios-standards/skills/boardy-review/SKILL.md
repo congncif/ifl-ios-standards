@@ -19,9 +19,13 @@ description: >-
 - BoardID strings not matching the `pub.mod.…` naming table.
 - Buses: retrieved controller refs instead of buses; missing identity-filter on round-trips; double-`complete()`.
 
-For the delegated pipeline, Claude uses `ios-reviewer` + `ios-review-triage`. Codex assigns the same
-principal and mechanical lanes to provider-native read-only subagents, or executes them inline when
-delegation is unavailable; custom profile IDs are not required.
+## Subagent dispatch
+
+Keep a bounded review inline. When separate review ownership helps, route the principal lane to read-only
+`ifl-ios-standards:ios-reviewer`; add read-only `ifl-ios-standards:ios-review-triage` concurrently only
+for broad mechanical final-diff coverage. Both inspect the same frozen candidate and never mutate it.
+Under Codex, map the same responsibilities to provider-native read-only subagents; continue inline when
+delegation is unavailable.
 
 ## Cadence inside Brain Flow
 

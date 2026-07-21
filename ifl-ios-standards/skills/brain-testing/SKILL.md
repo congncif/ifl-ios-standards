@@ -11,8 +11,17 @@ Under Codex, `${CLAUDE_PLUGIN_ROOT}` is a path marker, not a required shell vari
 against the installed plugin root that contains this skill's `skills/` directory. Claude Code expands
 it normally.
 
-Testing applies to executable code behavior. Read the project's test bindings and the relevant testing
-standard; in Boardy+VIP projects also use `boardy-testing`. Use
+Testing applies to executable code behavior.
+
+## Subagent dispatch
+
+Keep bounded test work inline. When separate test ownership helps, route strategy, tests, and focused
+execution to `ifl-ios-standards:ios-tester`; use `ifl-ios-standards:ios-researcher` only for test
+binding facts and `ifl-ios-standards:ios-coder` only for an explicitly assigned production or
+test-support change. Codex maps the same responsibilities to provider-native generic subagents; continue
+inline when delegation is unavailable.
+
+Read the project's test bindings and the relevant testing standard; in Boardy+VIP projects also use `boardy-testing`. Use
 `${CLAUDE_PLUGIN_ROOT}/standards/process/full-auto-operating-model.md` for failure and corrective-batch cadence.
 
 ## Strategy

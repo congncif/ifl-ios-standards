@@ -1,0 +1,5 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "ifl-ios-standards",
+  "description": "Reusable iOS engineering standards with specialist agents and skills."
+}

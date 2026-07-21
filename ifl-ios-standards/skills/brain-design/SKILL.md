@@ -15,6 +15,13 @@ it normally.
 
 Pattern-neutral design stage of the brain rulebook. Loads only the chapters this stage needs.
 
+## Subagent dispatch
+
+Keep bounded design work inline. When separate ownership helps, route repository or standards facts to
+`ifl-ios-standards:ios-researcher` and domain, module, and use-case decisions to
+`ifl-ios-standards:ios-architect`. Codex maps the same responsibilities to provider-native generic
+subagents; continue inline when delegation is unavailable.
+
 ## Read
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/04-module-design-rules.md` — what a module is, split boundaries.
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/06-domain-modeling-rules.md` — pure entities, value types, domain errors.

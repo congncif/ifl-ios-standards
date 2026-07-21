@@ -15,6 +15,15 @@ Generate the consuming repo's `CLAUDE.md` + twin `AGENTS.md`. Claude Code discov
 assignments and inline fallback, so project custom-agent profiles are not required. The standard
 itself stays in the plugin.
 
+## Subagent dispatch
+
+Keep `ifl-init` and bounded binding setup inline. When separate ownership helps, route repository facts
+to `ifl-ios-standards:ios-researcher`, material profile or module-boundary choices to
+`ifl-ios-standards:ios-architect`, assigned binding edits to `ifl-ios-standards:ios-doc-scribe`, and an
+independent twin-binding consistency check to read-only `ifl-ios-standards:ios-reviewer`. Codex maps the
+same responsibilities to provider-native generic subagents; continue inline when delegation is
+unavailable.
+
 ## 1. Seed via the bundled helper
 
 Run the scaffolder. It copies the binding starter and pre-fills only values backed by unambiguous

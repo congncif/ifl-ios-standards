@@ -37,9 +37,10 @@ performance/resilience, or supply-chain/legal concerns. The enterprise router se
 focused chapters; their files remain the single source of detailed standards.
 
 `brain-flow` uses provider-native planning, delegation, and semantic workstreams to execute one
-approved plan, then runs one joined final AI consistency review over the complete result. Eligible
-full-auto delivery ends at engineering completion and release readiness; it does not imply push,
-tag, publication, installation, or rollout.
+approved plan, then runs one joined final AI consistency review over the complete result. Claude Code
+selects its packaged specialists with exact `ifl-ios-standards:ios-*` IDs; Codex maps the same bounded
+responsibilities to provider-native generic subagents. Eligible full-auto delivery ends at engineering
+completion and release readiness; it does not imply push, tag, publication, installation, or rollout.
 
 ## How references resolve
 

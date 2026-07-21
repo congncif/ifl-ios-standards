@@ -42,3 +42,15 @@ Do not introduce pack-owned verifier/lint/smoke scripts, receipts/manifests, fin
 ledgers, a custom workflow kernel, or provider-independent runtime state. Track progress in the
 approved plan or provider-native task state and use one joined final AI consistency review after the
 complete plan.
+
+## Subagent dispatch
+
+Keep a bounded adoption task inline. For a migration with coordinated workstreams, use
+`ifl-ios-standards:ios-orchestrator`. Route repository inventory to
+`ifl-ios-standards:ios-researcher`, migration planning to `ifl-ios-standards:ios-planner`, boundaries
+to `ifl-ios-standards:ios-architect`, approved mutations to `ifl-ios-standards:ios-coder`, executable
+tests to `ifl-ios-standards:ios-tester`, durable adoption docs to
+`ifl-ios-standards:ios-doc-scribe`, and final review to read-only
+`ifl-ios-standards:ios-reviewer` plus `ifl-ios-standards:ios-review-triage` lanes. Codex maps the same
+bounded responsibilities to provider-native generic subagents; continue inline when delegation is
+unavailable.

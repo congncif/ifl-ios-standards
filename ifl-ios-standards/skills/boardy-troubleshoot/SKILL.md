@@ -45,3 +45,14 @@ description: >-
 - `complete()` assertion → called twice, or before streams released (rule 12).
 - Concurrent BlockTask routing to wrong activation → using `.flow.addTarget` instead of parameter callbacks (rule 14).
 - UI update crash off main thread → missing `await MainActor.run { [weak self] … }` (rule 5).
+
+## Subagent dispatch
+
+Keep a bounded diagnosis and fix inline. When separate ownership helps, route source-cited symptom
+investigation to `ifl-ios-standards:ios-researcher`, boundary or lifecycle causes to
+`ifl-ios-standards:ios-architect`, the smallest approved fix to `ifl-ios-standards:ios-coder`, and
+focused regression behavior to `ifl-ios-standards:ios-tester`. Use
+`ifl-ios-standards:ios-orchestrator` for multi-lane recovery and read-only
+`ifl-ios-standards:ios-reviewer` only for material scope, security, or architecture impact. Codex maps
+the same responsibilities to provider-native generic subagents; continue inline when delegation is
+unavailable.

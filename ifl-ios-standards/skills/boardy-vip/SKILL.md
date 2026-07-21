@@ -88,19 +88,23 @@ Process standards (apply to every task):
 Full detail + protocol-location table (§3) + naming-with-prefix table (§2) + canonical module
 skeleton (§5): `${CLAUDE_PLUGIN_ROOT}/standards/rules/QUICK_REF.md`.
 
-## 3. Specialist agents (delegated pipeline)
+## 3. Claude Code dispatch
 
-For multi-step feature delivery, Claude Code exposes the 9 bundled agents in `/agents`:
-`ios-orchestrator` (tech lead), `ios-planner`, `ios-researcher`, `ios-architect`, `ios-coder`,
-`ios-tester`, `ios-reviewer`, `ios-review-triage`, `ios-doc-scribe`. Start with `ios-orchestrator`
-for large/critical delivery or when multiple semantic checkpoints require coordinated specialist
-ownership. File count alone does not select a workflow or checkpoint. Model-tier rationale per agent:
-`${CLAUDE_PLUGIN_ROOT}/standards/AGENT_MODEL_TIERING.md`.
+Keep a bounded Boardy task inline; matching this router never requires delegation. For multi-step,
+cross-workstream, large, or critical delivery, enter `/ifl-ios-standards:brain-flow` and delegate to
+`ifl-ios-standards:ios-orchestrator`; file count alone does not select it.
 
-In Codex, start with `brain-flow` and map the same responsibilities onto provider-native generic
-subagents through exact bounded assignments. Use read-only agents for gates/review, disjoint writers
-for execution, and inline fallback when delegation is unavailable; named project profiles are not a
-1.0 prerequisite.
+When separate ownership helps, route bounded facts to `ifl-ios-standards:ios-researcher`, plans to
+`ifl-ios-standards:ios-planner`, public contracts and composition to
+`ifl-ios-standards:ios-architect`, approved implementation to `ifl-ios-standards:ios-coder`, executable
+tests to `ifl-ios-standards:ios-tester`, approved durable docs to
+`ifl-ios-standards:ios-doc-scribe`, and independent final review to read-only
+`ifl-ios-standards:ios-reviewer` plus concurrent read-only
+`ifl-ios-standards:ios-review-triage` for broad mechanical coverage. The planner never approves its own
+plan. Model-tier rationale per agent: `${CLAUDE_PLUGIN_ROOT}/standards/AGENT_MODEL_TIERING.md`.
+
+Under Codex, map the same responsibilities to provider-native generic subagents; continue inline when
+delegation is unavailable.
 
 ## 4. Scaffolders (on PATH when this plugin is enabled)
 

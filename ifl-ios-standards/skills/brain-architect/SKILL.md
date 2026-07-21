@@ -15,6 +15,13 @@ it normally.
 
 Pattern-neutral architecture stage of the brain rulebook. Loads only the chapters this stage needs.
 
+## Subagent dispatch
+
+Keep bounded architecture work inline. When separate ownership helps, route boundaries, contracts,
+visibility, and composition to `ifl-ios-standards:ios-architect`; use
+`ifl-ios-standards:ios-researcher` only for a bounded factual lookup. Codex maps the same
+responsibilities to provider-native generic subagents; continue inline when delegation is unavailable.
+
 ## Read
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/02-architectural-principles.md` — layers, inward dependency direction.
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/03-dependency-rules.md` — compile-time dependency matrix, third-party policy.

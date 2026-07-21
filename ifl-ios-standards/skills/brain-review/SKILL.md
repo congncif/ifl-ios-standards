@@ -12,7 +12,17 @@ against the installed plugin root that contains this skill's `skills/` directory
 it normally.
 
 Review the final repository state and complete branch diff against the approved plan and Definition of
-Done. Read:
+Done.
+
+## Subagent dispatch
+
+Keep a bounded audit inline unless independent review authority is required. For the final frozen
+candidate, route the principal architecture/behavior lane to read-only
+`ifl-ios-standards:ios-reviewer`; add read-only `ifl-ios-standards:ios-review-triage` concurrently only
+for broad mechanical final-diff coverage. Codex maps the same responsibilities to provider-native generic
+subagents; continue inline when delegation is unavailable.
+
+Read:
 
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/19-architecture-review-checklist.md`
 - `${CLAUDE_PLUGIN_ROOT}/standards/brain/rulebook/17-anti-patterns.md`
